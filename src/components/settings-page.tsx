@@ -222,7 +222,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject }: { project: Pro
             {editingId === style.id ? (
               <div className="p-4 space-y-3">
                 <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Style name" />
-                <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={10} className="font-mono text-[13px]" />
+                <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={10} className="font-mono text-[13px] max-h-[40vh] overflow-y-auto" />
                 <div className="flex gap-2">
                   <Button size="sm" className="imp-btn-primary" onClick={() => handleUpdate(style.id)}>Save</Button>
                   <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>Cancel</Button>
@@ -279,7 +279,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject }: { project: Pro
             </div>
             <div className="space-y-2">
               <Label>Style description</Label>
-              <Textarea value={newContent} onChange={(e) => setNewContent(e.target.value)} rows={10} className="font-mono text-[13px]" placeholder="Aspect ratio 16:9 (1600×900).&#10;&#10;Palette&#10;- Background: deep navy #0a1020 → #0d1426 gradient&#10;..." />
+              <Textarea value={newContent} onChange={(e) => setNewContent(e.target.value)} rows={10} className="font-mono text-[13px] max-h-[40vh] overflow-y-auto" placeholder="Aspect ratio 16:9 (1600×900).&#10;&#10;Palette&#10;- Background: deep navy #0a1020 → #0d1426 gradient&#10;..." />
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setShowNew(false)}>Cancel</Button>
