@@ -45,10 +45,12 @@ export async function POST(req: NextRequest) {
   const b64 = result.data[0]?.b64_json;
   const url = result.data[0]?.url;
 
-  if (b64) {
-    imageUrl = `data:image/png;base64,${b64}`;
-  } else {
+  if (url) {
     imageUrl = url;
+  } else if (b64) {
+    imageUrl = b64;
+  } else {
+    return NextResponse.json({ error: "No image generated" }, { status: 500 });
   }
 
   const updated = await prisma.tweet.update({
