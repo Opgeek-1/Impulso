@@ -77,5 +77,5 @@ export async function generateImage(prompt: string, options?: { size?: string; m
 export const MODELS = {
   tweet: process.env.AI_TWEET_MODEL ?? "claude-sonnet-4-6",
   design: process.env.AI_DESIGN_MODEL ?? "claude-sonnet-4-6",
-  image: process.env.AI_IMAGE_MODEL ?? "dall-e-3",
+  image: process.env.AI_IMAGE_MODEL ?? "gpt-image-2",
 } as const;

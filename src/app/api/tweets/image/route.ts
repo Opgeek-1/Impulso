@@ -3,8 +3,6 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { generateImage, MODELS } from "@/lib/ai";
 import { extractJSON } from "@/lib/utils-server";
-import { writeFile } from "fs/promises";
-import path from "path";
 import { getWorkspaceMemberIds } from "@/lib/workspace";
 
 export async function POST(req: NextRequest) {
@@ -40,7 +38,7 @@ export async function POST(req: NextRequest) {
 
   const result = await generateImage(prompt, {
     model: MODELS.image,
-    size: "1792x1024",
+    size: "1536x1024",
   });
 
   let imageUrl: string;
@@ -48,10 +46,7 @@ export async function POST(req: NextRequest) {
   const url = result.data[0]?.url;
 
   if (b64) {
-    const filename = `${tweetId}-${Date.now()}.png`;
-    const filePath = path.join(process.cwd(), "public", "generated", filename);
-    await writeFile(filePath, Buffer.from(b64, "base64"));
-    imageUrl = `/generated/${filename}`;
+    imageUrl = `data:image/png;base64,${b64}`;
   } else {
     imageUrl = url;
   }
