@@ -54,7 +54,7 @@ export async function PATCH(req: NextRequest) {
   const memberIds = await getWorkspaceMemberIds(session.user.id);
 
   const body = await req.json();
-  const { projectId, name, handle, avatarUrl } = body;
+  const { projectId, name, handle, avatarUrl, brief } = body;
 
   if (!projectId) {
     return NextResponse.json({ error: "projectId required" }, { status: 400 });
@@ -67,10 +67,11 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const data: Record<string, string> = {};
+  const data: Record<string, string | null> = {};
   if (name !== undefined) data.name = name;
   if (handle !== undefined) data.handle = handle;
   if (avatarUrl !== undefined) data.avatarUrl = avatarUrl;
+  if (brief !== undefined) data.brief = brief;
 
   const updated = await prisma.project.update({
     where: { id: projectId },

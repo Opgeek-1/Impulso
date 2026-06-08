@@ -28,7 +28,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
+  const briefSection = project.brief
+    ? `\n\nACCOUNT CONTEXT — Use this as background reference for content generation:\n${project.brief}\n`
+    : "";
+
   const systemPrompt = `You are a social media content strategist. Generate ${count} unique tweets for the Twitter account @${project.handle} (${project.name}).
+${briefSection}
 Each tweet should:
 - Be under 280 characters
 - Approach the topic from a different angle

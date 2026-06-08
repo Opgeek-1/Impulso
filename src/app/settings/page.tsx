@@ -24,5 +24,11 @@ export default async function Settings() {
     orderBy: { createdAt: "desc" },
   });
 
-  return <SettingsPage projects={projects} user={session.user} />;
+  // Map brief onto the result for the client
+  const projectsWithBrief = projects.map((p) => ({
+    ...p,
+    brief: p.brief,
+  }));
+
+  return <SettingsPage projects={projectsWithBrief} user={session.user} />;
 }

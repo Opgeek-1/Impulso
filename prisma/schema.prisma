@@ -61,6 +61,7 @@ model Project {
   name        String
   handle      String
   description String?
+  brief       String?
   avatarUrl   String?
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)

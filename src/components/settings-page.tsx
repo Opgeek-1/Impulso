@@ -26,6 +26,9 @@ import {
   Moon,
   Check,
   Plus,
+  FileText,
+  Globe,
+  Loader2,
 } from "lucide-react";
 
 /* --- Types --- */
@@ -34,6 +37,7 @@ interface Project {
   name: string;
   handle: string;
   description: string | null;
+  brief?: string | null;
   avatarUrl?: string | null;
   _count: { tweets: number; styles: number };
 }
@@ -52,6 +56,7 @@ interface SettingsPageProps {
 
 /* --- Constants --- */
 const NAV_ITEMS = [
+  { id: "brief", label: "Account brief", icon: FileText },
   { id: "styles", label: "Image styles", icon: ImageIcon },
   { id: "accounts", label: "X accounts", icon: X },
   { id: "appearance", label: "Appearance", icon: SlidersHorizontal },
@@ -69,6 +74,160 @@ const DENSITIES = [
   { key: "regular", label: "Regular" },
   { key: "comfy", label: "Comfy" },
 ];
+
+/* --- Account Brief Panel --- */
+function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { project: Project; projects: Project[]; onSwitchProject: (p: Project) => void; onUpdate: (p: Project) => void }) {
+  const [brief, setBrief] = useState(project.brief || "");
+  const [url, setUrl] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    setBrief(project.brief || "");
+  }, [project.id, project.brief]);
+
+  async function handleSave() {
+    setSaving(true);
+    const res = await fetch("/api/projects", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectId: project.id, brief }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      onUpdate({ ...project, brief: updated.brief });
+      toast.success("Brief saved");
+    } else {
+      toast.error("Failed to save brief");
+    }
+    setSaving(false);
+  }
+
+  async function handleFetchUrl() {
+    if (!url.trim()) return;
+    setFetching(true);
+    try {
+      const res = await fetch("/api/projects/fetch-brief", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBrief((prev) => prev ? `${prev}\n\n---\n\n${data.content}` : data.content);
+        setUrl("");
+        toast.success("Website content imported");
+      } else {
+        toast.error("Failed to fetch website");
+      }
+    } catch {
+      toast.error("Failed to fetch website");
+    }
+    setFetching(false);
+  }
+
+  return (
+    <div>
+      {/* Project selector */}
+      <div
+        className="flex items-center gap-3 rounded-xl px-4 py-3 mb-6"
+        style={{ background: "var(--imp-surface-2)", border: "1px solid var(--imp-border)" }}
+      >
+        <div className="w-5 h-5 rounded-full border-2 shrink-0" style={{ borderColor: "var(--imp-border-2)" }} />
+        <p className="text-[13.5px] m-0 flex-1" style={{ color: "var(--imp-text-2)" }}>
+          Brief is saved <strong style={{ color: "var(--imp-text)" }}>per X account</strong>. You&apos;re editing the brief for:
+        </p>
+        <div className="relative">
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors"
+            style={{ background: dropdownOpen ? "var(--imp-surface-3)" : "transparent" }}
+          >
+            {project.avatarUrl ? (
+              <img src={project.avatarUrl} alt={project.name} className="w-7 h-7 object-cover" style={{ borderRadius: "32%" }} />
+            ) : (
+              <div
+                className="w-7 h-7 flex items-center justify-center text-[11px] font-bold text-white"
+                style={{ background: "var(--imp-accent-grad)", color: "var(--imp-on-accent)", borderRadius: "32%" }}
+              >
+                {project.name[0]}
+              </div>
+            )}
+            <span style={{ color: "var(--imp-text)" }}>{project.name}</span>
+          </button>
+          {dropdownOpen && projects.length > 1 && (
+            <div
+              className="absolute right-0 top-full mt-1 rounded-lg py-1 w-[180px] z-10"
+              style={{ background: "var(--imp-surface)", border: "1px solid var(--imp-border)", boxShadow: "var(--imp-shadow)" }}
+            >
+              {projects.filter((p) => p.id !== project.id).map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => { onSwitchProject(p); setDropdownOpen(false); }}
+                  className="w-full text-left px-3 py-2 text-[13px] hover:bg-[var(--imp-surface-2)] transition-colors"
+                  style={{ color: "var(--imp-text)" }}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* URL import */}
+      <div className="mb-5">
+        <Label className="mb-2 block">Import from website</Label>
+        <div className="flex gap-2">
+          <div
+            className="flex-1 flex items-center gap-2.5 rounded-xl px-4 h-[42px]"
+            style={{ background: "var(--imp-surface)", border: "1px solid var(--imp-border)" }}
+          >
+            <Globe size={15} style={{ color: "var(--imp-muted)" }} />
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://yourproduct.com"
+              className="flex-1 bg-transparent border-none outline-none text-[13.5px]"
+              style={{ color: "var(--imp-text)" }}
+            />
+          </div>
+          <Button
+            onClick={handleFetchUrl}
+            disabled={fetching || !url.trim()}
+            className="imp-btn-primary h-[42px] px-4 rounded-xl text-[13px]"
+          >
+            {fetching ? <Loader2 size={14} className="animate-spin" /> : "Import"}
+          </Button>
+        </div>
+        <p className="text-[12px] mt-1.5 px-1" style={{ color: "var(--imp-muted)" }}>
+          We&apos;ll extract key info from the page to use as context for content generation.
+        </p>
+      </div>
+
+      {/* Manual brief */}
+      <div className="mb-5">
+        <Label className="mb-2 block">Account brief</Label>
+        <Textarea
+          value={brief}
+          onChange={(e) => setBrief(e.target.value)}
+          rows={14}
+          className="font-mono text-[13px] max-h-[50vh] overflow-y-auto"
+          placeholder={"Describe your brand, target audience, tone of voice, key topics, and any guidelines for content generation.\n\nExample:\n- Brand: PayGate — Web3 payment infrastructure\n- Audience: Crypto-native builders, DeFi users\n- Tone: Technical but accessible, no hype\n- Topics: stablecoins, payment rails, cross-chain..."}
+        />
+      </div>
+
+      {/* Save */}
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={saving} className="imp-btn-primary">
+          {saving ? "Saving..." : "Save brief"}
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 /* --- Image Styles Panel --- */
 function ImageStylesPanel({ project, projects, onSwitchProject }: { project: Project; projects: Project[]; onSwitchProject: (p: Project) => void }) {
@@ -557,6 +716,7 @@ function AppearancePanel() {
 
 /* --- Main Settings Page --- */
 const SECTION_META: Record<string, { icon: typeof ImageIcon; title: string; desc: string }> = {
+  brief: { icon: FileText, title: "Account brief", desc: "Context about your brand that AI reads before generating tweets. The more detail, the better the output." },
   styles: { icon: ImageIcon, title: "Image styles", desc: "Reusable visual briefs Impulso applies when generating images. Pick one from the Generate button on any card." },
   accounts: { icon: X, title: "X accounts", desc: "Connect the handles you manage. Each account keeps its own pipeline, schedule, and image styles." },
   appearance: { icon: SlidersHorizontal, title: "Appearance", desc: "Personal display preferences for this workspace. These only affect your view." },
@@ -565,7 +725,7 @@ const SECTION_META: Record<string, { icon: typeof ImageIcon; title: string; desc
 export function SettingsPage({ projects: initialProjects, user }: SettingsPageProps) {
   const [projects, setProjects] = useState(initialProjects);
   const [selectedProject, setSelectedProject] = useState<Project | null>(initialProjects[0] ?? null);
-  const [activeSection, setActiveSection] = useState("styles");
+  const [activeSection, setActiveSection] = useState("brief");
   const router = useRouter();
 
   function handleProjectCreated(project: Project & { _count?: { tweets: number; styles: number } }) {
@@ -658,6 +818,7 @@ export function SettingsPage({ projects: initialProjects, user }: SettingsPagePr
 
           {/* Panel content */}
           <div className="ml-[54px]">
+            {activeSection === "brief" && selectedProject && <AccountBriefPanel project={selectedProject} projects={projects} onSwitchProject={(p) => setSelectedProject(p)} onUpdate={handleProjectUpdated} />}
             {activeSection === "styles" && selectedProject && <ImageStylesPanel project={selectedProject} projects={projects} onSwitchProject={(p) => setSelectedProject(p)} />}
             {activeSection === "accounts" && <AccountsPanel projects={projects} onDelete={handleProjectDeleted} onUpdate={handleProjectUpdated} />}
             {activeSection === "appearance" && <AppearancePanel />}
