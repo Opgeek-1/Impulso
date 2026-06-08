@@ -1,17 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-
-// Get all workspace member user IDs for the current user
-async function getWorkspaceMemberIds(userId: string): Promise<string[]> {
-  const membership = await prisma.workspaceMember.findFirst({
-    where: { userId },
-    include: { workspace: { include: { members: true } } },
-  });
-
-  if (!membership) return [userId];
-  return membership.workspace.members.map((m) => m.userId);
-}
+import { getWorkspaceMemberIds } from "@/lib/workspace";
 
 export async function GET(req: NextRequest) {
   const session = await auth();

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getWorkspaceMemberIds } from "@/lib/workspace";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -15,10 +16,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "projectId is required" }, { status: 400 });
   }
 
+  const memberIds = await getWorkspaceMemberIds(session.user.id);
+
   const tweets = await prisma.tweet.findMany({
     where: {
       projectId,
-      project: { userId: session.user.id },
+      project: { userId: { in: memberIds } },
     },
     orderBy: { createdAt: "desc" },
     include: { batch: true },
@@ -40,12 +43,14 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "tweetId is required" }, { status: 400 });
   }
 
+  const memberIds = await getWorkspaceMemberIds(session.user.id);
+
   const tweet = await prisma.tweet.findFirst({
     where: { id: tweetId },
     include: { project: true },
   });
 
-  if (!tweet || tweet.project.userId !== session.user.id) {
+  if (!tweet || !memberIds.includes(tweet.project.userId)) {
     return NextResponse.json({ error: "Tweet not found" }, { status: 404 });
   }
 
@@ -74,12 +79,14 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "tweetId is required" }, { status: 400 });
   }
 
+  const memberIds = await getWorkspaceMemberIds(session.user.id);
+
   const tweet = await prisma.tweet.findFirst({
     where: { id: tweetId },
     include: { project: true },
   });
 
-  if (!tweet || tweet.project.userId !== session.user.id) {
+  if (!tweet || !memberIds.includes(tweet.project.userId)) {
     return NextResponse.json({ error: "Tweet not found" }, { status: 404 });
   }
 

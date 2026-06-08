@@ -5,6 +5,7 @@ import { generateImage, MODELS } from "@/lib/ai";
 import { extractJSON } from "@/lib/utils-server";
 import { writeFile } from "fs/promises";
 import path from "path";
+import { getWorkspaceMemberIds } from "@/lib/workspace";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -19,12 +20,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "tweetId is required" }, { status: 400 });
   }
 
+  const memberIds = await getWorkspaceMemberIds(session.user.id);
+
   const tweet = await prisma.tweet.findFirst({
     where: { id: tweetId },
     include: { project: { include: { user: true } } },
   });
 
-  if (!tweet || tweet.project.userId !== session.user.id) {
+  if (!tweet || !memberIds.includes(tweet.project.userId)) {
     return NextResponse.json({ error: "Tweet not found" }, { status: 404 });
   }
 

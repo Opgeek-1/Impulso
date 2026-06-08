@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getWorkspaceMemberIds } from "@/lib/workspace";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -15,8 +16,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "projectId is required" }, { status: 400 });
   }
 
+  const memberIds = await getWorkspaceMemberIds(session.user.id);
+
   const project = await prisma.project.findFirst({
-    where: { id: projectId, userId: session.user.id },
+    where: { id: projectId, userId: { in: memberIds } },
   });
   if (!project) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
@@ -43,8 +46,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "projectId, name, and content are required" }, { status: 400 });
   }
 
+  const memberIds = await getWorkspaceMemberIds(session.user.id);
+
   const project = await prisma.project.findFirst({
-    where: { id: projectId, userId: session.user.id },
+    where: { id: projectId, userId: { in: memberIds } },
   });
   if (!project) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
@@ -77,11 +82,13 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "styleId is required" }, { status: 400 });
   }
 
+  const memberIds = await getWorkspaceMemberIds(session.user.id);
+
   const style = await prisma.style.findFirst({
     where: { id: styleId },
     include: { project: true },
   });
-  if (!style || style.project.userId !== session.user.id) {
+  if (!style || !memberIds.includes(style.project.userId)) {
     return NextResponse.json({ error: "Style not found" }, { status: 404 });
   }
 
@@ -117,11 +124,13 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "styleId is required" }, { status: 400 });
   }
 
+  const memberIds = await getWorkspaceMemberIds(session.user.id);
+
   const style = await prisma.style.findFirst({
     where: { id: styleId },
     include: { project: true },
   });
-  if (!style || style.project.userId !== session.user.id) {
+  if (!style || !memberIds.includes(style.project.userId)) {
     return NextResponse.json({ error: "Style not found" }, { status: 404 });
   }
 

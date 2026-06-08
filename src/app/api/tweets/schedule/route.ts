@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getWorkspaceMemberIds } from "@/lib/workspace";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -17,9 +18,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "projectId is required" }, { status: 400 });
   }
 
+  const memberIds = await getWorkspaceMemberIds(session.user.id);
+
   const where: Record<string, unknown> = {
     projectId,
-    project: { userId: session.user.id },
+    project: { userId: { in: memberIds } },
     scheduledAt: { not: null },
   };
 

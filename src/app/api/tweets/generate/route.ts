@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { chatCompletion, MODELS } from "@/lib/ai";
 import { extractJSON } from "@/lib/utils-server";
+import { getWorkspaceMemberIds } from "@/lib/workspace";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -17,8 +18,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "projectId and topic are required" }, { status: 400 });
   }
 
+  const memberIds = await getWorkspaceMemberIds(session.user.id);
+
   const project = await prisma.project.findFirst({
-    where: { id: projectId, userId: session.user.id },
+    where: { id: projectId, userId: { in: memberIds } },
   });
 
   if (!project) {
