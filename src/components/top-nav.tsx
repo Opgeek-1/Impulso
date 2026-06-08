@@ -30,6 +30,7 @@ import {
   Settings,
   Check,
   Bell,
+  Users,
 } from "lucide-react";
 
 interface Project {
@@ -235,6 +236,10 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
                 </div>
               </div>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push("/team")} className="gap-2">
+                <Users size={14} />
+                Team & workspace
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push("/settings")} className="gap-2">
                 <Settings size={14} />
                 Settings

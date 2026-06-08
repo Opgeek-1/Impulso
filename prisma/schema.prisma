@@ -17,6 +17,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   projects      Project[]
+  memberships   WorkspaceMember[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -110,4 +111,41 @@ enum TweetStatus {
   IMAGE_GENERATED
   SCHEDULED
   POSTED
+}
+
+model Workspace {
+  id        String            @id @default(cuid())
+  name      String
+  domain    String?
+  plan      String            @default("free")
+  seats     Int               @default(8)
+  members   WorkspaceMember[]
+  invites   WorkspaceInvite[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  role        String    @default("member")
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  lastActive  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+
+  @@unique([userId, workspaceId])
+}
+
+model WorkspaceInvite {
+  id          String    @id @default(cuid())
+  email       String
+  token       String    @unique @default(cuid())
+  role        String    @default("member")
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([email, workspaceId])
 }
