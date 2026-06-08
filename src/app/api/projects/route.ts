@@ -2,14 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
+// Get all workspace member user IDs for the current user
+async function getWorkspaceMemberIds(userId: string): Promise<string[]> {
+  const membership = await prisma.workspaceMember.findFirst({
+    where: { userId },
+    include: { workspace: { include: { members: true } } },
+  });
+
+  if (!membership) return [userId];
+  return membership.workspace.members.map((m) => m.userId);
+}
+
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const memberIds = await getWorkspaceMemberIds(session.user.id);
+
   const projects = await prisma.project.findMany({
-    where: { userId: session.user.id },
+    where: { userId: { in: memberIds } },
     include: { _count: { select: { tweets: true } } },
     orderBy: { createdAt: "desc" },
   });
@@ -48,6 +61,8 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const memberIds = await getWorkspaceMemberIds(session.user.id);
+
   const body = await req.json();
   const { projectId, name, handle, avatarUrl } = body;
 
@@ -56,7 +71,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const project = await prisma.project.findFirst({
-    where: { id: projectId, userId: session.user.id },
+    where: { id: projectId, userId: { in: memberIds } },
   });
   if (!project) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -81,6 +96,8 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const memberIds = await getWorkspaceMemberIds(session.user.id);
+
   const { searchParams } = new URL(req.url);
   const projectId = searchParams.get("projectId");
   if (!projectId) {
@@ -88,7 +105,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   const project = await prisma.project.findFirst({
-    where: { id: projectId, userId: session.user.id },
+    where: { id: projectId, userId: { in: memberIds } },
   });
   if (!project) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
