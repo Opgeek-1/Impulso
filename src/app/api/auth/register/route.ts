@@ -14,16 +14,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    return NextResponse.json({ error: "User already exists" }, { status: 409 });
-  }
-
   const hashed = await bcrypt.hash(password, 12);
 
-  const user = await prisma.user.create({
-    data: { name: name || email.split("@")[0], email, password: hashed, emailVerified: new Date() },
-  });
+  const existing = await prisma.user.findUnique({ where: { email } });
+
+  let user;
+  if (existing) {
+    // If user exists and already has a password, reject
+    if (existing.password) {
+      return NextResponse.json({ error: "User already exists" }, { status: 409 });
+    }
+    // User was auto-created (e.g. by old code flow) without a password — let them claim it
+    user = await prisma.user.update({
+      where: { id: existing.id },
+      data: { name: name || existing.name, password: hashed, emailVerified: new Date() },
+    });
+  } else {
+    user = await prisma.user.create({
+      data: { name: name || email.split("@")[0], email, password: hashed, emailVerified: new Date() },
+    });
+  }
 
   // Check for pending invites and auto-join workspaces
   const pendingInvites = await prisma.workspaceInvite.findMany({
