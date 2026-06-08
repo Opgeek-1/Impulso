@@ -42,6 +42,12 @@ interface Project {
   avatarUrl?: string | null;
 }
 
+interface Style {
+  id: string;
+  name: string;
+  isDefault: boolean;
+}
+
 interface Tweet {
   id: string;
   content: string;
@@ -99,6 +105,7 @@ function DroppableColumn({ status, children }: { status: string; children: React
 // --- Tweet card ---
 function TweetCard({
   tweet,
+  styles,
   onApprove,
   onDesign,
   onImage,
@@ -107,8 +114,9 @@ function TweetCard({
   processing,
 }: {
   tweet: Tweet;
+  styles: Style[];
   onApprove: () => void;
-  onDesign: () => void;
+  onDesign: (styleId?: string) => void;
   onImage: () => void;
   onDelete: () => void;
   onEdit: () => void;
@@ -201,9 +209,30 @@ function TweetCard({
           </Button>
         )}
         {tweet.status === "CURATED" && (
-          <Button size="sm" variant="secondary" onClick={onDesign} disabled={isBusy} className="h-7 text-[12px] gap-1.5 px-2.5">
-            <Palette size={13} /> Design brief
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="inline-flex items-center gap-1.5 h-7 text-[12px] px-2.5 rounded-md font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80" disabled={isBusy}>
+              <Palette size={13} /> Design brief ▾
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              {styles.length > 0 ? (
+                <>
+                  {styles.map((s) => (
+                    <DropdownMenuItem key={s.id} onClick={() => onDesign(s.id)} className="gap-2 text-[12.5px]">
+                      <Palette size={12} /> {s.name} {s.isDefault && "(default)"}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => onDesign()} className="gap-2 text-[12.5px]">
+                    No style
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <DropdownMenuItem onClick={() => onDesign()} className="gap-2 text-[12.5px]">
+                  <Palette size={12} /> Generate brief
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
         {tweet.status === "DESIGNED" && (
           <Button size="sm" variant="secondary" onClick={onImage} disabled={isBusy} className="h-7 text-[12px] gap-1.5 px-2.5">
@@ -226,6 +255,7 @@ function TweetCard({
 
 export function CuratePanel({ project, onComplete }: CuratePanelProps) {
   const [tweets, setTweets] = useState<Tweet[]>([]);
+  const [styles, setStyles] = useState<Style[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
@@ -243,7 +273,12 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     setLoading(false);
   }, [project.id]);
 
-  useEffect(() => { fetchTweets(); }, [fetchTweets]);
+  const fetchStyles = useCallback(async () => {
+    const res = await fetch(`/api/styles?projectId=${project.id}`);
+    if (res.ok) setStyles(await res.json());
+  }, [project.id]);
+
+  useEffect(() => { fetchTweets(); fetchStyles(); }, [fetchTweets, fetchStyles]);
 
   async function updateStatus(tweetId: string, status: string) {
     const res = await fetch("/api/tweets", {
@@ -277,13 +312,13 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     }
   }
 
-  async function handleDesign(tweetId: string) {
+  async function handleDesign(tweetId: string, styleId?: string) {
     setProcessingId(tweetId);
     try {
       const res = await fetch("/api/tweets/design", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tweetId }),
+        body: JSON.stringify({ tweetId, styleId }),
       });
       if (!res.ok) throw new Error("Failed");
       const updated = await res.json();
@@ -440,9 +475,10 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
                         ) : (
                           <TweetCard
                             tweet={tweet}
+                            styles={styles}
                             processing={processingId}
                             onApprove={() => updateStatus(tweet.id, "CURATED")}
-                            onDesign={() => handleDesign(tweet.id)}
+                            onDesign={(styleId) => handleDesign(tweet.id, styleId)}
                             onImage={() => handleImage(tweet.id)}
                             onDelete={() => handleDelete(tweet.id)}
                             onEdit={() => { setEditingId(tweet.id); setEditContent(tweet.content); }}
