@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  accounts      Account[]
+  sessions      Session[]
+  projects      Project[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  handle      String
+  description String?
+  avatarUrl   String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tweets      Tweet[]
+  styles      Style[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Style {
+  id        String   @id @default(cuid())
+  name      String
+  content   String
+  isDefault Boolean  @default(false)
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tweet {
+  id              String      @id @default(cuid())
+  content         String
+  designBrief     String?
+  imageUrl        String?
+  imagePrompt     String?
+  status          TweetStatus @default(DRAFT)
+  scheduledAt     DateTime?
+  projectId       String
+  project         Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  batchId         String?
+  batch           Batch?      @relation(fields: [batchId], references: [id])
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model Batch {
+  id        String   @id @default(cuid())
+  name      String
+  tweets    Tweet[]
+  createdAt DateTime @default(now())
+}
+
+enum TweetStatus {
+  DRAFT
+  CURATED
+  DESIGNED
+  IMAGE_GENERATED
+  SCHEDULED
+  POSTED
+}

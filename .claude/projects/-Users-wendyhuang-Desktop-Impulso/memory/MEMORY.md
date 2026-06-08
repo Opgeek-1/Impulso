@@ -1,0 +1,3 @@
+- [User profile](user_profile.md) — Wendy, manages multiple Twitter accounts, content marketing workflow
+- [AI API config](reference_ai_api.md) — Infer API (agentsey.ai), models available, image gen pending
+- [Project context](project_impulso.md) — Impulso marketing tool, current state and decisions
