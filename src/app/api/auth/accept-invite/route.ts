@@ -1,63 +1,67 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { acceptWorkspaceInvite } from "@/lib/invites";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
-  const { token, name, password } = await req.json();
+  const session = await auth();
+  const { token, name, email, password } = await req.json();
 
-  if (!token || !password) {
-    return NextResponse.json({ error: "Token and password are required" }, { status: 400 });
+  if (!token) {
+    return NextResponse.json({ error: "Token is required" }, { status: 400 });
   }
 
   const invite = await prisma.workspaceInvite.findUnique({
     where: { token },
-    include: { workspace: true },
   });
 
-  if (!invite) {
+  if (!invite || (invite.expiresAt && invite.expiresAt < new Date())) {
+    if (invite) {
+      await prisma.workspaceInvite.delete({ where: { id: invite.id } });
+    }
     return NextResponse.json({ error: "Invalid or expired invite" }, { status: 404 });
   }
 
-  const hashed = await bcrypt.hash(password, 12);
-
-  // Find or create user
-  let user = await prisma.user.findUnique({ where: { email: invite.email } });
-
-  if (user) {
-    // Update existing user's password
-    user = await prisma.user.update({
-      where: { id: user.id },
-      data: { password: hashed, name: name || user.name },
-    });
-  } else {
-    // Create new user
-    user = await prisma.user.create({
-      data: {
-        email: invite.email,
-        name: name || invite.email.split("@")[0],
-        password: hashed,
-        emailVerified: new Date(),
-      },
-    });
+  if (session?.user?.id) {
+    const result = await acceptWorkspaceInvite(token, session.user.id);
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 404 });
+    }
+    return NextResponse.json({ success: true });
   }
 
-  // Check if already a member
-  const existingMembership = await prisma.workspaceMember.findFirst({
-    where: { userId: user.id, workspaceId: invite.workspaceId },
+  if (!email || !password) {
+    return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+  }
+
+  if (password.length < 6) {
+    return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
+  }
+
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+  if (existingUser) {
+    return NextResponse.json(
+      { error: "An account with this email already exists. Sign in first, then open the invite link again." },
+      { status: 409 }
+    );
+  }
+
+  const hashed = await bcrypt.hash(password, 12);
+  const user = await prisma.user.create({
+    data: {
+      email: normalizedEmail,
+      name: name || normalizedEmail.split("@")[0],
+      password: hashed,
+      emailVerified: new Date(),
+    },
   });
 
-  if (!existingMembership) {
-    await prisma.workspaceMember.create({
-      data: {
-        userId: user.id,
-        workspaceId: invite.workspaceId,
-        role: invite.role,
-      },
-    });
+  const result = await acceptWorkspaceInvite(token, user.id);
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: 404 });
   }
 
-  // Delete the invite
-  await prisma.workspaceInvite.delete({ where: { id: invite.id } });
-
-  return NextResponse.json({ success: true, email: invite.email });
+  return NextResponse.json({ success: true, email: user.email });
 }

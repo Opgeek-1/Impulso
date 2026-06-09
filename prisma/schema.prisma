@@ -141,12 +141,11 @@ model WorkspaceMember {
 
 model WorkspaceInvite {
   id          String    @id @default(cuid())
-  email       String
+  email       String?
   token       String    @unique @default(cuid())
   role        String    @default("member")
+  expiresAt   DateTime?
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now())
-
-  @@unique([email, workspaceId])
 }

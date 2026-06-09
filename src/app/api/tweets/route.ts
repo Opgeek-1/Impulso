@@ -59,7 +59,7 @@ export async function PATCH(req: NextRequest) {
     data: {
       ...(content !== undefined && { content }),
       ...(status !== undefined && { status }),
-      ...(scheduledAt !== undefined && { scheduledAt: new Date(scheduledAt) }),
+      ...(scheduledAt !== undefined && { scheduledAt: scheduledAt ? new Date(scheduledAt) : null }),
     },
   });
 

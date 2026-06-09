@@ -117,6 +117,7 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
               {selected ? (
                 <>
                   {selected.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={selected.avatarUrl} alt={selected.name} className="w-6 h-6 object-cover" style={{ borderRadius: "32%" }} />
                   ) : (
                     <div
@@ -151,6 +152,7 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
                   className="flex items-center gap-2.5 py-1.5"
                 >
                   {p.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={p.avatarUrl} alt={p.name} className="w-[30px] h-[30px] object-cover shrink-0" style={{ borderRadius: "32%" }} />
                   ) : (
                     <div

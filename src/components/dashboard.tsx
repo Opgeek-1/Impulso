@@ -94,20 +94,37 @@ export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
   const [activeTab, setActiveTab] = useState("generate");
   const [counts, setCounts] = useState<Record<string, number | null>>({ generate: null, curate: null, schedule: null });
 
-  const fetchCounts = useCallback(async () => {
-    if (!selectedProject) return;
-    const res = await fetch(`/api/tweets?projectId=${selectedProject.id}`);
-    if (res.ok) {
-      const tweets = await res.json();
-      setCounts({
-        generate: tweets.filter((t: { status: string }) => t.status === "DRAFT").length || null,
-        curate: tweets.filter((t: { status: string }) => ["DRAFT", "CURATED", "DESIGNED", "IMAGE_GENERATED"].includes(t.status)).length || null,
-        schedule: tweets.filter((t: { status: string }) => t.status === "SCHEDULED").length || null,
-      });
-    }
-  }, [selectedProject]);
+  const fetchCounts = useCallback(async (projectId: string) => {
+    const res = await fetch(`/api/tweets?projectId=${projectId}`);
+    if (!res.ok) return null;
+    const tweets = await res.json();
+    return {
+      generate: tweets.filter((t: { status: string }) => t.status === "DRAFT").length || null,
+      curate: tweets.filter((t: { status: string }) => ["DRAFT", "CURATED", "DESIGNED", "IMAGE_GENERATED"].includes(t.status)).length || null,
+      schedule: tweets.filter((t: { status: string }) => t.status === "SCHEDULED").length || null,
+    };
+  }, []);
 
-  useEffect(() => { fetchCounts(); }, [fetchCounts]);
+  async function refreshCounts() {
+    if (!selectedProject) return;
+    const nextCounts = await fetchCounts(selectedProject.id);
+    if (nextCounts) setCounts(nextCounts);
+  }
+
+  useEffect(() => {
+    if (!selectedProject) return;
+    let cancelled = false;
+
+    async function loadCounts() {
+      const nextCounts = await fetchCounts(selectedProject!.id);
+      if (!cancelled && nextCounts) setCounts(nextCounts);
+    }
+
+    void loadCounts();
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchCounts, selectedProject]);
 
   function handleProjectCreated(project: Project) {
     setProjects((prev) => [project, ...prev]);
@@ -130,10 +147,10 @@ export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
             <StageTabs active={activeTab} setActive={setActiveTab} counts={counts} />
             <div className="flex-1 overflow-auto min-h-0">
               {activeTab === "generate" && (
-                <GeneratePanel project={selectedProject} onComplete={() => { setActiveTab("curate"); fetchCounts(); }} />
+                <GeneratePanel project={selectedProject} onComplete={() => { setActiveTab("curate"); void refreshCounts(); }} />
               )}
               {activeTab === "curate" && (
-                <CuratePanel project={selectedProject} onComplete={() => { setActiveTab("schedule"); fetchCounts(); }} />
+                <CuratePanel project={selectedProject} onComplete={() => { setActiveTab("schedule"); void refreshCounts(); }} />
               )}
               {activeTab === "schedule" && (
                 <SchedulePanel project={selectedProject} />

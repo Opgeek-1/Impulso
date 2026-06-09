@@ -16,6 +16,11 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const callbackUrl =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("callbackUrl")
+      : null;
+  const safeCallbackUrl = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,7 +37,7 @@ export function LoginForm() {
       setError("Invalid email or password");
       setLoading(false);
     } else {
-      router.push("/");
+      router.push(safeCallbackUrl);
       router.refresh();
     }
   }

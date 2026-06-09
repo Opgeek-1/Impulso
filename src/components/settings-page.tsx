@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { TopNav } from "@/components/top-nav";
@@ -29,6 +29,7 @@ import {
   FileText,
   Globe,
   Loader2,
+  Lock,
 } from "lucide-react";
 
 /* --- Types --- */
@@ -59,6 +60,7 @@ const NAV_ITEMS = [
   { id: "brief", label: "Account brief", icon: FileText },
   { id: "styles", label: "Image styles", icon: ImageIcon },
   { id: "accounts", label: "X accounts", icon: X },
+  { id: "security", label: "Security", icon: Lock },
   { id: "appearance", label: "Appearance", icon: SlidersHorizontal },
 ];
 
@@ -82,10 +84,6 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
   const [saving, setSaving] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  useEffect(() => {
-    setBrief(project.brief || "");
-  }, [project.id, project.brief]);
 
   async function handleSave() {
     setSaving(true);
@@ -145,6 +143,7 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
             style={{ background: dropdownOpen ? "var(--imp-surface-3)" : "transparent" }}
           >
             {project.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={project.avatarUrl} alt={project.name} className="w-7 h-7 object-cover" style={{ borderRadius: "32%" }} />
             ) : (
               <div
@@ -241,13 +240,21 @@ function ImageStylesPanel({ project, projects, onSwitchProject }: { project: Pro
   const [newContent, setNewContent] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const fetchStyles = useCallback(async () => {
-    const res = await fetch(`/api/styles?projectId=${project.id}`);
-    if (res.ok) setStyles(await res.json());
-    setLoading(false);
-  }, [project.id]);
+  useEffect(() => {
+    let cancelled = false;
 
-  useEffect(() => { fetchStyles(); }, [fetchStyles]);
+    async function loadStyles() {
+      const res = await fetch(`/api/styles?projectId=${project.id}`);
+      if (cancelled) return;
+      if (res.ok) setStyles(await res.json());
+      setLoading(false);
+    }
+
+    void loadStyles();
+    return () => {
+      cancelled = true;
+    };
+  }, [project.id]);
 
   async function handleCreate() {
     if (!newName.trim() || !newContent.trim()) return;
@@ -322,6 +329,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject }: { project: Pro
             style={{ background: dropdownOpen ? "var(--imp-surface-3)" : "transparent" }}
           >
             {project.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={project.avatarUrl} alt={project.name} className="w-7 h-7 object-cover" style={{ borderRadius: "32%" }} />
             ) : (
               <div
@@ -349,6 +357,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject }: { project: Pro
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-[var(--imp-surface-2)]"
                 >
                   {p.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={p.avatarUrl} alt={p.name} className="w-6 h-6 object-cover" style={{ borderRadius: "32%" }} />
                   ) : (
                     <div
@@ -525,6 +534,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(p.id, f); }}
               />
               {p.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={p.avatarUrl}
                   alt={p.name}
@@ -596,17 +606,91 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
 }
 
 /* --- Appearance Panel --- */
+function SecurityPanel() {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    setSaving(true);
+    const res = await fetch("/api/auth/set-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, password }),
+    });
+    if (res.ok) {
+      setCurrentPassword("");
+      setPassword("");
+      setConfirmPassword("");
+      toast.success("Password updated");
+    } else {
+      const data = await res.json();
+      toast.error(data.error || "Failed to update password");
+    }
+    setSaving(false);
+  }
+
+  return (
+    <form onSubmit={handleSave} className="max-w-[420px] space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="current-password">Current password</Label>
+        <Input
+          id="current-password"
+          type="password"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="new-password">New password</Label>
+        <Input
+          id="new-password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          minLength={6}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="confirm-new-password">Confirm new password</Label>
+        <Input
+          id="confirm-new-password"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          minLength={6}
+          required
+        />
+      </div>
+      <Button type="submit" className="imp-btn-primary" disabled={saving}>
+        {saving ? "Updating..." : "Update password"}
+      </Button>
+    </form>
+  );
+}
+
+function getStoredPreference(key: string, fallback: string) {
+  if (typeof window === "undefined") return fallback;
+  return localStorage.getItem(key) || fallback;
+}
+
 function AppearancePanel() {
   const { theme, setTheme } = useTheme();
-  const [accent, setAccent] = useState("tomo");
-  const [density, setDensity] = useState("regular");
-
-  useEffect(() => {
-    const saved = localStorage.getItem("impulso-accent");
-    if (saved) setAccent(saved);
-    const savedDensity = localStorage.getItem("impulso-density");
-    if (savedDensity) setDensity(savedDensity);
-  }, []);
+  const [accent, setAccent] = useState(() => getStoredPreference("impulso-accent", "tomo"));
+  const [density, setDensity] = useState(() => getStoredPreference("impulso-density", "regular"));
 
   useEffect(() => {
     document.documentElement.setAttribute("data-accent", accent);
@@ -719,6 +803,7 @@ const SECTION_META: Record<string, { icon: typeof ImageIcon; title: string; desc
   brief: { icon: FileText, title: "Account brief", desc: "Context about your brand that AI reads before generating tweets. The more detail, the better the output." },
   styles: { icon: ImageIcon, title: "Image styles", desc: "Reusable visual briefs Impulso applies when generating images. Pick one from the Generate button on any card." },
   accounts: { icon: X, title: "X accounts", desc: "Connect the handles you manage. Each account keeps its own pipeline, schedule, and image styles." },
+  security: { icon: Lock, title: "Security", desc: "Update the password used to sign in with your email." },
   appearance: { icon: SlidersHorizontal, title: "Appearance", desc: "Personal display preferences for this workspace. These only affect your view." },
 };
 
@@ -818,9 +903,10 @@ export function SettingsPage({ projects: initialProjects, user }: SettingsPagePr
 
           {/* Panel content */}
           <div className="ml-[54px]">
-            {activeSection === "brief" && selectedProject && <AccountBriefPanel project={selectedProject} projects={projects} onSwitchProject={(p) => setSelectedProject(p)} onUpdate={handleProjectUpdated} />}
-            {activeSection === "styles" && selectedProject && <ImageStylesPanel project={selectedProject} projects={projects} onSwitchProject={(p) => setSelectedProject(p)} />}
+            {activeSection === "brief" && selectedProject && <AccountBriefPanel key={selectedProject.id} project={selectedProject} projects={projects} onSwitchProject={(p) => setSelectedProject(p)} onUpdate={handleProjectUpdated} />}
+            {activeSection === "styles" && selectedProject && <ImageStylesPanel key={selectedProject.id} project={selectedProject} projects={projects} onSwitchProject={(p) => setSelectedProject(p)} />}
             {activeSection === "accounts" && <AccountsPanel projects={projects} onDelete={handleProjectDeleted} onUpdate={handleProjectUpdated} />}
+            {activeSection === "security" && <SecurityPanel />}
             {activeSection === "appearance" && <AppearancePanel />}
           </div>
         </main>

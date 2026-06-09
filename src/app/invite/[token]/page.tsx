@@ -1,13 +1,11 @@
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { acceptWorkspaceInvite } from "@/lib/invites";
 import { AcceptInviteForm } from "@/components/accept-invite-form";
 
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-
-  const session = await auth();
-  if (session?.user) redirect("/");
 
   const invite = await prisma.workspaceInvite.findUnique({
     where: { token },
@@ -23,7 +21,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
     },
   });
 
-  if (!invite) {
+  if (!invite || (invite.expiresAt && invite.expiresAt < new Date())) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: "var(--imp-bg)" }}>
         <div
@@ -50,13 +48,18 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
     );
   }
 
+  const session = await auth();
+  if (session?.user?.id) {
+    await acceptWorkspaceInvite(token, session.user.id);
+    redirect("/");
+  }
+
   const owner = invite.workspace.members[0]?.user;
 
   return (
     <div className="flex min-h-screen items-center justify-center" style={{ background: "var(--imp-bg)" }}>
       <AcceptInviteForm
         token={token}
-        email={invite.email}
         workspaceName={invite.workspace.name}
         inviterName={owner?.name || owner?.email || "Someone"}
       />

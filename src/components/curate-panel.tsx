@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -264,21 +264,25 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  const fetchTweets = useCallback(async () => {
-    const res = await fetch(`/api/tweets?projectId=${project.id}`);
-    if (res.ok) {
-      const data = await res.json();
-      setTweets(data);
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPanelData() {
+      const [tweetsRes, stylesRes] = await Promise.all([
+        fetch(`/api/tweets?projectId=${project.id}`),
+        fetch(`/api/styles?projectId=${project.id}`),
+      ]);
+      if (cancelled) return;
+      if (tweetsRes.ok) setTweets(await tweetsRes.json());
+      if (stylesRes.ok) setStyles(await stylesRes.json());
+      setLoading(false);
     }
-    setLoading(false);
-  }, [project.id]);
 
-  const fetchStyles = useCallback(async () => {
-    const res = await fetch(`/api/styles?projectId=${project.id}`);
-    if (res.ok) setStyles(await res.json());
+    void loadPanelData();
+    return () => {
+      cancelled = true;
+    };
   }, [project.id]);
-
-  useEffect(() => { fetchTweets(); fetchStyles(); }, [fetchTweets, fetchStyles]);
 
   async function updateStatus(tweetId: string, status: string) {
     const res = await fetch("/api/tweets", {

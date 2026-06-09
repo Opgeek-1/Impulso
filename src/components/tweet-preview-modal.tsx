@@ -96,6 +96,7 @@ export function TweetPreviewModal({ tweet, project, onClose }: TweetPreviewModal
           {/* Author row */}
           <div className="flex items-center gap-3 mb-3">
             {project.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={project.avatarUrl} alt={project.name} className="w-[46px] h-[46px] object-cover shrink-0" style={{ borderRadius: "32%" }} />
             ) : (
               <div

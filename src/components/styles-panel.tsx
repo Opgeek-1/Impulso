@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,15 +36,21 @@ export function StylesPanel({ project }: StylesPanelProps) {
   const [newName, setNewName] = useState("");
   const [newContent, setNewContent] = useState("");
 
-  const fetchStyles = useCallback(async () => {
-    const res = await fetch(`/api/styles?projectId=${project.id}`);
-    if (res.ok) setStyles(await res.json());
-    setLoading(false);
-  }, [project.id]);
-
   useEffect(() => {
-    fetchStyles();
-  }, [fetchStyles]);
+    let cancelled = false;
+
+    async function loadStyles() {
+      const res = await fetch(`/api/styles?projectId=${project.id}`);
+      if (cancelled) return;
+      if (res.ok) setStyles(await res.json());
+      setLoading(false);
+    }
+
+    void loadStyles();
+    return () => {
+      cancelled = true;
+    };
+  }, [project.id]);
 
   async function handleCreate() {
     if (!newName.trim() || !newContent.trim()) return;

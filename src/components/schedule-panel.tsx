@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -226,15 +226,21 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  const fetchTweets = useCallback(async () => {
-    const res = await fetch(`/api/tweets?projectId=${project.id}`);
-    if (res.ok) {
-      setAllTweets(await res.json());
-    }
-    setLoading(false);
-  }, [project.id]);
+  useEffect(() => {
+    let cancelled = false;
 
-  useEffect(() => { fetchTweets(); }, [fetchTweets]);
+    async function loadTweets() {
+      const res = await fetch(`/api/tweets?projectId=${project.id}`);
+      if (cancelled) return;
+      if (res.ok) setAllTweets(await res.json());
+      setLoading(false);
+    }
+
+    void loadTweets();
+    return () => {
+      cancelled = true;
+    };
+  }, [project.id]);
 
   const scheduled = allTweets.filter((t) => t.scheduledAt && t.status === "SCHEDULED");
   const tray = allTweets.filter((t) => !t.scheduledAt && ["CURATED", "DESIGNED", "IMAGE_GENERATED"].includes(t.status));

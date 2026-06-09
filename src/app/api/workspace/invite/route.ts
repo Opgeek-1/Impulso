@@ -8,9 +8,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { workspaceId, email } = await req.json();
-  if (!workspaceId || !email) {
-    return NextResponse.json({ error: "workspaceId and email required" }, { status: 400 });
+  const { workspaceId } = await req.json();
+  if (!workspaceId) {
+    return NextResponse.json({ error: "workspaceId required" }, { status: 400 });
   }
 
   const member = await prisma.workspaceMember.findFirst({
@@ -20,15 +20,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Only owners can invite" }, { status: 403 });
   }
 
-  const existing = await prisma.workspaceInvite.findFirst({
-    where: { email, workspaceId },
-  });
-  if (existing) {
-    return NextResponse.json({ error: "Already invited" }, { status: 409 });
-  }
-
   const invite = await prisma.workspaceInvite.create({
-    data: { email, workspaceId },
+    data: {
+      workspaceId,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    },
   });
 
   return NextResponse.json(invite);

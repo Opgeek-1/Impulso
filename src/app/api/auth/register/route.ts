@@ -16,7 +16,8 @@ export async function POST(req: NextRequest) {
 
   const hashed = await bcrypt.hash(password, 12);
 
-  const existing = await prisma.user.findUnique({ where: { email } });
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
   let user;
   if (existing) {
@@ -31,25 +32,8 @@ export async function POST(req: NextRequest) {
     });
   } else {
     user = await prisma.user.create({
-      data: { name: name || email.split("@")[0], email, password: hashed, emailVerified: new Date() },
+      data: { name: name || normalizedEmail.split("@")[0], email: normalizedEmail, password: hashed, emailVerified: new Date() },
     });
-  }
-
-  // Check for pending invites and auto-join workspaces
-  const pendingInvites = await prisma.workspaceInvite.findMany({
-    where: { email },
-  });
-
-  for (const invite of pendingInvites) {
-    const existingMembership = await prisma.workspaceMember.findFirst({
-      where: { userId: user.id, workspaceId: invite.workspaceId },
-    });
-    if (!existingMembership) {
-      await prisma.workspaceMember.create({
-        data: { userId: user.id, workspaceId: invite.workspaceId, role: invite.role },
-      });
-    }
-    await prisma.workspaceInvite.delete({ where: { id: invite.id } });
   }
 
   return NextResponse.json({ id: user.id, email: user.email, name: user.name });

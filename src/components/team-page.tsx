@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { TopNav } from "@/components/top-nav";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   ChevronLeft,
@@ -24,7 +23,7 @@ interface Project {
   handle: string;
   description: string | null;
   avatarUrl?: string | null;
-  _count: { tweets: number; styles: number };
+  _count: { tweets: number; styles?: number };
 }
 
 interface Member {
@@ -36,9 +35,9 @@ interface Member {
 
 interface Invite {
   id: string;
-  email: string;
   token: string;
   role: string;
+  expiresAt: string | null;
   createdAt: string;
 }
 
@@ -74,44 +73,48 @@ function timeAgo(date: string) {
 export function TeamPage({ projects, user }: TeamPageProps) {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [loading, setLoading] = useState(true);
-  const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(projects[0] ?? null);
   const router = useRouter();
 
-  const fetchWorkspace = useCallback(async () => {
-    const res = await fetch("/api/workspace");
-    if (res.ok) setWorkspace(await res.json());
-    setLoading(false);
-  }, []);
+  useEffect(() => {
+    let cancelled = false;
 
-  useEffect(() => { fetchWorkspace(); }, [fetchWorkspace]);
+    async function loadWorkspace() {
+      const res = await fetch("/api/workspace");
+      if (cancelled) return;
+      if (res.ok) setWorkspace(await res.json());
+      setLoading(false);
+    }
+
+    void loadWorkspace();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const isOwner = workspace?.members.find((m) => m.user.id === user.id)?.role === "owner";
 
-  async function handleInvite(e: React.FormEvent) {
-    e.preventDefault();
-    if (!inviteEmail.trim() || !workspace) return;
+  async function handleInvite() {
+    if (!workspace) return;
     setInviting(true);
     const res = await fetch("/api/workspace/invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workspaceId: workspace.id, email: inviteEmail }),
+      body: JSON.stringify({ workspaceId: workspace.id }),
     });
     if (res.ok) {
       const invite = await res.json();
       setWorkspace({ ...workspace, invites: [...workspace.invites, invite] });
-      setInviteEmail("");
-      // Auto-copy invite link
       const link = `${window.location.origin}/invite/${invite.token}`;
       navigator.clipboard.writeText(link);
       setCopiedToken(invite.token);
       setTimeout(() => setCopiedToken(null), 3000);
-      toast.success("Invite created — link copied!");
+      toast.success("Invite link created and copied");
     } else {
       const data = await res.json();
-      toast.error(data.error || "Failed to invite");
+      toast.error(data.error || "Failed to create invite link");
     }
     setInviting(false);
   }
@@ -145,7 +148,7 @@ export function TeamPage({ projects, user }: TeamPageProps) {
   if (loading) {
     return (
       <div className="flex flex-col h-screen">
-        <TopNav projects={projects as any} selected={selectedProject as any} onSelect={(p) => setSelectedProject(p as any)} onCreated={() => {}} user={user} />
+        <TopNav projects={projects} selected={selectedProject} onSelect={setSelectedProject} onCreated={() => {}} user={user} />
         <div className="flex-1 flex items-center justify-center" style={{ color: "var(--imp-muted)" }}>Loading workspace...</div>
       </div>
     );
@@ -153,7 +156,7 @@ export function TeamPage({ projects, user }: TeamPageProps) {
 
   return (
     <div className="flex flex-col h-screen">
-      <TopNav projects={projects as any} selected={selectedProject as any} onSelect={(p) => setSelectedProject(p as any)} onCreated={() => {}} user={user} />
+      <TopNav projects={projects} selected={selectedProject} onSelect={setSelectedProject} onCreated={() => {}} user={user} />
 
       <main className="flex-1 overflow-auto">
         <div className="max-w-[680px] mx-auto px-6 py-8">
@@ -210,32 +213,15 @@ export function TeamPage({ projects, user }: TeamPageProps) {
             <div className="mb-8">
               <h2 className="text-[16px] font-bold mb-1" style={{ color: "var(--imp-text)" }}>Invite people</h2>
               <p className="text-[13.5px] mb-4" style={{ color: "var(--imp-muted)" }}>
-                Anyone you invite can generate, curate, schedule, and manage every connected X account.
+                Create a single-use link for someone to join this workspace with their own account.
               </p>
-              <form onSubmit={handleInvite} className="flex items-center gap-3">
-                <div
-                  className="flex-1 flex items-center gap-2.5 rounded-xl px-4 h-[48px]"
-                  style={{ background: "var(--imp-surface)", border: "1px solid var(--imp-border)" }}
-                >
-                  <Mail size={16} style={{ color: "var(--imp-muted)" }} />
-                  <input
-                    type="email"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    placeholder="colleague@company.com"
-                    className="flex-1 bg-transparent border-none outline-none text-[14px]"
-                    style={{ color: "var(--imp-text)" }}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="imp-btn-primary h-[48px] px-5 rounded-xl text-[13.5px] gap-2" disabled={inviting}>
-                  <Users size={14} /> Send invite
-                </Button>
-              </form>
+              <Button onClick={handleInvite} className="imp-btn-primary h-[48px] px-5 rounded-xl text-[13.5px] gap-2" disabled={inviting}>
+                <Link2 size={14} /> {inviting ? "Creating..." : "Create invite link"}
+              </Button>
               <div className="flex items-center gap-2 mt-3 px-1">
                 <Key size={13} style={{ color: "var(--imp-muted)" }} />
                 <span className="text-[12.5px]" style={{ color: "var(--imp-muted)" }}>
-                  <strong style={{ color: "var(--imp-text-2)" }}>One permission level.</strong> Every member has full access to the workspace. Only the owner can remove people and manage billing.
+                  <strong style={{ color: "var(--imp-text-2)" }}>One permission level.</strong> Links expire after 7 days and can be used once.
                 </span>
               </div>
             </div>
@@ -319,15 +305,17 @@ export function TeamPage({ projects, user }: TeamPageProps) {
                       className="w-[40px] h-[40px] rounded-full flex items-center justify-center text-[14px] font-bold text-white shrink-0"
                       style={{ background: "#94a3b8" }}
                     >
-                      {inv.email[0].toUpperCase()}
+                      <Mail size={15} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="text-[14px] font-semibold" style={{ color: "var(--imp-text)" }}>{inv.email}</span>
+                      <span className="text-[14px] font-semibold" style={{ color: "var(--imp-text)" }}>Invite link</span>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: "var(--s-image-bg)", color: "var(--s-image)" }}>
                           <Clock size={9} /> Invite pending
                         </span>
-                        <span className="text-[11.5px]" style={{ color: "var(--imp-muted)" }}>Waiting to accept</span>
+                        <span className="text-[11.5px]" style={{ color: "var(--imp-muted)" }}>
+                          {inv.expiresAt ? `Expires ${new Date(inv.expiresAt).toLocaleDateString()}` : "Waiting to accept"}
+                        </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

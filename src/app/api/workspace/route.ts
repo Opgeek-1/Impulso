@@ -9,7 +9,7 @@ export async function GET() {
   }
 
   // Find workspace the user belongs to, or create one
-  let membership = await prisma.workspaceMember.findFirst({
+  const membership = await prisma.workspaceMember.findFirst({
     where: { userId: session.user.id },
     include: {
       workspace: {

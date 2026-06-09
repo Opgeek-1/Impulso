@@ -21,16 +21,14 @@ const DENSITIES = [
   { key: "comfy", label: "Comfy" },
 ];
 
-export function SettingsPopover() {
-  const [accent, setAccent] = useState("tomo");
-  const [density, setDensity] = useState("regular");
+function getStoredPreference(key: string, fallback: string) {
+  if (typeof window === "undefined") return fallback;
+  return localStorage.getItem(key) || fallback;
+}
 
-  useEffect(() => {
-    const saved = localStorage.getItem("impulso-accent");
-    if (saved) setAccent(saved);
-    const savedDensity = localStorage.getItem("impulso-density");
-    if (savedDensity) setDensity(savedDensity);
-  }, []);
+export function SettingsPopover() {
+  const [accent, setAccent] = useState(() => getStoredPreference("impulso-accent", "tomo"));
+  const [density, setDensity] = useState(() => getStoredPreference("impulso-density", "regular"));
 
   useEffect(() => {
     document.documentElement.setAttribute("data-accent", accent);

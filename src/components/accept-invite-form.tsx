@@ -11,19 +11,20 @@ import { useTheme } from "next-themes";
 
 interface AcceptInviteFormProps {
   token: string;
-  email: string;
   workspaceName: string;
   inviterName: string;
 }
 
-export function AcceptInviteForm({ token, email, workspaceName, inviterName }: AcceptInviteFormProps) {
+export function AcceptInviteForm({ token, workspaceName, inviterName }: AcceptInviteFormProps) {
   const router = useRouter();
   const { theme } = useTheme();
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const loginHref = `/login?callbackUrl=${encodeURIComponent(`/invite/${token}`)}`;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,11 +41,12 @@ export function AcceptInviteForm({ token, email, workspaceName, inviterName }: A
     }
 
     setLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
 
     const res = await fetch("/api/auth/accept-invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, name: name.trim() || undefined, password }),
+      body: JSON.stringify({ token, name: name.trim() || undefined, email: normalizedEmail, password }),
     });
 
     if (!res.ok) {
@@ -56,7 +58,7 @@ export function AcceptInviteForm({ token, email, workspaceName, inviterName }: A
 
     // Auto sign in
     const result = await signIn("credentials", {
-      email,
+      email: normalizedEmail,
       password,
       redirect: false,
     });
@@ -100,8 +102,9 @@ export function AcceptInviteForm({ token, email, workspaceName, inviterName }: A
             id="email"
             type="email"
             value={email}
-            disabled
-            className="opacity-60"
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
           />
         </div>
         <div className="space-y-2">
@@ -145,8 +148,8 @@ export function AcceptInviteForm({ token, email, workspaceName, inviterName }: A
 
       <p className="text-center text-[13px] mt-4" style={{ color: "var(--imp-muted)" }}>
         Already have an account?{" "}
-        <a href="/login" className="font-medium" style={{ color: "var(--imp-accent)" }}>
-          Sign in
+        <a href={loginHref} className="font-medium" style={{ color: "var(--imp-accent)" }}>
+          Sign in first
         </a>
       </p>
     </div>
