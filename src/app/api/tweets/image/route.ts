@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { generateImage, MODELS } from "@/lib/ai";
 import { extractJSON } from "@/lib/utils-server";
 import { getWorkspaceMemberIds } from "@/lib/workspace";
+import { buildBrandContext } from "@/lib/brand-context";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -34,12 +35,26 @@ export async function POST(req: NextRequest) {
   }
 
   const brief = JSON.parse(extractJSON(tweet.designBrief));
-  const prompt = brief.imagePrompt || brief.concept;
+  const basePrompt = brief.imagePrompt || brief.concept;
+  const brandContext = buildBrandContext(tweet.project);
+  const prompt = `${basePrompt}
 
-  const result = await generateImage(prompt, {
-    model: MODELS.image,
-    size: "1536x1024",
-  });
+Brand constraints:
+${brandContext}
+
+Do not render any website URL unless it exactly matches the official website URL listed above.`;
+
+  let result;
+  try {
+    result = await generateImage(prompt, {
+      model: MODELS.image,
+      size: "1536x1024",
+      referenceImageDataUrl: tweet.project.brandLogoUrl,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Image generation failed";
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
 
   let imageUrl: string;
   const b64 = result.data[0]?.b64_json;

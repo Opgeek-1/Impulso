@@ -40,6 +40,9 @@ interface Project {
   description: string | null;
   brief?: string | null;
   avatarUrl?: string | null;
+  brandLogoUrl?: string | null;
+  brandColors?: string | null;
+  brandAssetsNote?: string | null;
   _count: { tweets: number; styles: number };
 }
 
@@ -58,7 +61,7 @@ interface SettingsPageProps {
 /* --- Constants --- */
 const NAV_ITEMS = [
   { id: "brief", label: "Account brief", icon: FileText },
-  { id: "styles", label: "Image styles", icon: ImageIcon },
+  { id: "styles", label: "Brand kit", icon: ImageIcon },
   { id: "accounts", label: "X accounts", icon: X },
   { id: "security", label: "Security", icon: Lock },
   { id: "appearance", label: "Appearance", icon: SlidersHorizontal },
@@ -229,7 +232,7 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
 }
 
 /* --- Image Styles Panel --- */
-function ImageStylesPanel({ project, projects, onSwitchProject }: { project: Project; projects: Project[]; onSwitchProject: (p: Project) => void }) {
+function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { project: Project; projects: Project[]; onSwitchProject: (p: Project) => void; onUpdate: (p: Project) => void }) {
   const [styles, setStyles] = useState<Style[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -239,6 +242,10 @@ function ImageStylesPanel({ project, projects, onSwitchProject }: { project: Pro
   const [newName, setNewName] = useState("");
   const [newContent, setNewContent] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [brandLogoUrl, setBrandLogoUrl] = useState(project.brandLogoUrl || "");
+  const [brandColors, setBrandColors] = useState(project.brandColors || "");
+  const [brandAssetsNote, setBrandAssetsNote] = useState(project.brandAssetsNote || "");
+  const [savingBrandKit, setSavingBrandKit] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -305,14 +312,46 @@ function ImageStylesPanel({ project, projects, onSwitchProject }: { project: Pro
     }
   }
 
+  async function handleBrandKitSave() {
+    setSavingBrandKit(true);
+    const res = await fetch("/api/projects", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        projectId: project.id,
+        brandLogoUrl: brandLogoUrl || null,
+        brandColors,
+        brandAssetsNote,
+      }),
+    });
+
+    if (res.ok) {
+      const updated = await res.json();
+      onUpdate({ ...project, ...updated });
+      toast.success("Brand kit saved");
+    } else {
+      toast.error("Failed to save brand kit");
+    }
+    setSavingBrandKit(false);
+  }
+
+  function handleLogoUpload(file: File) {
+    if (file.size > 2_000_000) {
+      toast.error("Logo must be under 2 MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setBrandLogoUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
   if (loading) return <p style={{ color: "var(--imp-muted)" }}>Loading styles...</p>;
 
   return (
     <div>
-      <Button className="imp-btn-primary rounded-[10px] h-9 text-[13px] gap-1.5 mb-6" onClick={() => setShowNew(true)}>
-        <Plus size={14} /> Add style
-      </Button>
-
       {/* Info notice */}
       <div
         className="flex items-center gap-3 rounded-xl px-5 py-3.5 mb-6"
@@ -378,6 +417,89 @@ function ImageStylesPanel({ project, projects, onSwitchProject }: { project: Pro
           )}
         </div>
       </div>
+
+      {/* Brand kit */}
+      <div
+        className="rounded-xl p-5 mb-6"
+        style={{ background: "var(--imp-surface)", border: "1px solid var(--imp-border)" }}
+      >
+        <div className="flex items-start justify-between gap-4 mb-5">
+          <div>
+            <h2 className="text-[16px] font-bold m-0" style={{ color: "var(--imp-text)" }}>Brand kit</h2>
+            <p className="text-[13px] mt-1 mb-0" style={{ color: "var(--imp-muted)" }}>
+              Saved assets are included when Impulso creates image briefs and prompts for @{project.handle}.
+            </p>
+          </div>
+          <Button onClick={handleBrandKitSave} disabled={savingBrandKit} className="imp-btn-primary h-9 rounded-[10px] text-[13px]">
+            {savingBrandKit ? "Saving..." : "Save kit"}
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-[180px_1fr] gap-5">
+          <div>
+            <Label className="mb-2 block">Logo</Label>
+            <label
+              className="group flex h-[132px] w-[180px] cursor-pointer items-center justify-center overflow-hidden rounded-xl"
+              style={{ background: "var(--imp-surface-2)", border: "1px dashed var(--imp-border-2)" }}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleLogoUpload(file);
+                }}
+              />
+              {brandLogoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={brandLogoUrl} alt={`${project.name} logo`} className="max-h-full max-w-full object-contain p-4" />
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-[12.5px] font-medium" style={{ color: "var(--imp-muted)" }}>
+                  <ImageIcon size={22} />
+                  Upload logo
+                </div>
+              )}
+            </label>
+            {brandLogoUrl && (
+              <button
+                onClick={() => setBrandLogoUrl("")}
+                className="mt-2 text-[12.5px] font-medium"
+                style={{ color: "var(--imp-muted)" }}
+              >
+                Remove logo
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <Label className="mb-2 block">Brand colors</Label>
+              <Textarea
+                value={brandColors}
+                onChange={(e) => setBrandColors(e.target.value)}
+                rows={4}
+                className="font-mono text-[13px]"
+                placeholder={"Primary: #FE3C9C\nBackground: #0A1020\nAccent: #F4D35E"}
+              />
+            </div>
+            <div>
+              <Label className="mb-2 block">Asset notes</Label>
+              <Textarea
+                value={brandAssetsNote}
+                onChange={(e) => setBrandAssetsNote(e.target.value)}
+                rows={4}
+                className="text-[13px]"
+                placeholder="Logo placement, clear space, forbidden colors, preferred image references, or website text rules."
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Button className="imp-btn-primary rounded-[10px] h-9 text-[13px] gap-1.5 mb-6" onClick={() => setShowNew(true)}>
+        <Plus size={14} /> Add image style
+      </Button>
 
       {/* Style cards */}
       <div className="flex flex-col gap-4">
@@ -568,7 +690,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
                 className="h-8 text-[12.5px] gap-1.5"
                 onClick={() => router.push("/settings?tab=styles")}
               >
-                <ImageIcon size={13} /> Styles
+                <ImageIcon size={13} /> Brand kit
               </Button>
               <button
                 onClick={() => handleDelete(p.id)}
@@ -801,7 +923,7 @@ function AppearancePanel() {
 /* --- Main Settings Page --- */
 const SECTION_META: Record<string, { icon: typeof ImageIcon; title: string; desc: string }> = {
   brief: { icon: FileText, title: "Account brief", desc: "Context about your brand that AI reads before generating tweets. The more detail, the better the output." },
-  styles: { icon: ImageIcon, title: "Image styles", desc: "Reusable visual briefs Impulso applies when generating images. Pick one from the Generate button on any card." },
+  styles: { icon: ImageIcon, title: "Brand kit", desc: "Logo, colors, and reusable visual briefs Impulso applies when generating images." },
   accounts: { icon: X, title: "X accounts", desc: "Connect the handles you manage. Each account keeps its own pipeline, schedule, and image styles." },
   security: { icon: Lock, title: "Security", desc: "Update the password used to sign in with your email." },
   appearance: { icon: SlidersHorizontal, title: "Appearance", desc: "Personal display preferences for this workspace. These only affect your view." },
@@ -904,7 +1026,7 @@ export function SettingsPage({ projects: initialProjects, user }: SettingsPagePr
           {/* Panel content */}
           <div className="ml-[54px]">
             {activeSection === "brief" && selectedProject && <AccountBriefPanel key={selectedProject.id} project={selectedProject} projects={projects} onSwitchProject={(p) => setSelectedProject(p)} onUpdate={handleProjectUpdated} />}
-            {activeSection === "styles" && selectedProject && <ImageStylesPanel key={selectedProject.id} project={selectedProject} projects={projects} onSwitchProject={(p) => setSelectedProject(p)} />}
+            {activeSection === "styles" && selectedProject && <ImageStylesPanel key={selectedProject.id} project={selectedProject} projects={projects} onSwitchProject={(p) => setSelectedProject(p)} onUpdate={handleProjectUpdated} />}
             {activeSection === "accounts" && <AccountsPanel projects={projects} onDelete={handleProjectDeleted} onUpdate={handleProjectUpdated} />}
             {activeSection === "security" && <SecurityPanel />}
             {activeSection === "appearance" && <AppearancePanel />}

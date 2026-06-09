@@ -54,7 +54,7 @@ export async function PATCH(req: NextRequest) {
   const memberIds = await getWorkspaceMemberIds(session.user.id);
 
   const body = await req.json();
-  const { projectId, name, handle, avatarUrl, brief } = body;
+  const { projectId, name, handle, avatarUrl, brief, brandLogoUrl, brandColors, brandAssetsNote } = body;
 
   if (!projectId) {
     return NextResponse.json({ error: "projectId required" }, { status: 400 });
@@ -72,6 +72,9 @@ export async function PATCH(req: NextRequest) {
   if (handle !== undefined) data.handle = handle;
   if (avatarUrl !== undefined) data.avatarUrl = avatarUrl;
   if (brief !== undefined) data.brief = brief;
+  if (brandLogoUrl !== undefined) data.brandLogoUrl = brandLogoUrl;
+  if (brandColors !== undefined) data.brandColors = brandColors;
+  if (brandAssetsNote !== undefined) data.brandAssetsNote = brandAssetsNote;
 
   const updated = await prisma.project.update({
     where: { id: projectId },

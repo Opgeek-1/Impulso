@@ -63,6 +63,9 @@ model Project {
   description String?
   brief       String?
   avatarUrl   String?
+  brandLogoUrl    String?
+  brandColors     String?
+  brandAssetsNote String?
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   tweets      Tweet[]

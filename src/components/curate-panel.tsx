@@ -34,6 +34,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 interface Project {
   id: string;
@@ -111,7 +112,7 @@ function TweetCard({
   onImage,
   onDelete,
   onEdit,
-  processing,
+  isProcessing,
 }: {
   tweet: Tweet;
   styles: Style[];
@@ -120,11 +121,10 @@ function TweetCard({
   onImage: () => void;
   onDelete: () => void;
   onEdit: () => void;
-  processing: string | null;
+  isProcessing: boolean;
 }) {
   const [briefOpen, setBriefOpen] = useState(false);
   const len = tweet.content.length;
-  const isBusy = processing === tweet.id;
 
   return (
     <div
@@ -136,7 +136,7 @@ function TweetCard({
       }}
     >
       {/* Busy overlay */}
-      {isBusy && (
+      {isProcessing && (
         <div className="absolute inset-0 rounded-[13px] flex flex-col items-center justify-center gap-2 z-10"
           style={{ background: "color-mix(in srgb, var(--imp-surface) 78%, transparent)", backdropFilter: "blur(2px)" }}>
           <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" style={{ color: "var(--imp-accent)" }} />
@@ -171,14 +171,19 @@ function TweetCard({
 
       {/* Image */}
       {tweet.imageUrl && (
-        <div className="rounded-[10px] overflow-hidden h-[120px]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
-            alt="Generated"
-            className="w-full h-full object-cover"
-          />
-        </div>
+        <ImageLightbox
+          src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
+          alt="Generated"
+        >
+          <div className="rounded-[10px] overflow-hidden h-[120px]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
+              alt="Generated"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </ImageLightbox>
       )}
 
       {/* Design brief collapsible */}
@@ -210,7 +215,7 @@ function TweetCard({
         )}
         {tweet.status === "CURATED" && (
           <DropdownMenu>
-            <DropdownMenuTrigger className="inline-flex items-center gap-1.5 h-7 text-[12px] px-2.5 rounded-md font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80" disabled={isBusy}>
+            <DropdownMenuTrigger className="inline-flex items-center gap-1.5 h-7 text-[12px] px-2.5 rounded-md font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80" disabled={isProcessing}>
               <Palette size={13} /> Design brief ▾
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
@@ -235,7 +240,7 @@ function TweetCard({
           </DropdownMenu>
         )}
         {tweet.status === "DESIGNED" && (
-          <Button size="sm" variant="secondary" onClick={onImage} disabled={isBusy} className="h-7 text-[12px] gap-1.5 px-2.5">
+          <Button size="sm" variant="secondary" onClick={onImage} disabled={isProcessing} className="h-7 text-[12px] gap-1.5 px-2.5">
             <ImageIcon size={13} /> Generate image
           </Button>
         )}
@@ -259,7 +264,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
-  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [processingIds, setProcessingIds] = useState<Set<string>>(() => new Set());
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
@@ -317,7 +322,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
   }
 
   async function handleDesign(tweetId: string, styleId?: string) {
-    setProcessingId(tweetId);
+    setProcessingIds((prev) => new Set(prev).add(tweetId));
     try {
       const res = await fetch("/api/tweets/design", {
         method: "POST",
@@ -331,26 +336,38 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     } catch {
       toast.error("Failed to generate design brief");
     } finally {
-      setProcessingId(null);
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(tweetId);
+        return next;
+      });
     }
   }
 
   async function handleImage(tweetId: string) {
-    setProcessingId(tweetId);
+    setProcessingIds((prev) => new Set(prev).add(tweetId));
     try {
       const res = await fetch("/api/tweets/image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tweetId }),
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Failed");
+      }
       const updated = await res.json();
       setTweets((prev) => prev.map((t) => (t.id === tweetId ? updated : t)));
       toast.success("Image generated");
-    } catch {
-      toast.error("Failed to generate image");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to generate image";
+      toast.error(message);
     } finally {
-      setProcessingId(null);
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(tweetId);
+        return next;
+      });
     }
   }
 
@@ -480,7 +497,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
                           <TweetCard
                             tweet={tweet}
                             styles={styles}
-                            processing={processingId}
+                            isProcessing={processingIds.has(tweet.id)}
                             onApprove={() => updateStatus(tweet.id, "CURATED")}
                             onDesign={(styleId) => handleDesign(tweet.id, styleId)}
                             onImage={() => handleImage(tweet.id)}

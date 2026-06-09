@@ -2,6 +2,7 @@
 
 import { Eye, X, Clock, Check, Copy, MessageCircle, Repeat2, Heart, BarChart3, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 import { toast } from "sonner";
 
 interface Tweet {
@@ -128,17 +129,22 @@ export function TweetPreviewModal({ tweet, project, onClose }: TweetPreviewModal
 
           {/* Image */}
           {tweet.imageUrl && (
-            <div className="rounded-2xl overflow-hidden mb-3 relative" style={{ border: "1px solid var(--imp-border-2)" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
-                alt="AI generated"
-                className="w-full h-[264px] object-cover"
-              />
-              <span className="absolute left-2 bottom-2 text-[9.5px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-1">
-                ✦ AI GENERATED
-              </span>
-            </div>
+            <ImageLightbox
+              src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
+              alt="AI generated"
+            >
+              <div className="rounded-2xl overflow-hidden mb-3 relative" style={{ border: "1px solid var(--imp-border-2)" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
+                  alt="AI generated"
+                  className="w-full h-[264px] object-cover"
+                />
+                <span className="absolute left-2 bottom-2 text-[9.5px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-1">
+                  ✦ AI GENERATED
+                </span>
+              </div>
+            </ImageLightbox>
           )}
 
           {/* Schedule info */}

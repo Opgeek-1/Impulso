@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Sparkles, Minus, Plus, ArrowRight } from "lucide-react";
@@ -9,7 +9,11 @@ interface Project {
   id: string;
   name: string;
   handle: string;
+  description?: string | null;
+  brief?: string | null;
   avatarUrl?: string | null;
+  brandColors?: string | null;
+  brandAssetsNote?: string | null;
 }
 
 interface GeneratePanelProps {
@@ -23,6 +27,7 @@ const TONES = [
   { id: "witty", label: "Witty" },
   { id: "authoritative", label: "Authoritative" },
   { id: "inspirational", label: "Inspirational" },
+  { id: "custom", label: "Custom" },
 ];
 
 const LANGS = [
@@ -32,12 +37,87 @@ const LANGS = [
   { id: "es", label: "Español" },
 ];
 
-const PRESETS = [
+const FALLBACK_PRESETS = [
   "Why database branching beats staging environments",
   "Cutting cloud spend by scaling to zero",
   "The hidden cost of capacity planning",
   "Postgres tips most teams miss",
 ];
+
+const STOPWORDS = new Set([
+  "about",
+  "after",
+  "again",
+  "brand",
+  "build",
+  "company",
+  "could",
+  "every",
+  "their",
+  "there",
+  "these",
+  "those",
+  "through",
+  "using",
+  "which",
+  "with",
+  "your",
+]);
+
+function shuffle<T>(items: T[]) {
+  const shuffled = [...items];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+function extractTopics(project: Project) {
+  const source = [project.brief, project.description, project.brandAssetsNote, project.brandColors]
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\bhttps?:\/\/\S+|\bwww\.\S+|@\w+/gi, " ");
+
+  const counts = new Map<string, number>();
+  for (const word of source.match(/[a-zA-Z][a-zA-Z-]{3,}/g) ?? []) {
+    const topic = word.toLowerCase();
+    if (STOPWORDS.has(topic)) continue;
+    counts.set(topic, (counts.get(topic) ?? 0) + 1);
+  }
+
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([topic]) => topic);
+}
+
+function buildPresets(project: Project) {
+  const brand = project.name || `@${project.handle}`;
+  const topics = extractTopics(project);
+
+  if (topics.length === 0) {
+    return shuffle([
+      `Why ${brand} exists now`,
+      `Lessons from building ${brand}`,
+      `What most teams get wrong about ${brand}`,
+      `A contrarian take from @${project.handle}`,
+      ...FALLBACK_PRESETS,
+    ]).slice(0, 4);
+  }
+
+  const [primary, secondary = "growth", tertiary = "customers"] = shuffle(topics);
+  return shuffle([
+    `Why ${brand} is betting on ${primary}`,
+    `What most teams miss about ${primary}`,
+    `The hidden cost of ignoring ${secondary}`,
+    `How ${brand} thinks about ${tertiary}`,
+    `A practical guide to ${primary}`,
+    `Lessons from building for ${secondary}`,
+    `${brand}'s take on ${primary} vs ${secondary}`,
+    `The biggest misconception about ${tertiary}`,
+  ]).slice(0, 4);
+}
 
 function Chip({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
   return (
@@ -150,18 +230,37 @@ function DraftCard({ tweet, index, onDiscard }: { tweet: { id: string; content: 
 export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
   const [topic, setTopic] = useState("");
   const [tone, setTone] = useState("professional");
+  const [customTone, setCustomTone] = useState("");
   const [count, setCount] = useState(7);
   const [language, setLanguage] = useState("en");
-  const [loading, setLoading] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState(0);
+  const [pendingDrafts, setPendingDrafts] = useState(0);
   const [generated, setGenerated] = useState<{ id: string; content: string }[]>([]);
+  const [presets, setPresets] = useState(FALLBACK_PRESETS);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setPresets(buildPresets(project));
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, [project]);
 
   async function handleGenerate() {
     if (!topic.trim()) {
       toast.error("Add a topic to generate from");
       return;
     }
-    setLoading(true);
-    setGenerated([]);
+
+    const selectedTone = tone === "custom" ? customTone.trim() : tone;
+    if (tone === "custom" && !selectedTone) {
+      toast.error("Describe the custom tone to use");
+      return;
+    }
+
+    const requestedCount = count;
+    setPendingRequests((prev) => prev + 1);
+    setPendingDrafts((prev) => prev + requestedCount);
 
     try {
       const res = await fetch("/api/tweets/generate", {
@@ -170,8 +269,8 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
         body: JSON.stringify({
           projectId: project.id,
           topic,
-          tone,
-          count,
+          tone: selectedTone,
+          count: requestedCount,
           language,
         }),
       });
@@ -179,12 +278,13 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
       if (!res.ok) throw new Error("Failed to generate");
 
       const data = await res.json();
-      setGenerated(data.tweets);
+      setGenerated((prev) => [...data.tweets, ...prev]);
       toast.success(`Generated ${data.tweets.length} tweets`);
     } catch {
       toast.error("Failed to generate tweets. Check your AI API settings.");
     } finally {
-      setLoading(false);
+      setPendingRequests((prev) => Math.max(0, prev - 1));
+      setPendingDrafts((prev) => Math.max(0, prev - requestedCount));
     }
   }
 
@@ -241,7 +341,7 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
           {/* Presets */}
           <div className="flex flex-wrap gap-2 mt-3">
             <span className="text-[11.5px] self-center mr-0.5" style={{ color: "var(--imp-faint)" }}>Try:</span>
-            {PRESETS.map((p) => (
+            {presets.map((p) => (
               <button
                 key={p}
                 onClick={() => setTopic(p)}
@@ -271,6 +371,19 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
                   </Chip>
                 ))}
               </div>
+              {tone === "custom" && (
+                <input
+                  value={customTone}
+                  onChange={(e) => setCustomTone(e.target.value)}
+                  placeholder="e.g. technical but warm, bold without hype"
+                  className="mt-2 h-9 w-full min-w-[280px] rounded-xl px-3 text-[13px] outline-none transition-colors"
+                  style={{
+                    background: "var(--imp-bg)",
+                    border: "1px solid var(--imp-border-2)",
+                    color: "var(--imp-text)",
+                  }}
+                />
+              )}
             </div>
             <div>
               <div className="text-[11.5px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--imp-faint)" }}>
@@ -294,11 +407,11 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
 
           {/* Generate button */}
           <div className="flex justify-end mt-5">
-            <Button onClick={handleGenerate} disabled={loading || !topic.trim()} className="imp-btn-primary h-[42px] px-[18px] text-[13.5px] rounded-[9px]">
-              {loading ? (
+            <Button onClick={handleGenerate} disabled={!topic.trim()} className="imp-btn-primary h-[42px] px-[18px] text-[13.5px] rounded-[9px]">
+              {pendingRequests > 0 ? (
                 <span className="inline-flex items-center gap-2">
                   <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  Generating…
+                  Generate another
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-2">
@@ -312,7 +425,7 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
       </div>
 
       {/* Results */}
-      {loading ? (
+      {pendingDrafts > 0 && generated.length === 0 ? (
         <div>
           <div className="flex items-end justify-between mb-4 gap-4 flex-wrap">
             <div>
@@ -320,12 +433,12 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
                 Writing drafts…
               </h3>
               <p className="text-[12.5px] m-0" style={{ color: "var(--imp-muted)" }}>
-                Exploring {count} angles
+                Exploring {pendingDrafts} angles
               </p>
             </div>
           </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] items-start" style={{ gap: "var(--imp-gap)" }}>
-            {Array.from({ length: count }).map((_, i) => (
+            {Array.from({ length: pendingDrafts }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
@@ -338,7 +451,7 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
                 {generated.length} drafts ready
               </h3>
               <p className="text-[12.5px] m-0" style={{ color: "var(--imp-muted)" }}>
-                Discard the weak ones, send the rest to Curate
+                {pendingDrafts > 0 ? `Writing ${pendingDrafts} more...` : "Discard the weak ones, send the rest to Curate"}
               </p>
             </div>
             <Button onClick={onComplete} className="imp-btn-primary h-9 px-3.5 text-[13px] rounded-[9px]">
@@ -356,6 +469,9 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
                 index={i}
                 onDiscard={() => setGenerated((prev) => prev.filter((t) => t.id !== tweet.id))}
               />
+            ))}
+            {Array.from({ length: pendingDrafts }).map((_, i) => (
+              <SkeletonCard key={`pending-${i}`} />
             ))}
           </div>
         </div>

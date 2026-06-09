@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { chatCompletion, MODELS } from "@/lib/ai";
 import { extractJSON } from "@/lib/utils-server";
 import { getWorkspaceMemberIds } from "@/lib/workspace";
+import { buildBrandContext } from "@/lib/brand-context";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -41,8 +42,11 @@ export async function POST(req: NextRequest) {
   const styleSection = styleGuide
     ? `\n\nIMPORTANT — Follow this brand style guide strictly:\n${styleGuide}\n`
     : "";
+  const brandContext = buildBrandContext(tweet.project);
 
   const systemPrompt = `You are a graphic designer specializing in social media visuals. Given a tweet, create a detailed design brief for an accompanying image/poster.
+IMPORTANT — Follow this account brand context strictly:
+${brandContext}
 ${styleSection}
 The design brief should include:
 - Visual concept and composition
@@ -51,6 +55,7 @@ The design brief should include:
 - Key visual elements and their placement
 - Overall mood and style
 - Dimensions based on style guide, or default 1200x675px (Twitter card)
+- Any visible website URL must match the official website exactly; never invent or substitute a different website.
 
 Output a JSON object with:
 {
