@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { tweetId } = body;
+  const { tweetId, model, feedback } = body;
 
   if (!tweetId) {
     return NextResponse.json({ error: "tweetId is required" }, { status: 400 });
@@ -37,17 +37,21 @@ export async function POST(req: NextRequest) {
   const brief = JSON.parse(extractJSON(tweet.designBrief));
   const basePrompt = brief.imagePrompt || brief.concept;
   const brandContext = buildBrandContext(tweet.project);
+  const feedbackClause = feedback?.trim()
+    ? `\n\nUser feedback on previous image — apply these changes:\n${feedback.trim()}`
+    : "";
   const prompt = `${basePrompt}
 
 Brand constraints:
 ${brandContext}
 
-Do not render any website URL unless it exactly matches the official website URL listed above.`;
+Do not render any website URL unless it exactly matches the official website URL listed above.${feedbackClause}`;
 
   let result;
   try {
+    const imageModel = model || MODELS.image;
     result = await generateImage(prompt, {
-      model: MODELS.image,
+      model: imageModel,
       size: "1536x1024",
       referenceImageDataUrl: tweet.project.brandLogoUrl,
     });

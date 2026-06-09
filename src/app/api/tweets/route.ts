@@ -37,7 +37,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { tweetId, content, status, scheduledAt } = body;
+  const { tweetId, content, status, scheduledAt, imageUrl, imagePrompt } = body;
 
   if (!tweetId) {
     return NextResponse.json({ error: "tweetId is required" }, { status: 400 });
@@ -60,6 +60,8 @@ export async function PATCH(req: NextRequest) {
       ...(content !== undefined && { content }),
       ...(status !== undefined && { status }),
       ...(scheduledAt !== undefined && { scheduledAt: scheduledAt ? new Date(scheduledAt) : null }),
+      ...(imageUrl !== undefined && { imageUrl }),
+      ...(imagePrompt !== undefined && { imagePrompt }),
     },
   });
 

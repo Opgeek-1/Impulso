@@ -103,6 +103,12 @@ function DroppableColumn({ status, children }: { status: string; children: React
   );
 }
 
+const IMAGE_MODELS = [
+  { id: "gpt-image-2", label: "GPT Image 2" },
+  { id: "gemini-2.5-flash-image", label: "Gemini Flash" },
+  { id: "dall-e-3", label: "DALL·E 3" },
+];
+
 // --- Tweet card ---
 function TweetCard({
   tweet,
@@ -110,6 +116,7 @@ function TweetCard({
   onApprove,
   onDesign,
   onImage,
+  onDeleteImage,
   onDelete,
   onEdit,
   isProcessing,
@@ -118,12 +125,14 @@ function TweetCard({
   styles: Style[];
   onApprove: () => void;
   onDesign: (styleId?: string) => void;
-  onImage: () => void;
+  onImage: (model?: string, feedback?: string) => void;
+  onDeleteImage: () => void;
   onDelete: () => void;
   onEdit: () => void;
   isProcessing: boolean;
 }) {
   const [briefOpen, setBriefOpen] = useState(false);
+  const [feedback, setFeedback] = useState("");
   const len = tweet.content.length;
 
   return (
@@ -171,19 +180,57 @@ function TweetCard({
 
       {/* Image */}
       {tweet.imageUrl && (
-        <ImageLightbox
-          src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
-          alt="Generated"
-        >
-          <div className="rounded-[10px] overflow-hidden h-[120px]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
-              alt="Generated"
-              className="w-full h-full object-cover"
+        <>
+          <ImageLightbox
+            src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
+            alt="Generated"
+          >
+            <div className="rounded-[10px] overflow-hidden h-[120px]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
+                alt="Generated"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </ImageLightbox>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="text"
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && feedback.trim()) { onImage(undefined, feedback); setFeedback(""); } }}
+              placeholder="Feedback to regenerate…"
+              disabled={isProcessing}
+              className="flex-1 h-7 rounded-md px-2 text-[12px] outline-none"
+              style={{ background: "var(--imp-bg)", border: "1px solid var(--imp-border)", color: "var(--imp-text)" }}
             />
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                disabled={isProcessing}
+              >
+                <ImageIcon size={13} />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {IMAGE_MODELS.map((m) => (
+                  <DropdownMenuItem key={m.id} onClick={() => { onImage(m.id, feedback || undefined); setFeedback(""); }} className="gap-2 text-[12.5px]">
+                    <ImageIcon size={12} /> {m.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <button
+              onClick={onDeleteImage}
+              disabled={isProcessing}
+              className="w-7 h-7 rounded-md flex items-center justify-center bg-transparent border-none hover:bg-red-500/10"
+              style={{ color: "var(--imp-muted)" }}
+              title="Delete image"
+            >
+              <Trash2 size={13} />
+            </button>
           </div>
-        </ImageLightbox>
+        </>
       )}
 
       {/* Design brief collapsible */}
@@ -240,9 +287,18 @@ function TweetCard({
           </DropdownMenu>
         )}
         {tweet.status === "DESIGNED" && (
-          <Button size="sm" variant="secondary" onClick={onImage} disabled={isProcessing} className="h-7 text-[12px] gap-1.5 px-2.5">
-            <ImageIcon size={13} /> Generate image
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="inline-flex items-center gap-1.5 h-7 text-[12px] px-2.5 rounded-md font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80" disabled={isProcessing}>
+              <ImageIcon size={13} /> Generate image ▾
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              {IMAGE_MODELS.map((m) => (
+                <DropdownMenuItem key={m.id} onClick={() => onImage(m.id)} className="gap-2 text-[12.5px]">
+                  <ImageIcon size={12} /> {m.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
         {tweet.status === "IMAGE_GENERATED" && (
           <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold" style={{ color: "var(--s-image)" }}>
@@ -344,13 +400,13 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     }
   }
 
-  async function handleImage(tweetId: string) {
+  async function handleImage(tweetId: string, model?: string, feedback?: string) {
     setProcessingIds((prev) => new Set(prev).add(tweetId));
     try {
       const res = await fetch("/api/tweets/image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tweetId }),
+        body: JSON.stringify({ tweetId, model, feedback }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
@@ -362,6 +418,29 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to generate image";
       toast.error(message);
+    } finally {
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(tweetId);
+        return next;
+      });
+    }
+  }
+
+  async function handleDeleteImage(tweetId: string) {
+    setProcessingIds((prev) => new Set(prev).add(tweetId));
+    try {
+      const res = await fetch("/api/tweets", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tweetId, imageUrl: null, imagePrompt: null, status: "DESIGNED" }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      const updated = await res.json();
+      setTweets((prev) => prev.map((t) => (t.id === tweetId ? updated : t)));
+      toast.success("Image deleted");
+    } catch {
+      toast.error("Failed to delete image");
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -500,7 +579,8 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
                             isProcessing={processingIds.has(tweet.id)}
                             onApprove={() => updateStatus(tweet.id, "CURATED")}
                             onDesign={(styleId) => handleDesign(tweet.id, styleId)}
-                            onImage={() => handleImage(tweet.id)}
+                            onImage={(model, feedback) => handleImage(tweet.id, model, feedback)}
+                            onDeleteImage={() => handleDeleteImage(tweet.id)}
                             onDelete={() => handleDelete(tweet.id)}
                             onEdit={() => { setEditingId(tweet.id); setEditContent(tweet.content); }}
                           />
