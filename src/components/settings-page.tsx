@@ -682,7 +682,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
             variant="outline"
             className="rounded-[10px] h-9 text-[13px] gap-1.5"
             disabled={checkingX}
-            onClick={() => { window.location.href = "/api/auth/signin/twitter?callbackUrl=/settings?tab=accounts"; }}
+            onClick={() => { window.location.href = "/api/x/connect"; }}
           >
             {checkingX ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
             Connect X

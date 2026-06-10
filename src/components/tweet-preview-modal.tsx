@@ -101,7 +101,7 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
   }
 
   const canPublish = PUBLISHABLE.has(tweet.status) && !tweet.externalPostId;
-  const connectHref = "/api/auth/signin/twitter?callbackUrl=/settings?tab=accounts";
+  const connectHref = "/api/x/connect";
 
   return (
     <div
