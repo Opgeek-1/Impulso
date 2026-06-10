@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createXPost, uploadXImage } from "./x-api.ts";
+import { createXPost, uploadXImage } from "./x-api";
 
 function jsonResponse(body: unknown, init?: ResponseInit) {
   return new Response(JSON.stringify(body), {
