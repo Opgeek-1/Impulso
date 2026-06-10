@@ -93,6 +93,11 @@ model Tweet {
   imagePrompt     String?
   status          TweetStatus @default(DRAFT)
   scheduledAt     DateTime?
+  externalPostId  String?
+  publishedAt     DateTime?
+  publishError    String?
+  publishAttempts Int         @default(0)
+  lastPublishAttemptAt DateTime?
   projectId       String
   project         Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
   batchId         String?
@@ -114,6 +119,8 @@ enum TweetStatus {
   DESIGNED
   IMAGE_GENERATED
   SCHEDULED
+  PUBLISHING
+  PUBLISH_FAILED
   POSTED
 }
 

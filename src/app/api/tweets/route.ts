@@ -54,6 +54,10 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Tweet not found" }, { status: 404 });
   }
 
+  if (tweet.externalPostId && (status !== undefined || scheduledAt !== undefined)) {
+    return NextResponse.json({ error: "Posted tweets cannot be rescheduled" }, { status: 409 });
+  }
+
   const updated = await prisma.tweet.update({
     where: { id: tweetId },
     data: {

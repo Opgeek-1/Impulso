@@ -41,6 +41,9 @@ interface Tweet {
   status: string;
   imageUrl: string | null;
   scheduledAt: string | null;
+  externalPostId?: string | null;
+  publishedAt?: string | null;
+  publishError?: string | null;
 }
 
 interface SchedulePanelProps {
@@ -111,6 +114,9 @@ function SlotCard({ tweet, onUnschedule, onPreview }: { tweet: Tweet; onUnschedu
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: tweet.id });
   const style = { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.4 : 1 };
   const date = tweet.scheduledAt ? new Date(tweet.scheduledAt) : null;
+  const posted = tweet.status === "POSTED";
+  const failed = tweet.status === "PUBLISH_FAILED";
+  const publishing = tweet.status === "PUBLISHING";
 
   return (
     <div
@@ -122,9 +128,9 @@ function SlotCard({ tweet, onUnschedule, onPreview }: { tweet: Tweet; onUnschedu
     >
       <div className="flex items-center justify-between gap-1.5">
         {date && (
-          <span className="inline-flex items-center gap-1 font-mono text-[11px] font-semibold" style={{ color: "var(--s-sched)" }}>
+          <span className="inline-flex items-center gap-1 font-mono text-[11px] font-semibold" style={{ color: failed ? "#f43f5e" : posted ? "var(--s-image)" : "var(--s-sched)" }}>
             <Clock size={11} />
-            {fmtTime(date)}
+            {posted ? "Posted" : failed ? "Failed" : publishing ? "Publishing" : fmtTime(date)}
           </span>
         )}
         <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -136,14 +142,16 @@ function SlotCard({ tweet, onUnschedule, onPreview }: { tweet: Tweet; onUnschedu
           >
             <Eye size={12} />
           </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onUnschedule(); }}
-            className="imp-icon-btn w-5 h-5 flex items-center justify-center"
-            style={{ color: "var(--imp-muted)" }}
-            title="Unschedule"
-          >
-            <X size={12} />
-          </button>
+          {!posted && !publishing && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onUnschedule(); }}
+              className="imp-icon-btn w-5 h-5 flex items-center justify-center"
+              style={{ color: "var(--imp-muted)" }}
+              title="Unschedule"
+            >
+              <X size={12} />
+            </button>
+          )}
         </div>
       </div>
       <p className="m-0 text-[11.5px] leading-snug line-clamp-3" style={{ color: "var(--imp-text-2)" }}>
@@ -242,8 +250,8 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
     };
   }, [project.id]);
 
-  const scheduled = allTweets.filter((t) => t.scheduledAt && t.status === "SCHEDULED");
-  const tray = allTweets.filter((t) => !t.scheduledAt && ["CURATED", "DESIGNED", "IMAGE_GENERATED"].includes(t.status));
+  const scheduled = allTweets.filter((t) => t.scheduledAt && ["SCHEDULED", "PUBLISHING", "PUBLISH_FAILED", "POSTED"].includes(t.status));
+  const tray = allTweets.filter((t) => !t.scheduledAt && ["CURATED", "DESIGNED", "IMAGE_GENERATED", "PUBLISH_FAILED"].includes(t.status) && !t.externalPostId);
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const today = new Date();
 
@@ -267,6 +275,7 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
 
   async function unschedule(tweetId: string) {
     const tweet = allTweets.find((t) => t.id === tweetId);
+    if (!tweet || tweet.status === "POSTED" || tweet.status === "PUBLISHING") return;
     const prevStatus = tweet?.imageUrl ? "IMAGE_GENERATED" : "CURATED";
     const res = await fetch("/api/tweets", {
       method: "PATCH",
@@ -408,7 +417,14 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
       </DndContext>
 
       {previewTweet && (
-        <TweetPreviewModal tweet={previewTweet} project={project} onClose={() => setPreviewTweet(null)} />
+        <TweetPreviewModal
+          tweet={previewTweet}
+          project={project}
+          onClose={() => setPreviewTweet(null)}
+          onPublished={(updated) => {
+            setAllTweets((prev) => prev.map((t) => t.id === updated.id ? { ...t, ...updated } : t));
+          }}
+        />
       )}
     </div>
   );

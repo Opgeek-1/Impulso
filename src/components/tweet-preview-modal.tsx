@@ -1,6 +1,7 @@
 "use client";
 
-import { Eye, X, Clock, Check, Copy, MessageCircle, Repeat2, Heart, BarChart3, Send } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Eye, X, Clock, Check, Copy, MessageCircle, Repeat2, Heart, BarChart3, Send, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
 import { toast } from "sonner";
@@ -11,6 +12,9 @@ interface Tweet {
   status: string;
   imageUrl?: string | null;
   scheduledAt?: string | null;
+  externalPostId?: string | null;
+  publishedAt?: string | null;
+  publishError?: string | null;
 }
 
 interface Project {
@@ -24,6 +28,7 @@ interface TweetPreviewModalProps {
   tweet: Tweet;
   project: Project;
   onClose: () => void;
+  onPublished?: (tweet: Tweet) => void;
 }
 
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
@@ -32,10 +37,38 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> =
   DESIGNED: { label: "Designed", color: "var(--s-designed)", bg: "var(--s-designed-bg)" },
   IMAGE_GENERATED: { label: "Image ready", color: "var(--s-image)", bg: "var(--s-image-bg)" },
   SCHEDULED: { label: "Scheduled", color: "var(--s-sched)", bg: "var(--s-sched-bg)" },
+  PUBLISHING: { label: "Publishing", color: "var(--s-sched)", bg: "var(--s-sched-bg)" },
+  PUBLISH_FAILED: { label: "Failed", color: "#f43f5e", bg: "rgba(244,63,94,0.12)" },
+  POSTED: { label: "Posted", color: "var(--s-image)", bg: "var(--s-image-bg)" },
 };
 
-export function TweetPreviewModal({ tweet, project, onClose }: TweetPreviewModalProps) {
+const PUBLISHABLE = new Set(["CURATED", "DESIGNED", "IMAGE_GENERATED", "SCHEDULED", "PUBLISH_FAILED"]);
+
+export function TweetPreviewModal({ tweet, project, onClose, onPublished }: TweetPreviewModalProps) {
   const status = STATUS_MAP[tweet.status] || STATUS_MAP.DRAFT;
+  const [connected, setConnected] = useState(false);
+  const [xConfigured, setXConfigured] = useState(true);
+  const [checkingConnection, setCheckingConnection] = useState(true);
+  const [publishing, setPublishing] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadConnection() {
+      const res = await fetch("/api/x/connection");
+      if (!cancelled) {
+        const data = res.ok ? await res.json() : null;
+        setXConfigured(Boolean(data?.configured));
+        setConnected(Boolean(data?.connected));
+        setCheckingConnection(false);
+      }
+    }
+
+    void loadConnection();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function formatSchedule(iso: string) {
     const d = new Date(iso);
@@ -48,6 +81,27 @@ export function TweetPreviewModal({ tweet, project, onClose }: TweetPreviewModal
     const time = hh + (mm ? ":" + String(mm).padStart(2, "0") : ":00") + " " + ap;
     return `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()} · ${time}`;
   }
+
+  async function publishNow() {
+    setPublishing(true);
+    const res = await fetch("/api/tweets/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tweetId: tweet.id }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      toast.success("Posted to X");
+      onPublished?.(data);
+      onClose();
+    } else {
+      toast.error(data.error || "Publish failed");
+    }
+    setPublishing(false);
+  }
+
+  const canPublish = PUBLISHABLE.has(tweet.status) && !tweet.externalPostId;
+  const connectHref = "/api/auth/signin/twitter?callbackUrl=/settings?tab=accounts";
 
   return (
     <div
@@ -117,7 +171,7 @@ export function TweetPreviewModal({ tweet, project, onClose }: TweetPreviewModal
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-[13.5px] font-mono" style={{ color: "var(--imp-muted)" }}>@{project.handle}</span>
-                <span className="text-[13.5px]" style={{ color: "var(--imp-faint)" }}>· {tweet.status === "SCHEDULED" ? "scheduled" : "draft"}</span>
+                <span className="text-[13.5px]" style={{ color: "var(--imp-faint)" }}>· {tweet.status === "POSTED" ? "posted" : tweet.status === "SCHEDULED" ? "scheduled" : "draft"}</span>
               </div>
             </div>
           </div>
@@ -148,7 +202,13 @@ export function TweetPreviewModal({ tweet, project, onClose }: TweetPreviewModal
           )}
 
           {/* Schedule info */}
-          {tweet.scheduledAt ? (
+          {tweet.publishedAt ? (
+            <div className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--imp-muted)" }}>
+              <Check size={14} style={{ color: "var(--s-image)" }} />
+              <span>Posted</span>
+              <span className="font-semibold" style={{ color: "var(--imp-text)" }}>{formatSchedule(tweet.publishedAt)}</span>
+            </div>
+          ) : tweet.scheduledAt ? (
             <div className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--imp-muted)" }}>
               <Clock size={14} style={{ color: "var(--s-sched)" }} />
               <span>Scheduled for</span>
@@ -157,6 +217,12 @@ export function TweetPreviewModal({ tweet, project, onClose }: TweetPreviewModal
           ) : (
             <div className="text-[13px]" style={{ color: "var(--imp-faint)" }}>
               Draft preview · not yet scheduled
+            </div>
+          )}
+          {tweet.publishError && (
+            <div className="mt-2 flex items-start gap-1.5 text-[12.5px]" style={{ color: "#f43f5e" }}>
+              <AlertCircle size={14} className="mt-0.5 shrink-0" />
+              <span>{tweet.publishError}</span>
             </div>
           )}
         </div>
@@ -199,13 +265,46 @@ export function TweetPreviewModal({ tweet, project, onClose }: TweetPreviewModal
             >
               <Copy size={13} /> Copy
             </Button>
-            <Button
-              size="sm"
-              className="imp-btn-primary h-8 text-[12.5px] gap-1.5 rounded-[8px]"
-              onClick={onClose}
-            >
-              <Check size={13} /> Looks good
-            </Button>
+            {canPublish && !xConfigured && (
+              <Button
+                size="sm"
+                className="imp-btn-primary h-8 text-[12.5px] gap-1.5 rounded-[8px]"
+                disabled
+              >
+                <X size={13} /> X not configured
+              </Button>
+            )}
+            {canPublish && xConfigured && (
+              connected ? (
+                <Button
+                  size="sm"
+                  className="imp-btn-primary h-8 text-[12.5px] gap-1.5 rounded-[8px]"
+                  onClick={publishNow}
+                  disabled={publishing}
+                >
+                  {publishing ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+                  {publishing ? "Publishing..." : "Publish now"}
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  className="imp-btn-primary h-8 text-[12.5px] gap-1.5 rounded-[8px]"
+                  disabled={checkingConnection}
+                  onClick={() => { window.location.href = connectHref; }}
+                >
+                  <X size={13} /> Connect X
+                </Button>
+              )
+            )}
+            {!canPublish && (
+              <Button
+                size="sm"
+                className="imp-btn-primary h-8 text-[12.5px] gap-1.5 rounded-[8px]"
+                onClick={onClose}
+              >
+                <Check size={13} /> Looks good
+              </Button>
+            )}
           </div>
         </div>
       </div>

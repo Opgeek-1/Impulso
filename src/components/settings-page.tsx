@@ -588,9 +588,31 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
   const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
   const [loading, setLoading] = useState(false);
+  const [xConnected, setXConnected] = useState(false);
+  const [xConfigured, setXConfigured] = useState(true);
+  const [checkingX, setCheckingX] = useState(true);
   const router = useRouter();
 
   const AVATAR_COLORS = ["#FE3C9C", "#0ea5e9", "#a855f7", "#f59e0b", "#22c55e", "#6366f1"];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadConnection() {
+      const res = await fetch("/api/x/connection");
+      if (!cancelled) {
+        const data = res.ok ? await res.json() : null;
+        setXConfigured(Boolean(data?.configured));
+        setXConnected(Boolean(data?.connected));
+        setCheckingX(false);
+      }
+    }
+
+    void loadConnection();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -636,9 +658,37 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
 
   return (
     <div>
-      <Button className="imp-btn-primary rounded-[10px] h-9 text-[13px] gap-1.5 mb-6" onClick={() => setAddOpen(true)}>
-        <Plus size={14} /> Add X account
-      </Button>
+      <div className="flex items-center gap-2 mb-6">
+        <Button className="imp-btn-primary rounded-[10px] h-9 text-[13px] gap-1.5" onClick={() => setAddOpen(true)}>
+          <Plus size={14} /> Add X account
+        </Button>
+        {!xConfigured ? (
+          <Button
+            variant="outline"
+            className="rounded-[10px] h-9 text-[13px] gap-1.5"
+            disabled
+          >
+            <X size={14} /> X not configured
+          </Button>
+        ) : xConnected ? (
+          <span
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-[10px] text-[12.5px] font-semibold"
+            style={{ color: "var(--s-image)", background: "var(--s-image-bg)", border: "1px solid var(--imp-border)" }}
+          >
+            <Check size={14} /> X connected
+          </span>
+        ) : (
+          <Button
+            variant="outline"
+            className="rounded-[10px] h-9 text-[13px] gap-1.5"
+            disabled={checkingX}
+            onClick={() => { window.location.href = "/api/auth/signin/twitter?callbackUrl=/settings?tab=accounts"; }}
+          >
+            {checkingX ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
+            Connect X
+          </Button>
+        )}
+      </div>
 
       <div className="flex flex-col gap-2">
         {projects.map((p, i) => (
