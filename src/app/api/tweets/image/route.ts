@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   }
 
   const brief = JSON.parse(extractJSON(tweet.designBrief));
-  const basePrompt = brief.imagePrompt || brief.concept;
+  const basePrompt = tweet.imagePrompt || brief.imagePrompt || brief.concept;
   const brandContext = buildBrandContext(tweet.project);
   const feedbackClause = feedback?.trim()
     ? `\n\nUser feedback on previous image — apply these changes:\n${feedback.trim()}`
