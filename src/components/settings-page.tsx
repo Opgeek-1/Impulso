@@ -621,11 +621,11 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
     const res = await fetch("/api/x/connection", { method: "DELETE" });
     if (res.ok) {
       setXConnected(false);
-      toast.success("X account disconnected");
+      window.location.href = "/api/x/connect";
     } else {
       toast.error("Failed to disconnect");
+      setDisconnecting(false);
     }
-    setDisconnecting(false);
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -750,17 +750,27 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
             <div className="flex items-center gap-2">
               {xConfigured && (
                 xConnected ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-[12.5px] gap-1.5"
-                    style={{ color: "var(--s-image)", borderColor: "var(--s-image-bg)" }}
-                    onClick={handleDisconnectX}
-                    disabled={disconnecting}
-                  >
-                    {disconnecting ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
-                    Connected @{p.handle}
-                  </Button>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-[12.5px] font-semibold"
+                      style={{ color: "var(--s-image)", background: "var(--s-image-bg)" }}
+                    >
+                      <Check size={13} /> Connected
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-[12.5px] gap-1.5"
+                      onClick={async () => {
+                        if (!confirm(`Disconnect @${p.handle} from X? Your styles and briefs will be kept.`)) return;
+                        await handleDisconnectX();
+                      }}
+                      disabled={disconnecting}
+                    >
+                      {disconnecting ? <Loader2 size={13} className="animate-spin" /> : null}
+                      {disconnecting ? "Disconnecting..." : "Reconnect"}
+                    </Button>
+                  </div>
                 ) : (
                   <Button
                     variant="outline"
