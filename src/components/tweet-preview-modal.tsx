@@ -55,7 +55,7 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
     let cancelled = false;
 
     async function loadConnection() {
-      const res = await fetch("/api/x/connection");
+      const res = await fetch(`/api/x/connection?projectId=${project.id}`);
       if (!cancelled) {
         const data = res.ok ? await res.json() : null;
         setXConfigured(Boolean(data?.configured));
@@ -101,7 +101,7 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
   }
 
   const canPublish = PUBLISHABLE.has(tweet.status) && !tweet.externalPostId;
-  const connectHref = "/api/x/connect";
+  const connectHref = `/api/x/connect?projectId=${project.id}`;
 
   return (
     <div

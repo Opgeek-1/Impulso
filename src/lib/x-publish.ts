@@ -47,9 +47,14 @@ async function refreshXToken(account: {
   return data.access_token as string;
 }
 
-async function getXAccessToken(userId: string) {
+async function getXAccessToken(projectId: string) {
+  // Look up the token linked to this specific project first, then fall back to
+  // any twitter account owned by the project's user.
   const account = await prisma.account.findFirst({
-    where: { userId, provider: "twitter" },
+    where: { provider: "twitter", projectId },
+    orderBy: { expires_at: "desc" },
+  }) ?? await prisma.account.findFirst({
+    where: { provider: "twitter", project: { id: projectId } },
     orderBy: { expires_at: "desc" },
   });
 
@@ -84,9 +89,14 @@ async function markPublishFailure(tweetId: string, error: string) {
   return message;
 }
 
-export async function hasXConnection(userId: string) {
+export async function hasXConnection(userId: string, projectId?: string) {
   const account = await prisma.account.findFirst({
-    where: { userId, provider: "twitter", access_token: { not: null } },
+    where: {
+      userId,
+      provider: "twitter",
+      access_token: { not: null },
+      ...(projectId ? { projectId } : {}),
+    },
     select: { providerAccountId: true },
   });
   return Boolean(account);
@@ -107,7 +117,7 @@ export async function publishTweet(tweetId: string, userId: string): Promise<Pub
     return { ok: false, status: 409, error: "Tweet has already been posted" };
   }
 
-  const accessToken = await getXAccessToken(userId);
+  const accessToken = await getXAccessToken(tweet.projectId);
   if (!accessToken) {
     return { ok: false, status: 400, error: "Connect X before publishing" };
   }

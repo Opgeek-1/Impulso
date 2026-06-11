@@ -1,28 +1,58 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { hasXConnection } from "@/lib/x-publish";
 import { prisma } from "@/lib/db";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const configured = Boolean(process.env.AUTH_TWITTER_ID && process.env.AUTH_TWITTER_SECRET);
-  const connected = await hasXConnection(session.user.id);
-  return NextResponse.json({ configured, connected });
+  const projectId = req.nextUrl.searchParams.get("projectId");
+
+  if (projectId) {
+    const account = await prisma.account.findFirst({
+      where: {
+        userId: session.user.id,
+        provider: "twitter",
+        projectId,
+        access_token: { not: null },
+      },
+      select: { providerAccountId: true },
+    });
+    return NextResponse.json({ configured, connected: Boolean(account) });
+  }
+
+  // Global check (any twitter connection)
+  const account = await prisma.account.findFirst({
+    where: {
+      userId: session.user.id,
+      provider: "twitter",
+      access_token: { not: null },
+    },
+    select: { providerAccountId: true },
+  });
+  return NextResponse.json({ configured, connected: Boolean(account) });
 }
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  await prisma.account.deleteMany({
-    where: { userId: session.user.id, provider: "twitter" },
-  });
+  const projectId = req.nextUrl.searchParams.get("projectId");
+
+  if (projectId) {
+    await prisma.account.deleteMany({
+      where: { userId: session.user.id, provider: "twitter", projectId },
+    });
+  } else {
+    await prisma.account.deleteMany({
+      where: { userId: session.user.id, provider: "twitter" },
+    });
+  }
 
   return NextResponse.json({ disconnected: true });
 }

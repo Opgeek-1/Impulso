@@ -34,7 +34,9 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId         String?
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project           Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@id([provider, providerAccountId])
 }
@@ -68,6 +70,7 @@ model Project {
   brandAssetsNote String?
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts    Account[]
   tweets      Tweet[]
   styles      Style[]
   createdAt   DateTime @default(now())
