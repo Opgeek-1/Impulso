@@ -10,6 +10,43 @@ function publicError(message: string) {
   return message.length > 240 ? `${message.slice(0, 237)}...` : message;
 }
 
+async function refreshXToken(account: {
+  provider: string;
+  providerAccountId: string;
+  refresh_token: string;
+}) {
+  const res = await fetch("https://api.x.com/2/oauth2/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: account.refresh_token,
+      client_id: process.env.AUTH_TWITTER_ID!,
+    }),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.access_token) return null;
+
+  await prisma.account.update({
+    where: {
+      provider_providerAccountId: {
+        provider: account.provider,
+        providerAccountId: account.providerAccountId,
+      },
+    },
+    data: {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token ?? account.refresh_token,
+      expires_at: data.expires_in
+        ? Math.floor(Date.now() / 1000) + data.expires_in
+        : null,
+    },
+  });
+
+  return data.access_token as string;
+}
+
 async function getXAccessToken(userId: string) {
   const account = await prisma.account.findFirst({
     where: { userId, provider: "twitter" },
@@ -17,6 +54,19 @@ async function getXAccessToken(userId: string) {
   });
 
   if (!account?.access_token) return null;
+
+  const isExpired =
+    account.expires_at != null &&
+    account.expires_at < Math.floor(Date.now() / 1000) + 60;
+
+  if (isExpired && account.refresh_token) {
+    return await refreshXToken({
+      provider: account.provider,
+      providerAccountId: account.providerAccountId,
+      refresh_token: account.refresh_token,
+    });
+  }
+
   return account.access_token;
 }
 
