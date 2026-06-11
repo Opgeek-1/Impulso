@@ -40,12 +40,21 @@ export async function POST(req: NextRequest) {
   const feedbackClause = feedback?.trim()
     ? `\n\nUser feedback on previous image — apply these changes:\n${feedback.trim()}`
     : "";
+  const hasLogo = !!tweet.project.brandLogoUrl;
+  const logoInstructions = hasLogo
+    ? `\n\nLogo instructions: A reference image of the brand logo is attached. Copy it PIXEL-PERFECTLY into the final image — preserve the exact shape, colors, text, and proportions. Do NOT redraw, reinterpret, or stylize it. Place it in a prominent, unobstructed area of the composition.`
+    : "";
   const prompt = `${basePrompt}
 
 Brand constraints:
 ${brandContext}
 
-Do not render any website URL unless it exactly matches the official website URL listed above.${feedbackClause}`;
+Typography rules:
+- Every word and letter in the image must be spelled correctly and rendered clearly.
+- Use simple, bold sans-serif fonts for readability.
+- Minimize the amount of text — prefer icons, symbols, and visual elements over written words.
+- Double-check that all text is legible, properly spaced, and not cut off.
+- Do not render any website URL unless it exactly matches the official website URL listed above.${logoInstructions}${feedbackClause}`;
 
   let result;
   try {
