@@ -57,6 +57,12 @@ The design brief should include:
 - Dimensions based on style guide, or default 1200x675px (Twitter card)
 - Any visible website URL must match the official website exactly; never invent or substitute a different website.
 
+CRITICAL rules for the imagePrompt:
+- MINIMIZE text in the image. Prefer icons, diagrams, and visual metaphors over written words.
+- Any text that MUST appear should be listed word-for-word in the prompt so the image model spells it correctly.
+- If a brand logo is available, the prompt must instruct the model to copy the attached reference image exactly — same shape, colors, proportions, and any text within the logo. Never describe the logo in words; reference the attached image.
+- Specify clear, uncluttered compositions — AI image models render text more accurately when there's less of it.
+
 Output a JSON object with:
 {
   "concept": "brief description",
@@ -65,7 +71,7 @@ Output a JSON object with:
   "typography": "font and text styling details",
   "elements": ["element1", "element2", ...],
   "mood": "overall mood description",
-  "imagePrompt": "an image generation prompt that faithfully follows the style guide above"
+  "imagePrompt": "an image generation prompt that faithfully follows the style guide and rules above"
 }
 
 Only output the JSON, nothing else.`;

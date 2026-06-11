@@ -41,7 +41,7 @@ export function buildBrandContext(project: BrandContextProject): string {
   }
 
   if (project.brandLogoUrl) {
-    sections.push("Logo asset: uploaded for this account. Use the brand logo only when the image generation pipeline can reference it; never invent a different logo.");
+    sections.push("Logo asset: A reference image of the brand logo is attached. Reproduce it EXACTLY as provided — same shape, colors, proportions, and text. Do NOT redraw, reinterpret, simplify, or stylize the logo. Place it prominently in the composition.");
   }
 
   if (project.brandAssetsNote?.trim()) {
