@@ -89,13 +89,34 @@ function StageTabs({ active, setActive, counts }: {
 
 const VALID_TAB_IDS = new Set(TABS.map((t) => t.id));
 
+function buildQs(params: URLSearchParams) {
+  const qs = params.toString();
+  return qs ? `/?${qs}` : "/";
+}
+
 export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(
-    initialProjects[0] ?? null
+
+  const handleParam = searchParams.get("account");
+  const projectFromUrl = handleParam
+    ? initialProjects.find((p) => p.handle === handleParam) ?? null
+    : null;
+  const [selectedProject, setSelectedProjectState] = useState<Project | null>(
+    projectFromUrl ?? initialProjects[0] ?? null
   );
+
+  const setSelectedProject = useCallback((project: Project | null) => {
+    setSelectedProjectState(project);
+    const params = new URLSearchParams(searchParams.toString());
+    if (!project || project.handle === initialProjects[0]?.handle) {
+      params.delete("account");
+    } else {
+      params.set("account", project.handle);
+    }
+    router.replace(buildQs(params), { scroll: false });
+  }, [searchParams, router, initialProjects]);
 
   const tabParam = searchParams.get("tab");
   const activeTab = tabParam && VALID_TAB_IDS.has(tabParam) ? tabParam : "generate";
@@ -107,8 +128,7 @@ export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
     } else {
       params.set("tab", id);
     }
-    const qs = params.toString();
-    router.replace(qs ? `/?${qs}` : "/", { scroll: false });
+    router.replace(buildQs(params), { scroll: false });
   }, [searchParams, router]);
 
   const [counts, setCounts] = useState<Record<string, number | null>>({ generate: null, curate: null, schedule: null });
@@ -147,7 +167,10 @@ export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
 
   function handleProjectCreated(project: Project) {
     setProjects((prev) => [project, ...prev]);
-    setSelectedProject(project);
+    setSelectedProjectState(project);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("account", project.handle);
+    router.replace(buildQs(params), { scroll: false });
   }
 
   return (

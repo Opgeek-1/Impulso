@@ -1027,11 +1027,38 @@ const SECTION_META: Record<string, { icon: typeof ImageIcon; title: string; desc
 
 const VALID_SECTION_IDS = new Set(NAV_ITEMS.map((n) => n.id));
 
+function buildSettingsQs(params: URLSearchParams) {
+  const qs = params.toString();
+  return qs ? `/settings?${qs}` : "/settings";
+}
+
 export function SettingsPage({ projects: initialProjects, user }: SettingsPageProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(initialProjects[0] ?? null);
+
+  const handleParam = searchParams.get("account");
+  const projectFromUrl = handleParam
+    ? initialProjects.find((p) => p.handle === handleParam) ?? null
+    : null;
+  const [selectedProject, setSelectedProjectState] = useState<Project | null>(
+    projectFromUrl ?? initialProjects[0] ?? null
+  );
+
+  const replaceUrl = useCallback((params: URLSearchParams) => {
+    router.replace(buildSettingsQs(params), { scroll: false });
+  }, [router]);
+
+  const setSelectedProject = useCallback((project: Project | null) => {
+    setSelectedProjectState(project);
+    const params = new URLSearchParams(searchParams.toString());
+    if (!project || project.handle === initialProjects[0]?.handle) {
+      params.delete("account");
+    } else {
+      params.set("account", project.handle);
+    }
+    replaceUrl(params);
+  }, [searchParams, replaceUrl, initialProjects]);
 
   const tabParam = searchParams.get("tab");
   const activeSection = tabParam && VALID_SECTION_IDS.has(tabParam) ? tabParam : "brief";
@@ -1043,27 +1070,37 @@ export function SettingsPage({ projects: initialProjects, user }: SettingsPagePr
     } else {
       params.set("tab", id);
     }
-    const qs = params.toString();
-    router.replace(qs ? `/settings?${qs}` : "/settings", { scroll: false });
-  }, [searchParams, router]);
+    replaceUrl(params);
+  }, [searchParams, replaceUrl]);
 
   function handleProjectCreated(project: Project & { _count?: { tweets: number; styles: number } }) {
     const p = { ...project, _count: project._count || { tweets: 0, styles: 0 } };
     setProjects((prev) => [p, ...prev]);
-    setSelectedProject(p);
+    setSelectedProjectState(p);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("account", p.handle);
+    replaceUrl(params);
   }
 
   function handleProjectDeleted(id: string) {
     setProjects((prev) => prev.filter((p) => p.id !== id));
     if (selectedProject?.id === id) {
-      setSelectedProject(projects.find((p) => p.id !== id) ?? null);
+      const next = projects.find((p) => p.id !== id) ?? null;
+      setSelectedProjectState(next);
+      const params = new URLSearchParams(searchParams.toString());
+      if (!next || next.handle === initialProjects[0]?.handle) {
+        params.delete("account");
+      } else {
+        params.set("account", next.handle);
+      }
+      replaceUrl(params);
     }
   }
 
   function handleProjectUpdated(updated: Project) {
     setProjects((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
     if (selectedProject?.id === updated.id) {
-      setSelectedProject({ ...selectedProject, ...updated });
+      setSelectedProjectState({ ...selectedProject, ...updated });
     }
   }
 
