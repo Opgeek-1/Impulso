@@ -591,14 +591,15 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
   const [xConnected, setXConnected] = useState(false);
   const [xConfigured, setXConfigured] = useState(true);
   const [checkingX, setCheckingX] = useState(true);
+  const [disconnecting, setDisconnecting] = useState(false);
   const router = useRouter();
 
   const AVATAR_COLORS = ["#FE3C9C", "#0ea5e9", "#a855f7", "#f59e0b", "#22c55e", "#6366f1"];
 
-  useEffect(() => {
+  function loadConnection() {
     let cancelled = false;
 
-    async function loadConnection() {
+    async function run() {
       const res = await fetch("/api/x/connection");
       if (!cancelled) {
         const data = res.ok ? await res.json() : null;
@@ -608,11 +609,24 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
       }
     }
 
-    void loadConnection();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    void run();
+    return () => { cancelled = true; };
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(loadConnection, []);
+
+  async function handleDisconnectX() {
+    setDisconnecting(true);
+    const res = await fetch("/api/x/connection", { method: "DELETE" });
+    if (res.ok) {
+      setXConnected(false);
+      toast.success("X account disconnected");
+    } else {
+      toast.error("Failed to disconnect");
+    }
+    setDisconnecting(false);
+  }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -734,6 +748,32 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {xConfigured && (
+                xConnected ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-[12.5px] gap-1.5"
+                    style={{ color: "var(--s-image)", borderColor: "var(--s-image-bg)" }}
+                    onClick={handleDisconnectX}
+                    disabled={disconnecting}
+                  >
+                    {disconnecting ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                    Connected @{p.handle}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-[12.5px] gap-1.5"
+                    disabled={checkingX}
+                    onClick={() => { window.location.href = "/api/x/connect"; }}
+                  >
+                    {checkingX ? <Loader2 size={13} className="animate-spin" /> : <X size={13} />}
+                    Connect @{p.handle}
+                  </Button>
+                )
+              )}
               <Button
                 variant="outline"
                 size="sm"
