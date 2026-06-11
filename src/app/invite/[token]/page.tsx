@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import { acceptWorkspaceInvite } from "@/lib/invites";
 import { AcceptInviteForm } from "@/components/accept-invite-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
 
