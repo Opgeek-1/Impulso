@@ -685,12 +685,26 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
             <X size={14} /> X not configured
           </Button>
         ) : xConnected ? (
-          <span
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-[10px] text-[12.5px] font-semibold"
-            style={{ color: "var(--s-image)", background: "var(--s-image-bg)", border: "1px solid var(--imp-border)" }}
-          >
-            <Check size={14} /> X connected
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-[10px] text-[12.5px] font-semibold"
+              style={{ color: "var(--s-image)", background: "var(--s-image-bg)", border: "1px solid var(--imp-border)" }}
+            >
+              <Check size={14} /> X connected
+            </span>
+            <Button
+              variant="outline"
+              className="rounded-[10px] h-9 text-[13px] gap-1.5"
+              onClick={async () => {
+                if (!confirm("Disconnect and reconnect X? This will refresh your token for all accounts.")) return;
+                await handleDisconnectX();
+              }}
+              disabled={disconnecting}
+            >
+              {disconnecting ? <Loader2 size={14} className="animate-spin" /> : null}
+              {disconnecting ? "Reconnecting..." : "Reconnect"}
+            </Button>
+          </div>
         ) : (
           <Button
             variant="outline"
@@ -748,41 +762,23 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {xConfigured && (
-                xConnected ? (
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-[12.5px] font-semibold"
-                      style={{ color: "var(--s-image)", background: "var(--s-image-bg)" }}
-                    >
-                      <Check size={13} /> Connected
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-[12.5px] gap-1.5"
-                      onClick={async () => {
-                        if (!confirm(`Disconnect @${p.handle} from X? Your styles and briefs will be kept.`)) return;
-                        await handleDisconnectX();
-                      }}
-                      disabled={disconnecting}
-                    >
-                      {disconnecting ? <Loader2 size={13} className="animate-spin" /> : null}
-                      {disconnecting ? "Disconnecting..." : "Reconnect"}
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-[12.5px] gap-1.5"
-                    disabled={checkingX}
-                    onClick={() => { window.location.href = "/api/x/connect"; }}
-                  >
-                    {checkingX ? <Loader2 size={13} className="animate-spin" /> : <X size={13} />}
-                    Connect @{p.handle}
-                  </Button>
-                )
+              {xConfigured && xConnected && (
+                <span
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-[12.5px] font-semibold"
+                  style={{ color: "var(--s-image)", background: "var(--s-image-bg)" }}
+                >
+                  <Check size={13} /> Connected @{p.handle}
+                </span>
+              )}
+              {xConfigured && !xConnected && !checkingX && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-[12.5px] gap-1.5"
+                  onClick={() => { window.location.href = "/api/x/connect"; }}
+                >
+                  <X size={13} /> Connect @{p.handle}
+                </Button>
               )}
               <Button
                 variant="outline"
