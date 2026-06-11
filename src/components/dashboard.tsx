@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { TopNav } from "@/components/top-nav";
 import { GeneratePanel } from "@/components/generate-panel";
 import { CuratePanel } from "@/components/curate-panel";
@@ -86,12 +87,30 @@ function StageTabs({ active, setActive, counts }: {
   );
 }
 
+const VALID_TAB_IDS = new Set(TABS.map((t) => t.id));
+
 export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
   const [selectedProject, setSelectedProject] = useState<Project | null>(
     initialProjects[0] ?? null
   );
-  const [activeTab, setActiveTab] = useState("generate");
+
+  const tabParam = searchParams.get("tab");
+  const activeTab = tabParam && VALID_TAB_IDS.has(tabParam) ? tabParam : "generate";
+
+  const setActiveTab = useCallback((id: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (id === "generate") {
+      params.delete("tab");
+    } else {
+      params.set("tab", id);
+    }
+    const qs = params.toString();
+    router.replace(qs ? `/?${qs}` : "/", { scroll: false });
+  }, [searchParams, router]);
+
   const [counts, setCounts] = useState<Record<string, number | null>>({ generate: null, curate: null, schedule: null });
 
   const fetchCounts = useCallback(async (projectId: string) => {

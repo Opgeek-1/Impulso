@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -32,5 +33,9 @@ export default async function Settings() {
     brief: p.brief,
   }));
 
-  return <SettingsPage projects={projectsWithBrief} user={session.user} />;
+  return (
+    <Suspense>
+      <SettingsPage projects={projectsWithBrief} user={session.user} />
+    </Suspense>
+  );
 }

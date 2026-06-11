@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -25,5 +26,9 @@ export default async function Home() {
     orderBy: { createdAt: "desc" },
   });
 
-  return <Dashboard projects={projects} user={session.user} />;
+  return (
+    <Suspense>
+      <Dashboard projects={projects} user={session.user} />
+    </Suspense>
+  );
 }

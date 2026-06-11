@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { TopNav } from "@/components/top-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1025,11 +1025,27 @@ const SECTION_META: Record<string, { icon: typeof ImageIcon; title: string; desc
   appearance: { icon: SlidersHorizontal, title: "Appearance", desc: "Personal display preferences for this workspace. These only affect your view." },
 };
 
+const VALID_SECTION_IDS = new Set(NAV_ITEMS.map((n) => n.id));
+
 export function SettingsPage({ projects: initialProjects, user }: SettingsPageProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
   const [selectedProject, setSelectedProject] = useState<Project | null>(initialProjects[0] ?? null);
-  const [activeSection, setActiveSection] = useState("brief");
-  const router = useRouter();
+
+  const tabParam = searchParams.get("tab");
+  const activeSection = tabParam && VALID_SECTION_IDS.has(tabParam) ? tabParam : "brief";
+
+  const setActiveSection = useCallback((id: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (id === "brief") {
+      params.delete("tab");
+    } else {
+      params.set("tab", id);
+    }
+    const qs = params.toString();
+    router.replace(qs ? `/settings?${qs}` : "/settings", { scroll: false });
+  }, [searchParams, router]);
 
   function handleProjectCreated(project: Project & { _count?: { tweets: number; styles: number } }) {
     const p = { ...project, _count: project._count || { tweets: 0, styles: 0 } };
