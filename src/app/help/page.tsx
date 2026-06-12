@@ -20,7 +20,7 @@ export default async function Help() {
 
   const projects = await prisma.project.findMany({
     where: { userId: { in: memberIds } },
-    include: { _count: { select: { tweets: true, styles: true } } },
+    include: { _count: { select: { tweets: true } } },
     orderBy: { createdAt: "desc" },
   });
 

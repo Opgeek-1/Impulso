@@ -9,14 +9,13 @@ interface Project {
   name: string;
   handle: string;
   description: string | null;
-  avatarUrl: string | null;
-  brief: string | null;
-  _count: { tweets: number; styles: number };
+  avatarUrl?: string | null;
+  _count: { tweets: number };
 }
 
 interface HelpPageProps {
   projects: Project[];
-  user: { id?: string; name?: string | null; email?: string | null; image?: string | null };
+  user: { id?: string; name?: string | null; email?: string | null };
 }
 
 const STEPS = [
