@@ -42,7 +42,13 @@ export async function POST(req: NextRequest) {
     : "";
   const hasLogo = !!tweet.project.brandLogoUrl;
   const logoInstructions = hasLogo
-    ? `\n\nLogo instructions: A reference image of the brand logo is attached. Copy it PIXEL-PERFECTLY into the final image — preserve the exact shape, colors, text, and proportions. Do NOT redraw, reinterpret, or stylize it. Place it in a prominent, unobstructed area of the composition.`
+    ? `\n\nCRITICAL — Logo reproduction:
+The attached reference image is the brand's official logo. You MUST:
+1. Copy the logo EXACTLY as it appears in the reference — same shape, icon, colors, background, and proportions.
+2. Do NOT redraw, reinterpret, simplify, add effects to, or stylize the logo in any way.
+3. Place the logo in the bottom-left corner of the composition with clear spacing around it.
+4. The logo must be clearly visible and not obscured by other elements.
+5. Treat the logo as a fixed asset — paste it as-is, do not regenerate it.`
     : "";
   const prompt = `${basePrompt}
 

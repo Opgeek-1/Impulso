@@ -41,7 +41,7 @@ export function buildBrandContext(project: BrandContextProject): string {
   }
 
   if (project.brandLogoUrl) {
-    sections.push("Logo asset: A reference image of the brand logo is attached. Reproduce it EXACTLY as provided — same shape, colors, proportions, and text. Do NOT redraw, reinterpret, simplify, or stylize the logo. Place it prominently in the composition.");
+    sections.push("Logo asset: A reference image of the brand logo is attached. Paste the logo EXACTLY as provided — same shape, icon, colors, background, proportions, and text. Do NOT redraw, reinterpret, simplify, or stylize it. Treat it as a fixed graphic asset, not a prompt to generate a similar logo.");
   }
 
   if (project.brandAssetsNote?.trim()) {
