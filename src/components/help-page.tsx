@@ -8,6 +8,7 @@ interface Project {
   id: string;
   name: string;
   handle: string;
+  description: string | null;
   avatarUrl: string | null;
   brief: string | null;
   _count: { tweets: number; styles: number };
