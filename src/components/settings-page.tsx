@@ -592,7 +592,25 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
   const [projectConnections, setProjectConnections] = useState<Record<string, boolean>>({});
   const [checkingX, setCheckingX] = useState(true);
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editHandle, setEditHandle] = useState("");
   const router = useRouter();
+
+  async function handleSaveEdit(projectId: string) {
+    if (!editName.trim() || !editHandle.trim()) return;
+    const res = await fetch("/api/projects", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectId, name: editName.trim(), handle: editHandle.trim().replace(/^@/, "") }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      onUpdate({ ...projects.find((p) => p.id === projectId)!, name: updated.name, handle: updated.handle });
+      toast.success("Account updated");
+    }
+    setEditingId(null);
+  }
 
   const AVATAR_COLORS = ["#FE3C9C", "#0ea5e9", "#a855f7", "#f59e0b", "#22c55e", "#6366f1"];
 
@@ -717,10 +735,45 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
               </div>
             </label>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[15px] font-bold" style={{ color: "var(--imp-text)" }}>{p.name}</span>
-                <span className="text-[13.5px] font-mono" style={{ color: "var(--imp-muted)" }}>@{p.handle}</span>
-              </div>
+              {editingId === p.id ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="h-7 text-[13.5px] w-[140px]"
+                    placeholder="Name"
+                    autoFocus
+                    onKeyDown={(e) => { if (e.key === "Enter") handleSaveEdit(p.id); if (e.key === "Escape") setEditingId(null); }}
+                  />
+                  <span className="text-[13.5px]" style={{ color: "var(--imp-muted)" }}>@</span>
+                  <Input
+                    value={editHandle}
+                    onChange={(e) => setEditHandle(e.target.value.replace(/^@/, ""))}
+                    className="h-7 text-[13.5px] w-[140px] font-mono"
+                    placeholder="handle"
+                    onKeyDown={(e) => { if (e.key === "Enter") handleSaveEdit(p.id); if (e.key === "Escape") setEditingId(null); }}
+                  />
+                  <Button size="sm" className="h-7 text-[12px] gap-1 imp-btn-primary" onClick={() => handleSaveEdit(p.id)}>
+                    <Check size={12} /> Save
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-7 text-[12px]" onClick={() => setEditingId(null)}>
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 group/name">
+                  <span className="text-[15px] font-bold" style={{ color: "var(--imp-text)" }}>{p.name}</span>
+                  <span className="text-[13.5px] font-mono" style={{ color: "var(--imp-muted)" }}>@{p.handle}</span>
+                  <button
+                    onClick={() => { setEditingId(p.id); setEditName(p.name); setEditHandle(p.handle); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center opacity-0 group-hover/name:opacity-100 transition-opacity hover:bg-[var(--imp-surface-3)]"
+                    style={{ color: "var(--imp-muted)" }}
+                    title="Edit name & handle"
+                  >
+                    <Pencil size={12} />
+                  </button>
+                </div>
+              )}
               <div className="text-[12.5px] mt-0.5" style={{ color: "var(--imp-muted)" }}>
                 {p._count.styles} image style{p._count.styles !== 1 ? "s" : ""}
               </div>
