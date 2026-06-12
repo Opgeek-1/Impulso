@@ -35,18 +35,6 @@ Impulso turns a topic into a week of scheduled posts in four steps:
 - **Per-project X connections** — connect and disconnect each account independently
 - **Dark mode** — automatic or manual theme switching
 
-## Tech stack
-
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript |
-| Database | PostgreSQL + Prisma |
-| Auth | NextAuth v5 |
-| Styling | Tailwind CSS + shadcn/ui |
-| AI | Vercel AI SDK |
-| Email | Resend |
-
 ## Getting started
 
 ```bash
