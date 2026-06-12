@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { fetchXProfile } from "@/lib/x-api";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -42,6 +43,24 @@ export async function GET(req: NextRequest) {
       },
       data: { projectId },
     });
+
+    // Sync X profile info (name, handle, avatar) to the project
+    if (account.access_token) {
+      try {
+        const profile = await fetchXProfile(account.access_token);
+        const profileImageUrl = profile.profile_image_url?.replace("_normal", "_400x400");
+        await prisma.project.update({
+          where: { id: projectId },
+          data: {
+            name: profile.name,
+            handle: profile.username,
+            ...(profileImageUrl ? { avatarUrl: profileImageUrl } : {}),
+          },
+        });
+      } catch {
+        // Non-critical — project keeps its manually-entered name/handle
+      }
+    }
   }
 
   return NextResponse.redirect(new URL("/settings?tab=accounts", req.url));
