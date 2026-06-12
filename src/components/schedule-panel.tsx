@@ -109,7 +109,7 @@ function TrayCard({ tweet, onSchedule }: { tweet: Tweet; onSchedule: () => void 
           </span>
           <button
             onClick={(e) => { e.stopPropagation(); onSchedule(); }}
-            className="imp-icon-btn inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            className="imp-icon-btn inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full transition-colors hover:brightness-95"
             style={{ background: "var(--imp-accent-soft)", color: "var(--imp-accent)", border: "1px solid var(--imp-accent-line)" }}
             title="Schedule with date & time"
           >
