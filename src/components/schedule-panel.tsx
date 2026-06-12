@@ -25,8 +25,10 @@ import {
   GripVertical,
   X,
   Eye,
+  CalendarClock,
 } from "lucide-react";
 import { TweetPreviewModal } from "@/components/tweet-preview-modal";
+import { SchedulePickerDialog } from "@/components/schedule-picker-dialog";
 
 interface Project {
   id: string;
@@ -75,20 +77,20 @@ function fmtTime(d: Date): string {
 }
 
 // --- Draggable tray card ---
-function TrayCard({ tweet }: { tweet: Tweet }) {
+function TrayCard({ tweet, onSchedule }: { tweet: Tweet; onSchedule: () => void }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: tweet.id });
   const style = { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.4 : 1 };
 
   return (
     <div
       ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      className="imp-card rounded-xl p-3 flex gap-2.5 cursor-grab items-start"
+      className="imp-card rounded-xl p-3 flex gap-2.5 items-start group"
       style={{ ...style, background: "var(--imp-surface)", border: "1px solid var(--imp-border)", boxShadow: "var(--imp-shadow-sm)" }}
     >
       <div
-        className="w-[42px] h-[42px] rounded-lg flex items-center justify-center shrink-0"
+        {...attributes}
+        {...listeners}
+        className="w-[42px] h-[42px] rounded-lg flex items-center justify-center shrink-0 cursor-grab"
         style={{ background: "var(--imp-surface-3)", border: "1px solid var(--imp-border)", color: "var(--imp-faint)" }}
       >
         <GripVertical size={16} />
@@ -97,20 +99,31 @@ function TrayCard({ tweet }: { tweet: Tweet }) {
         <p className="m-0 mb-1.5 text-[12px] leading-snug line-clamp-2" style={{ color: "var(--imp-text-2)" }}>
           {tweet.content}
         </p>
-        <span
-          className="inline-flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded-full"
-          style={{ background: "var(--s-image-bg)", color: "var(--s-image)" }}
-        >
-          <CheckCircle size={10} />
-          {tweet.status.toLowerCase().replace("_", " ")}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span
+            className="inline-flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded-full"
+            style={{ background: "var(--s-image-bg)", color: "var(--s-image)" }}
+          >
+            <CheckCircle size={10} />
+            {tweet.status.toLowerCase().replace("_", " ")}
+          </span>
+          <button
+            onClick={(e) => { e.stopPropagation(); onSchedule(); }}
+            className="imp-icon-btn inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full transition-colors hover:brightness-95"
+            style={{ background: "var(--imp-accent-soft)", color: "var(--imp-accent)", border: "1px solid var(--imp-accent-line)" }}
+            title="Schedule with date & time"
+          >
+            <CalendarClock size={11} />
+            Schedule
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
 // --- Draggable slot card (already scheduled) ---
-function SlotCard({ tweet, onUnschedule, onPreview }: { tweet: Tweet; onUnschedule: () => void; onPreview: () => void }) {
+function SlotCard({ tweet, onUnschedule, onPreview, onReschedule }: { tweet: Tweet; onUnschedule: () => void; onPreview: () => void; onReschedule: () => void }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: tweet.id });
   const style = { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.4 : 1 };
   const date = tweet.scheduledAt ? new Date(tweet.scheduledAt) : null;
@@ -143,14 +156,24 @@ function SlotCard({ tweet, onUnschedule, onPreview }: { tweet: Tweet; onUnschedu
             <Eye size={12} />
           </button>
           {!posted && !publishing && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onUnschedule(); }}
-              className="imp-icon-btn w-5 h-5 flex items-center justify-center"
-              style={{ color: "var(--imp-muted)" }}
-              title="Unschedule"
-            >
-              <X size={12} />
-            </button>
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); onReschedule(); }}
+                className="imp-icon-btn w-5 h-5 flex items-center justify-center"
+                style={{ color: "var(--imp-muted)" }}
+                title="Reschedule"
+              >
+                <CalendarClock size={12} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onUnschedule(); }}
+                className="imp-icon-btn w-5 h-5 flex items-center justify-center"
+                style={{ color: "var(--imp-muted)" }}
+                title="Unschedule"
+              >
+                <X size={12} />
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -162,13 +185,14 @@ function SlotCard({ tweet, onUnschedule, onPreview }: { tweet: Tweet; onUnschedu
 }
 
 // --- Droppable day column ---
-function DayColumn({ dayId, date, isToday, tweets, onUnschedule, onPreview }: {
+function DayColumn({ dayId, date, isToday, tweets, onUnschedule, onPreview, onReschedule }: {
   dayId: string;
   date: Date;
   isToday: boolean;
   tweets: Tweet[];
   onUnschedule: (id: string) => void;
   onPreview: (tweet: Tweet) => void;
+  onReschedule: (tweet: Tweet) => void;
 }) {
   const { isOver, setNodeRef } = useDroppable({ id: dayId });
   const sorted = [...tweets].sort((a, b) => new Date(a.scheduledAt!).getTime() - new Date(b.scheduledAt!).getTime());
@@ -210,7 +234,7 @@ function DayColumn({ dayId, date, isToday, tweets, onUnschedule, onPreview }: {
       {/* Body */}
       <div className="flex-1 min-h-[130px] p-2 flex flex-col gap-2 overflow-y-auto">
         {sorted.map((t) => (
-          <SlotCard key={t.id} tweet={t} onUnschedule={() => onUnschedule(t.id)} onPreview={() => onPreview(t)} />
+          <SlotCard key={t.id} tweet={t} onUnschedule={() => onUnschedule(t.id)} onPreview={() => onPreview(t)} onReschedule={() => onReschedule(t)} />
         ))}
         {isOver && (
           <div
@@ -231,6 +255,7 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [activeId, setActiveId] = useState<string | null>(null);
   const [previewTweet, setPreviewTweet] = useState<Tweet | null>(null);
+  const [schedulingTweet, setSchedulingTweet] = useState<Tweet | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
@@ -270,6 +295,18 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
       setAllTweets((prev) => prev.map((t) => t.id === tweetId ? { ...t, scheduledAt: when.toISOString(), status: "SCHEDULED" } : t));
       const DAYNAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
       toast.success(`Scheduled for ${DAYNAMES[(dayDate.getDay() + 6) % 7]} ${fmtTime(when)}`);
+    }
+  }
+
+  async function scheduleToDateTime(tweetId: string, when: Date) {
+    const res = await fetch("/api/tweets", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tweetId, scheduledAt: when.toISOString(), status: "SCHEDULED" }),
+    });
+    if (res.ok) {
+      setAllTweets((prev) => prev.map((t) => t.id === tweetId ? { ...t, scheduledAt: when.toISOString(), status: "SCHEDULED" } : t));
+      toast.success(`Scheduled for ${format(when, "EEE, MMM d")} at ${fmtTime(when)}`);
     }
   }
 
@@ -376,7 +413,7 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
                   All ready posts are scheduled. Curate more to fill the week.
                 </div>
               ) : (
-                tray.map((t) => <TrayCard key={t.id} tweet={t} />)
+                tray.map((t) => <TrayCard key={t.id} tweet={t} onSchedule={() => setSchedulingTweet(t)} />)
               )}
             </div>
           </div>
@@ -396,6 +433,7 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
                   tweets={scheduled.filter((t) => t.scheduledAt && isSameDay(new Date(t.scheduledAt), d))}
                   onUnschedule={unschedule}
                   onPreview={setPreviewTweet}
+                  onReschedule={setSchedulingTweet}
                 />
               ))}
             </div>
@@ -426,6 +464,16 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
           }}
         />
       )}
+
+      <SchedulePickerDialog
+        open={!!schedulingTweet}
+        onOpenChange={(open) => { if (!open) setSchedulingTweet(null); }}
+        onConfirm={(date) => {
+          if (schedulingTweet) scheduleToDateTime(schedulingTweet.id, date);
+        }}
+        tweetContent={schedulingTweet?.content ?? ""}
+        initialDate={schedulingTweet?.scheduledAt ? new Date(schedulingTweet.scheduledAt) : undefined}
+      />
     </div>
   );
 }
