@@ -50,9 +50,13 @@ async function refreshXToken(account: { provider: string; providerAccountId: str
   return data.access_token as string;
 }
 
-async function getXAccessToken(userId: string) {
+async function getXAccessToken(userId: string, projectId?: string) {
   const account = await prisma.account.findFirst({
-    where: { userId, provider: "twitter" },
+    where: {
+      userId,
+      provider: "twitter",
+      ...(projectId ? { projectId } : {}),
+    },
     orderBy: { expires_at: "desc" },
   });
 
@@ -90,9 +94,14 @@ async function markPublishFailure(tweetId: string, error: string) {
   return message;
 }
 
-export async function hasXConnection(userId: string) {
+export async function hasXConnection(userId: string, projectId?: string) {
   const account = await prisma.account.findFirst({
-    where: { userId, provider: "twitter", access_token: { not: null } },
+    where: {
+      userId,
+      provider: "twitter",
+      access_token: { not: null },
+      ...(projectId ? { projectId } : {}),
+    },
     select: { providerAccountId: true },
   });
   return Boolean(account);
@@ -113,7 +122,7 @@ export async function publishTweet(tweetId: string, userId: string): Promise<Pub
     return { ok: false, status: 409, error: "Tweet has already been posted" };
   }
 
-  const accessToken = await getXAccessToken(userId);
+  const accessToken = await getXAccessToken(userId, tweet.project.id);
   if (!accessToken) {
     return { ok: false, status: 400, error: "Connect X before publishing" };
   }
@@ -158,7 +167,11 @@ export async function publishTweet(tweetId: string, userId: string): Promise<Pub
       if (!isAuthError) throw firstErr;
 
       const account = await prisma.account.findFirst({
-        where: { userId, provider: "twitter" },
+        where: {
+          userId,
+          provider: "twitter",
+          ...(tweet.project.id ? { projectId: tweet.project.id } : {}),
+        },
         orderBy: { expires_at: "desc" },
       });
       if (!account?.refresh_token) throw firstErr;
