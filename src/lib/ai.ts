@@ -107,10 +107,12 @@ async function generateImageWithFallback(config: AIConfig, prompt: string, optio
 
 async function generateImageFromReference(config: AIConfig, prompt: string, options: ImageOptions) {
   const image = options.referenceImageDataUrl ? parseDataUrl(options.referenceImageDataUrl) : null;
-  if (!image) return generateImageWithFallback(config, prompt, options);
+  if (!image) {
+    throw new Error("Failed to parse brand logo — check that the uploaded logo is a valid image");
+  }
 
   const formData = new FormData();
-  formData.append("model", options.model ?? "dall-e-3");
+  formData.append("model", options.model ?? MODELS.image);
   formData.append("prompt", prompt);
   formData.append("size", options.size ?? "1024x1024");
   formData.append("n", "1");
@@ -135,11 +137,7 @@ export async function generateImage(prompt: string, options?: ImageOptions) {
   const config = getAIConfig();
 
   if (options?.referenceImageDataUrl) {
-    try {
-      return await generateImageFromReference(config, prompt, options);
-    } catch {
-      return generateImageWithFallback(config, prompt, options);
-    }
+    return generateImageFromReference(config, prompt, options);
   }
 
   return generateImageWithFallback(config, prompt, options);
