@@ -44,6 +44,11 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> =
 
 const PUBLISHABLE = new Set(["CURATED", "DESIGNED", "IMAGE_GENERATED", "SCHEDULED", "PUBLISH_FAILED"]);
 
+function tweetImageSrc(imageUrl: string) {
+  if (imageUrl.startsWith("http") || imageUrl.startsWith("/") || imageUrl.startsWith("data:")) return imageUrl;
+  return `data:image/png;base64,${imageUrl}`;
+}
+
 export function TweetPreviewModal({ tweet, project, onClose, onPublished }: TweetPreviewModalProps) {
   const status = STATUS_MAP[tweet.status] || STATUS_MAP.DRAFT;
   const [connected, setConnected] = useState(false);
@@ -184,13 +189,13 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
           {/* Image */}
           {tweet.imageUrl && (
             <ImageLightbox
-              src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
+              src={tweetImageSrc(tweet.imageUrl)}
               alt="AI generated"
             >
               <div className="rounded-2xl overflow-hidden mb-3 relative" style={{ border: "1px solid var(--imp-border-2)" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
+                  src={tweetImageSrc(tweet.imageUrl)}
                   alt="AI generated"
                   className="w-full h-[264px] object-cover"
                 />

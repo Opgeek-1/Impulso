@@ -121,6 +121,11 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+function tweetImageSrc(imageUrl: string) {
+  if (imageUrl.startsWith("http") || imageUrl.startsWith("/") || imageUrl.startsWith("data:")) return imageUrl;
+  return `data:image/png;base64,${imageUrl}`;
+}
+
 function TweetCard({
   tweet,
   styles,
@@ -249,13 +254,13 @@ function TweetCard({
       {tweet.imageUrl && (
         <>
           <ImageLightbox
-            src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
+            src={tweetImageSrc(tweet.imageUrl)}
             alt="Generated"
           >
             <div className="rounded-[10px] overflow-hidden h-[120px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={tweet.imageUrl.startsWith("http") || tweet.imageUrl.startsWith("/") ? tweet.imageUrl : `data:image/png;base64,${tweet.imageUrl}`}
+                src={tweetImageSrc(tweet.imageUrl)}
                 alt="Generated"
                 className="w-full h-full object-cover"
               />
