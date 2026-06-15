@@ -27,6 +27,7 @@ import {
   Eye,
 } from "lucide-react";
 import { TweetPreviewModal } from "@/components/tweet-preview-modal";
+import { useTranslations } from "next-intl";
 
 interface Project {
   id: string;
@@ -74,10 +75,19 @@ function fmtTime(d: Date): string {
   return hh + (m ? ":" + String(m).padStart(2, "0") : "") + " " + ap;
 }
 
+const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+
 // --- Draggable tray card ---
 function TrayCard({ tweet }: { tweet: Tweet }) {
+  const t = useTranslations("preview.statuses");
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: tweet.id });
   const style = { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.4 : 1 };
+  const statusLabel = tweet.status === "IMAGE_GENERATED"
+    ? t("imageReady")
+    : tweet.status === "PUBLISH_FAILED"
+      ? t("failed")
+      : tweet.status.toLowerCase().replace("_", " ");
 
   return (
     <div
@@ -102,7 +112,7 @@ function TrayCard({ tweet }: { tweet: Tweet }) {
           style={{ background: "var(--s-image-bg)", color: "var(--s-image)" }}
         >
           <CheckCircle size={10} />
-          {tweet.status.toLowerCase().replace("_", " ")}
+          {statusLabel}
         </span>
       </div>
     </div>
@@ -111,6 +121,7 @@ function TrayCard({ tweet }: { tweet: Tweet }) {
 
 // --- Draggable slot card (already scheduled) ---
 function SlotCard({ tweet, onUnschedule, onPreview }: { tweet: Tweet; onUnschedule: () => void; onPreview: () => void }) {
+  const t = useTranslations("schedule");
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: tweet.id });
   const style = { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.4 : 1 };
   const date = tweet.scheduledAt ? new Date(tweet.scheduledAt) : null;
@@ -130,7 +141,7 @@ function SlotCard({ tweet, onUnschedule, onPreview }: { tweet: Tweet; onUnschedu
         {date && (
           <span className="inline-flex items-center gap-1 font-mono text-[11px] font-semibold" style={{ color: failed ? "#f43f5e" : posted ? "var(--s-image)" : "var(--s-sched)" }}>
             <Clock size={11} />
-            {posted ? "Posted" : failed ? "Failed" : publishing ? "Publishing" : fmtTime(date)}
+            {posted ? t("status.posted") : failed ? t("status.failed") : publishing ? t("status.publishing") : fmtTime(date)}
           </span>
         )}
         <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -138,7 +149,7 @@ function SlotCard({ tweet, onUnschedule, onPreview }: { tweet: Tweet; onUnschedu
             onClick={(e) => { e.stopPropagation(); onPreview(); }}
             className="imp-icon-btn w-5 h-5 flex items-center justify-center"
             style={{ color: "var(--imp-muted)" }}
-            title="Preview"
+            title={t("preview")}
           >
             <Eye size={12} />
           </button>
@@ -147,7 +158,7 @@ function SlotCard({ tweet, onUnschedule, onPreview }: { tweet: Tweet; onUnschedu
               onClick={(e) => { e.stopPropagation(); onUnschedule(); }}
               className="imp-icon-btn w-5 h-5 flex items-center justify-center"
               style={{ color: "var(--imp-muted)" }}
-              title="Unschedule"
+              title={t("unschedule")}
             >
               <X size={12} />
             </button>
@@ -170,9 +181,9 @@ function DayColumn({ dayId, date, isToday, tweets, onUnschedule, onPreview }: {
   onUnschedule: (id: string) => void;
   onPreview: (tweet: Tweet) => void;
 }) {
+  const t = useTranslations("schedule");
   const { isOver, setNodeRef } = useDroppable({ id: dayId });
   const sorted = [...tweets].sort((a, b) => new Date(a.scheduledAt!).getTime() - new Date(b.scheduledAt!).getTime());
-  const DAYNAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const dayIdx = (date.getDay() + 6) % 7;
 
   return (
@@ -194,7 +205,7 @@ function DayColumn({ dayId, date, isToday, tweets, onUnschedule, onPreview }: {
             className="text-[12px] font-semibold uppercase tracking-wider"
             style={{ color: isToday ? "var(--imp-accent)" : "var(--imp-text-2)" }}
           >
-            {DAYNAMES[dayIdx]}
+            {t(`dayNames.${WEEKDAY_KEYS[dayIdx]}`)}
           </span>
           <span
             className="font-mono text-[15px] font-bold"
@@ -217,7 +228,7 @@ function DayColumn({ dayId, date, isToday, tweets, onUnschedule, onPreview }: {
             className="rounded-[9px] p-3.5 text-center text-[11px] font-semibold"
             style={{ border: "1.5px dashed var(--imp-accent-line)", color: "var(--imp-accent)" }}
           >
-            Drop to schedule
+            {t("dropToSchedule")}
           </div>
         )}
       </div>
@@ -226,6 +237,7 @@ function DayColumn({ dayId, date, isToday, tweets, onUnschedule, onPreview }: {
 }
 
 export function SchedulePanel({ project }: SchedulePanelProps) {
+  const t = useTranslations("schedule");
   const [allTweets, setAllTweets] = useState<Tweet[]>([]);
   const [loading, setLoading] = useState(true);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -268,8 +280,7 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
     });
     if (res.ok) {
       setAllTweets((prev) => prev.map((t) => t.id === tweetId ? { ...t, scheduledAt: when.toISOString(), status: "SCHEDULED" } : t));
-      const DAYNAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-      toast.success(`Scheduled for ${DAYNAMES[(dayDate.getDay() + 6) % 7]} ${fmtTime(when)}`);
+      toast.success(t("scheduledFor", { day: t(`dayNames.${DAY_KEYS[dayDate.getDay()]}`), time: fmtTime(when) }));
     }
   }
 
@@ -284,7 +295,7 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
     });
     if (res.ok) {
       setAllTweets((prev) => prev.map((t) => t.id === tweetId ? { ...t, scheduledAt: null, status: prevStatus } : t));
-      toast.info("Moved back to tray");
+      toast.info(t("movedBack"));
     }
   }
 
@@ -303,7 +314,7 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64" style={{ color: "var(--imp-muted)" }}>Loading schedule...</div>;
+    return <div className="flex items-center justify-center h-64" style={{ color: "var(--imp-muted)" }}>{t("loading")}</div>;
   }
 
   const rangeLabel = `${format(weekStart, "MMM d")} – ${format(days[6], "MMM d")}`;
@@ -315,11 +326,10 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
       <div className="flex items-end justify-between px-7 pt-5 pb-4 gap-4 flex-wrap">
         <div>
           <h2 className="text-[22px] font-bold tracking-tight mb-1" style={{ color: "var(--imp-text)" }}>
-            Schedule
+            {t("title")}
           </h2>
           <p className="text-[13.5px] m-0" style={{ color: "var(--imp-muted)" }}>
-            Drag ready posts from the tray onto a day to plan{" "}
-            <span className="font-mono" style={{ color: "var(--imp-text-2)" }}>@{project.handle}</span>&apos;s week.
+            {t("subtitle", { handle: project.handle })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -332,7 +342,7 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
           </button>
           <div className="text-center min-w-[148px]">
             <div className="text-[13.5px] font-bold" style={{ color: "var(--imp-text)" }}>{rangeLabel}</div>
-            <div className="text-[11px]" style={{ color: "var(--imp-muted)" }}>{isThisWeek ? "This week" : weekStart.getFullYear()}</div>
+            <div className="text-[11px]" style={{ color: "var(--imp-muted)" }}>{isThisWeek ? t("thisWeek") : weekStart.getFullYear()}</div>
           </div>
           <button
             onClick={() => setWeekStart((d) => addDays(d, 7))}
@@ -346,7 +356,7 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
             size="sm"
             onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
           >
-            Today
+            {t("today")}
           </Button>
         </div>
       </div>
@@ -358,7 +368,7 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
           <div className="w-[282px] shrink-0 flex flex-col min-h-0 mr-3.5">
             <div className="flex items-center gap-2 px-1 pb-3">
               <Inbox size={16} style={{ color: "var(--imp-muted)" }} />
-              <span className="text-[13px] font-bold" style={{ color: "var(--imp-text)" }}>Ready to schedule</span>
+              <span className="text-[13px] font-bold" style={{ color: "var(--imp-text)" }}>{t("readyToSchedule")}</span>
               <span
                 className="font-mono text-[11.5px] rounded-full px-1.5"
                 style={{ color: "var(--imp-muted)", background: "var(--imp-surface-2)", border: "1px solid var(--imp-border)" }}
@@ -373,7 +383,7 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
                   style={{ border: "1.5px dashed var(--imp-border-2)", color: "var(--imp-faint)" }}
                 >
                   <CheckCircle size={22} style={{ color: "var(--s-image)", marginBottom: 8 }} className="mx-auto" />
-                  All ready posts are scheduled. Curate more to fill the week.
+                  {t("emptyTray")}
                 </div>
               ) : (
                 tray.map((t) => <TrayCard key={t.id} tweet={t} />)

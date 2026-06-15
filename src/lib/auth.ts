@@ -3,7 +3,30 @@ import type { Provider } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
 import Twitter from "next-auth/providers/twitter";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
+import { getWorkspaceMemberIds } from "@/lib/workspace";
+
+type XProfile = {
+  data?: { id?: string; name?: string; username?: string; profile_image_url?: string; email?: string | null };
+  detail?: string;
+  title?: string;
+  error?: string;
+};
+
+type XUserinfoRequest = { tokens: { access_token?: string } };
+
+function readXProfile(profile: unknown) {
+  const xProfile = profile as XProfile;
+  const data = xProfile?.data;
+  return {
+    id: data?.id,
+    name: data?.name,
+    username: data?.username,
+    image: data?.profile_image_url,
+    email: data?.email ?? null,
+  };
+}
 
 const providers: Provider[] = [
   Credentials({
@@ -85,6 +108,28 @@ if (process.env.AUTH_TWITTER_ID && process.env.AUTH_TWITTER_SECRET) {
         url: "https://x.com/i/oauth2/authorize",
         params: { scope: "tweet.read tweet.write users.read media.write offline.access" },
       },
+      userinfo: {
+        async request({ tokens }: XUserinfoRequest) {
+          const res = await fetch("https://api.x.com/2/users/me?user.fields=profile_image_url", {
+            headers: { Authorization: `Bearer ${tokens.access_token}` },
+          });
+          const profile = await res.json().catch(() => null) as XProfile | null;
+          if (!res.ok || !profile?.data?.id) {
+            throw new Error(profile?.detail || profile?.title || profile?.error || "X profile request failed");
+          }
+          return profile;
+        },
+      },
+      profile(profile) {
+        const xProfile = readXProfile(profile);
+        if (!xProfile.id) throw new Error("X profile response did not include a user id");
+        return {
+          id: xProfile.id,
+          name: xProfile.name || xProfile.username || "X user",
+          email: xProfile.email,
+          image: xProfile.image,
+        };
+      },
     })
   );
 }
@@ -96,6 +141,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   providers,
   callbacks: {
+    async signIn({ account, profile, user }) {
+      if (account?.provider === "twitter" && user?.id) {
+        const cookieStore = await cookies();
+        const projectId = cookieStore.get("impulso_x_project_id")?.value;
+        const connectingUserId = cookieStore.get("impulso_x_user_id")?.value;
+        if (projectId && connectingUserId) {
+          const xProfile = readXProfile(profile);
+          const memberIds = await getWorkspaceMemberIds(connectingUserId);
+          await prisma.project.updateMany({
+            where: { id: projectId, userId: { in: memberIds } },
+            data: {
+              xProviderAccountId: account.providerAccountId,
+              xUsername: xProfile.username || null,
+            },
+          });
+          cookieStore.delete("impulso_x_project_id");
+          cookieStore.delete("impulso_x_user_id");
+        }
+      }
+      return true;
+    },
     async session({ session, token }) {
       if (token.sub) {
         session.user.id = token.sub;

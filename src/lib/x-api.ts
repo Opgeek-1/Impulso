@@ -1,7 +1,14 @@
 const X_API_BASE = "https://api.x.com";
 const X_MEDIA_BASE = "https://api.x.com";
+const X_OAUTH_TOKEN_URL = "https://api.twitter.com/2/oauth2/token";
 
 type FetchLike = typeof fetch;
+
+function xError(prefix: string, status: number, data: unknown) {
+  const body = data as { detail?: string; title?: string; error?: string } | null;
+  const message = body?.detail || body?.title || body?.error || "Unknown X API error";
+  return `${prefix} (${status}): ${message}`;
+}
 
 function parseImageSource(imageUrl: string) {
   if (imageUrl.startsWith("data:")) {
@@ -45,7 +52,7 @@ export async function uploadXImage(imageUrl: string, accessToken: string, fetche
 
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    throw new Error(data?.detail || data?.title || data?.error || "X media upload failed");
+    throw new Error(xError("X media upload failed", res.status, data));
   }
 
   const mediaId = data?.data?.id || data?.media_id_string || data?.media_id;
@@ -68,10 +75,45 @@ export async function createXPost(content: string, mediaId: string | null, acces
 
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    throw new Error(data?.detail || data?.title || data?.error || "X post creation failed");
+    throw new Error(xError("X post creation failed", res.status, data));
   }
 
   const postId = data?.data?.id;
   if (!postId) throw new Error("X post creation did not return a post id");
   return String(postId);
+}
+
+export async function refreshXAccessToken(
+  refreshToken: string,
+  clientId: string,
+  clientSecret: string,
+  fetcher: FetchLike = fetch
+) {
+  const body = new URLSearchParams({
+    grant_type: "refresh_token",
+    refresh_token: refreshToken,
+    client_id: clientId,
+  });
+
+  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+  const res = await fetcher(X_OAUTH_TOKEN_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${credentials}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body,
+  });
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(xError("X token refresh failed", res.status, data));
+  }
+
+  if (!data?.access_token) throw new Error("X token refresh did not return an access token");
+  return {
+    accessToken: String(data.access_token),
+    refreshToken: data.refresh_token ? String(data.refresh_token) : refreshToken,
+    expiresAt: data.expires_in ? Math.floor(Date.now() / 1000) + Number(data.expires_in) : null,
+  };
 }

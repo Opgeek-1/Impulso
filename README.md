@@ -34,3 +34,19 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Docker
+
+Build the production image:
+
+```bash
+docker build -t impulso:production .
+```
+
+Run it with runtime environment variables supplied by your container platform or an env file:
+
+```bash
+docker run --rm -p 3000:3000 --env-file .env.production.local impulso:production
+```
+
+The image does not include `.env*` files. Provide values such as `DATABASE_URL`, `AUTH_SECRET`, `AI_API_BASE_URL`, and `AI_API_KEY` at runtime.

@@ -5,6 +5,8 @@ import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +33,7 @@ import {
   Check,
   Bell,
   Users,
+  BookOpen,
 } from "lucide-react";
 
 interface Project {
@@ -53,6 +56,8 @@ interface TopNavProps {
 export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNavProps) {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+  const t = useTranslations("nav");
+  const common = useTranslations("common");
   const [newOpen, setNewOpen] = useState(false);
   const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
@@ -136,14 +141,14 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
                 </>
               ) : (
                 <span className="text-[13px]" style={{ color: "var(--imp-muted)" }}>
-                  Select account
+                  {t("selectAccount")}
                 </span>
               )}
               <ChevronDown size={15} style={{ color: "var(--imp-muted)", marginLeft: 2 }} />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-[268px]">
               <div className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--imp-faint)" }}>
-                Accounts
+                {common("accounts")}
               </div>
               {projects.map((p) => (
                 <DropdownMenuItem
@@ -176,7 +181,7 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setNewOpen(true)} className="gap-2.5">
                 <Plus size={14} />
-                Add Twitter account
+                {common("addTwitterAccount")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -190,14 +195,16 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
             style={{ background: "var(--imp-surface-2)", border: "1px solid var(--imp-border)" }}
           >
             <span className="w-[7px] h-[7px] rounded-full" style={{ background: "var(--s-image)", boxShadow: "0 0 7px var(--s-image)" }} />
-            <span className="text-[12px] font-medium" style={{ color: "var(--imp-text-2)" }}>Workspace synced</span>
+            <span className="text-[12px] font-medium" style={{ color: "var(--imp-text-2)" }}>{t("workspaceSynced")}</span>
           </div>
+
+          <LanguageSwitcher />
 
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="imp-icon-btn w-8 h-8 flex items-center justify-center"
             style={{ color: "var(--imp-text-2)" }}
-            title="Toggle theme"
+            title={t("toggleTheme")}
           >
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </button>
@@ -205,7 +212,7 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
           <button
             className="imp-icon-btn w-8 h-8 flex items-center justify-center"
             style={{ color: "var(--imp-text-2)" }}
-            title="Notifications"
+            title={t("notifications")}
           >
             <Bell size={16} />
           </button>
@@ -231,7 +238,7 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
                   {user.name?.[0] || user.email?.[0] || "U"}
                 </div>
                 <div className="leading-tight min-w-0">
-                  <div className="text-[13px] font-semibold truncate">{user.name || "User"}</div>
+                  <div className="text-[13px] font-semibold truncate">{user.name || common("user")}</div>
                   <div className="text-[11px] truncate" style={{ color: "var(--imp-muted)" }}>
                     {user.email}
                   </div>
@@ -240,16 +247,20 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => router.push("/team")} className="gap-2">
                 <Users size={14} />
-                Team & workspace
+                {t("teamWorkspace")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/manual")} className="gap-2">
+                <BookOpen size={14} />
+                {t("manual")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push("/settings")} className="gap-2">
                 <Settings size={14} />
-                Settings
+                {common("settings")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => signOut()} className="gap-2 text-red-400">
                 <LogOut size={14} />
-                Sign out
+                {common("signOut")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -260,36 +271,36 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
       <Dialog open={newOpen} onOpenChange={setNewOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Twitter Account</DialogTitle>
+            <DialogTitle>{t("addDialogTitle")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="nav-project-name">Account name</Label>
+              <Label htmlFor="nav-project-name">{t("accountName")}</Label>
               <Input
                 id="nav-project-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Hyperdrive"
+                placeholder={t("accountNamePlaceholder")}
                 required
                 autoFocus
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="nav-project-handle">Twitter handle</Label>
+              <Label htmlFor="nav-project-handle">{t("twitterHandle")}</Label>
               <Input
                 id="nav-project-handle"
                 value={handle}
                 onChange={(e) => setHandle(e.target.value.replace(/^@/, ""))}
-                placeholder="handle"
+                placeholder={t("handlePlaceholder")}
                 required
               />
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="ghost" onClick={() => setNewOpen(false)}>
-                Cancel
+                {common("cancel")}
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? "Adding..." : "Add account"}
+                {loading ? t("adding") : t("addAccount")}
               </Button>
             </div>
           </form>
