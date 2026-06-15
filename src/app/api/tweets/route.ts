@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getWorkspaceMemberIds } from "@/lib/workspace";
+import { removeGeneratedImage } from "@/lib/image-files";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -68,6 +69,12 @@ export async function PATCH(req: NextRequest) {
       ...(imagePrompt !== undefined && { imagePrompt }),
     },
   });
+
+  if (imageUrl === null) {
+    await removeGeneratedImage(tweet.imageUrl).catch((error) => {
+      console.error("Failed to remove deleted tweet image", error);
+    });
+  }
 
   return NextResponse.json(updated);
 }

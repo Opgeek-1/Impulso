@@ -23,6 +23,8 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+RUN mkdir -p public/generated && chown -R nextjs:nodejs public/generated
+RUN mkdir -p .tmp/tweet-uploads && chown -R nextjs:nodejs .tmp
 RUN rm -f .env .env.*
 
 USER nextjs

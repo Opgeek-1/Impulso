@@ -1,3 +1,5 @@
+import { readGeneratedImage } from "@/lib/image-files";
+
 const X_API_BASE = "https://api.x.com";
 const X_MEDIA_BASE = "https://api.x.com";
 const X_OAUTH_TOKEN_URL = "https://api.twitter.com/2/oauth2/token";
@@ -52,6 +54,11 @@ export async function uploadXImage(imageUrl: string, accessToken: string, fetche
 
   if (parsed) {
     bytes = Buffer.from(parsed.base64, "base64");
+  } else if (imageUrl.startsWith("/")) {
+    const localImage = await readGeneratedImage(imageUrl);
+    if (!localImage) throw new Error("Unsupported local image path");
+    bytes = localImage.bytes;
+    mimeType = localImage.mimeType;
   } else {
     const res = await fetcher(imageUrl);
     if (!res.ok) throw new Error("Failed to fetch image for upload");

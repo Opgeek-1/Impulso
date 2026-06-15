@@ -111,19 +111,23 @@ const IMAGE_MODELS = [
   { id: "dall-e-3", label: "DALL·E 3" },
 ];
 
-// --- Tweet card ---
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+const UPLOAD_CHUNK_SIZE = 512 * 1024;
 
+// --- Tweet card ---
 function tweetImageSrc(imageUrl: string) {
   if (imageUrl.startsWith("http") || imageUrl.startsWith("/") || imageUrl.startsWith("data:")) return imageUrl;
   return `data:image/png;base64,${imageUrl}`;
+}
+
+async function responseError(res: Response, fallback: string) {
+  const data = await res.json().catch(() => null);
+  if (data?.error) return data.error;
+  return `${fallback} (${res.status} ${res.statusText})`;
+}
+
+function uploadId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 function TweetCard({
@@ -143,7 +147,7 @@ function TweetCard({
   onApprove: () => void;
   onDesign: (styleId?: string) => void;
   onImage: (model?: string, feedback?: string) => void;
-  onUploadImage: (dataUrl: string) => void;
+  onUploadImage: (file: File) => void;
   onDeleteImage: () => void;
   onDelete: () => void;
   onEdit: () => void;
@@ -164,8 +168,7 @@ function TweetCard({
       toast.error("Image must be under 10 MB");
       return;
     }
-    const dataUrl = await fileToBase64(file);
-    onUploadImage(dataUrl);
+    onUploadImage(file);
   }, [onUploadImage]);
 
   const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
@@ -528,20 +531,37 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     }
   }
 
-  async function handleUploadImage(tweetId: string, dataUrl: string) {
+  async function handleUploadImage(tweetId: string, file: File) {
     setProcessingIds((prev) => new Set(prev).add(tweetId));
     try {
-      const res = await fetch("/api/tweets", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tweetId, imageUrl: dataUrl, status: "IMAGE_GENERATED" }),
-      });
-      if (!res.ok) throw new Error("Failed");
-      const updated = await res.json();
+      const totalChunks = Math.ceil(file.size / UPLOAD_CHUNK_SIZE);
+      const id = uploadId();
+      let updated: Tweet | null = null;
+
+      for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex += 1) {
+        const start = chunkIndex * UPLOAD_CHUNK_SIZE;
+        const chunk = file.slice(start, start + UPLOAD_CHUNK_SIZE, file.type);
+        const formData = new FormData();
+        formData.set("tweetId", tweetId);
+        formData.set("image", chunk, file.name);
+        formData.set("uploadId", id);
+        formData.set("chunkIndex", String(chunkIndex));
+        formData.set("totalChunks", String(totalChunks));
+        formData.set("fileSize", String(file.size));
+
+        const res = await fetch("/api/tweets/upload", { method: "POST", body: formData });
+        if (!res.ok) throw new Error(await responseError(res, "Failed to upload image"));
+
+        const data = await res.json();
+        if (data?.complete) updated = data.tweet;
+      }
+
+      if (!updated) throw new Error("Image upload did not complete.");
       setTweets((prev) => prev.map((t) => (t.id === tweetId ? updated : t)));
       toast.success("Image uploaded");
-    } catch {
-      toast.error("Failed to upload image");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to upload image";
+      toast.error(message);
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -559,12 +579,13 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tweetId, imageUrl: null, imagePrompt: null, status: "DESIGNED" }),
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) throw new Error(await responseError(res, "Failed to delete image"));
       const updated = await res.json();
       setTweets((prev) => prev.map((t) => (t.id === tweetId ? updated : t)));
       toast.success("Image deleted");
-    } catch {
-      toast.error("Failed to delete image");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to delete image";
+      toast.error(message);
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);
