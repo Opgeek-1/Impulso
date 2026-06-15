@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Impulso - Marketing Content Pipeline",
+  title: "Impulso",
   description: "Streamline your social media content creation workflow",
 };
 
