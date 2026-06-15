@@ -1,16 +1,14 @@
-import { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { Dashboard } from "@/components/dashboard";
+import { HelpPage } from "@/components/help-page";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+export default async function Help() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  // Get workspace member IDs to show shared projects
   const membership = await prisma.workspaceMember.findFirst({
     where: { userId: session.user.id },
     include: { workspace: { include: { members: true } } },
@@ -26,9 +24,5 @@ export default async function Home() {
     orderBy: { createdAt: "desc" },
   });
 
-  return (
-    <Suspense>
-      <Dashboard projects={projects} user={session.user} />
-    </Suspense>
-  );
+  return <HelpPage projects={projects} user={session.user} />;
 }

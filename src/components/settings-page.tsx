@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { TopNav } from "@/components/top-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,6 @@ import {
   Loader2,
   Lock,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
 
 /* --- Types --- */
 interface Project {
@@ -44,8 +43,6 @@ interface Project {
   brandLogoUrl?: string | null;
   brandColors?: string | null;
   brandAssetsNote?: string | null;
-  xProviderAccountId?: string | null;
-  xUsername?: string | null;
   _count: { tweets: number; styles: number };
 }
 
@@ -63,11 +60,11 @@ interface SettingsPageProps {
 
 /* --- Constants --- */
 const NAV_ITEMS = [
-  { id: "brief", labelKey: "brief", icon: FileText },
-  { id: "styles", labelKey: "styles", icon: ImageIcon },
-  { id: "accounts", labelKey: "accounts", icon: X },
-  { id: "security", labelKey: "security", icon: Lock },
-  { id: "appearance", labelKey: "appearance", icon: SlidersHorizontal },
+  { id: "brief", label: "Account brief", icon: FileText },
+  { id: "styles", label: "Brand kit", icon: ImageIcon },
+  { id: "accounts", label: "X accounts", icon: X },
+  { id: "security", label: "Security", icon: Lock },
+  { id: "appearance", label: "Appearance", icon: SlidersHorizontal },
 ];
 
 const ACCENTS = [
@@ -85,7 +82,6 @@ const DENSITIES = [
 
 /* --- Account Brief Panel --- */
 function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { project: Project; projects: Project[]; onSwitchProject: (p: Project) => void; onUpdate: (p: Project) => void }) {
-  const t = useTranslations("settings.brief");
   const [brief, setBrief] = useState(project.brief || "");
   const [url, setUrl] = useState("");
   const [saving, setSaving] = useState(false);
@@ -102,9 +98,9 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
     if (res.ok) {
       const updated = await res.json();
       onUpdate({ ...project, brief: updated.brief });
-      toast.success(t("saved"));
+      toast.success("Brief saved");
     } else {
-      toast.error(t("saveFailed"));
+      toast.error("Failed to save brief");
     }
     setSaving(false);
   }
@@ -122,12 +118,12 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
         const data = await res.json();
         setBrief((prev) => prev ? `${prev}\n\n---\n\n${data.content}` : data.content);
         setUrl("");
-        toast.success(t("imported"));
+        toast.success("Website content imported");
       } else {
-        toast.error(t("fetchFailed"));
+        toast.error("Failed to fetch website");
       }
     } catch {
-      toast.error(t("fetchFailed"));
+      toast.error("Failed to fetch website");
     }
     setFetching(false);
   }
@@ -141,7 +137,7 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
       >
         <div className="w-5 h-5 rounded-full border-2 shrink-0" style={{ borderColor: "var(--imp-border-2)" }} />
         <p className="text-[13.5px] m-0 flex-1" style={{ color: "var(--imp-text-2)" }}>
-          {t("notice")}
+          Brief is saved <strong style={{ color: "var(--imp-text)" }}>per X account</strong>. You&apos;re editing the brief for:
         </p>
         <div className="relative">
           <button
@@ -184,7 +180,7 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
 
       {/* URL import */}
       <div className="mb-5">
-        <Label className="mb-2 block">{t("importFromWebsite")}</Label>
+        <Label className="mb-2 block">Import from website</Label>
         <div className="flex gap-2">
           <div
             className="flex-1 flex items-center gap-2.5 rounded-xl px-4 h-[42px]"
@@ -205,30 +201,30 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
             disabled={fetching || !url.trim()}
             className="imp-btn-primary h-[42px] px-4 rounded-xl text-[13px]"
           >
-            {fetching ? <Loader2 size={14} className="animate-spin" /> : t("import")}
+            {fetching ? <Loader2 size={14} className="animate-spin" /> : "Import"}
           </Button>
         </div>
         <p className="text-[12px] mt-1.5 px-1" style={{ color: "var(--imp-muted)" }}>
-          {t("importHint")}
+          We&apos;ll extract key info from the page to use as context for content generation.
         </p>
       </div>
 
       {/* Manual brief */}
       <div className="mb-5">
-        <Label className="mb-2 block">{t("accountBrief")}</Label>
+        <Label className="mb-2 block">Account brief</Label>
         <Textarea
           value={brief}
           onChange={(e) => setBrief(e.target.value)}
           rows={14}
           className="font-mono text-[13px] max-h-[50vh] overflow-y-auto"
-          placeholder={t("placeholder")}
+          placeholder={"Describe your brand, target audience, tone of voice, key topics, and any guidelines for content generation.\n\nExample:\n- Brand: PayGate — Web3 payment infrastructure\n- Audience: Crypto-native builders, DeFi users\n- Tone: Technical but accessible, no hype\n- Topics: stablecoins, payment rails, cross-chain..."}
         />
       </div>
 
       {/* Save */}
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving} className="imp-btn-primary">
-          {saving ? t("saving") : t("saveBrief")}
+          {saving ? "Saving..." : "Save brief"}
         </Button>
       </div>
     </div>
@@ -237,8 +233,6 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
 
 /* --- Image Styles Panel --- */
 function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { project: Project; projects: Project[]; onSwitchProject: (p: Project) => void; onUpdate: (p: Project) => void }) {
-  const t = useTranslations("settings.brand");
-  const common = useTranslations("common");
   const [styles, setStyles] = useState<Style[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -280,7 +274,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
       const style = await res.json();
       setStyles((prev) => [...prev, style]);
       setNewName(""); setNewContent(""); setShowNew(false);
-      toast.success(t("styleCreated"));
+      toast.success("Style created");
     }
   }
 
@@ -294,7 +288,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
       const updated = await res.json();
       setStyles((prev) => prev.map((s) => (s.id === styleId ? updated : s)));
       setEditingId(null);
-      toast.success(t("styleUpdated"));
+      toast.success("Style updated");
     }
   }
 
@@ -306,7 +300,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
     });
     if (res.ok) {
       setStyles((prev) => prev.map((s) => ({ ...s, isDefault: s.id === styleId })));
-      toast.success(t("defaultUpdated"));
+      toast.success("Default style updated");
     }
   }
 
@@ -314,7 +308,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
     const res = await fetch(`/api/styles?styleId=${styleId}`, { method: "DELETE" });
     if (res.ok) {
       setStyles((prev) => prev.filter((s) => s.id !== styleId));
-      toast.success(t("styleDeleted"));
+      toast.success("Style deleted");
     }
   }
 
@@ -334,16 +328,16 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
     if (res.ok) {
       const updated = await res.json();
       onUpdate({ ...project, ...updated });
-      toast.success(t("kitSaved"));
+      toast.success("Brand kit saved");
     } else {
-      toast.error(t("kitSaveFailed"));
+      toast.error("Failed to save brand kit");
     }
     setSavingBrandKit(false);
   }
 
   function handleLogoUpload(file: File) {
     if (file.size > 2_000_000) {
-      toast.error(t("logoTooLarge"));
+      toast.error("Logo must be under 2 MB");
       return;
     }
 
@@ -354,7 +348,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
     reader.readAsDataURL(file);
   }
 
-  if (loading) return <p style={{ color: "var(--imp-muted)" }}>{t("loading")}</p>;
+  if (loading) return <p style={{ color: "var(--imp-muted)" }}>Loading styles...</p>;
 
   return (
     <div>
@@ -365,7 +359,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
       >
         <div className="w-5 h-5 rounded-full border-2 shrink-0" style={{ borderColor: "var(--imp-border-2)" }} />
         <p className="text-[13.5px] m-0 flex-1" style={{ color: "var(--imp-text-2)" }}>
-          {t("notice")}
+          Styles are saved <strong style={{ color: "var(--imp-text)" }}>per X account</strong> — they&apos;re never shared between accounts. You&apos;re editing styles for:
         </p>
         <div className="relative">
           <button
@@ -431,19 +425,19 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
       >
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
-            <h2 className="text-[16px] font-bold m-0" style={{ color: "var(--imp-text)" }}>{t("title")}</h2>
+            <h2 className="text-[16px] font-bold m-0" style={{ color: "var(--imp-text)" }}>Brand kit</h2>
             <p className="text-[13px] mt-1 mb-0" style={{ color: "var(--imp-muted)" }}>
-              {t("desc", { handle: project.handle })}
+              Saved assets are included when Impulso creates image briefs and prompts for @{project.handle}.
             </p>
           </div>
           <Button onClick={handleBrandKitSave} disabled={savingBrandKit} className="imp-btn-primary h-9 rounded-[10px] text-[13px]">
-            {savingBrandKit ? common("loading") : t("saveKit")}
+            {savingBrandKit ? "Saving..." : "Save kit"}
           </Button>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[180px_1fr] gap-5">
           <div>
-            <Label className="mb-2 block">{t("logo")}</Label>
+            <Label className="mb-2 block">Logo</Label>
             <label
               className="group flex h-[132px] w-[180px] cursor-pointer items-center justify-center overflow-hidden rounded-xl"
               style={{ background: "var(--imp-surface-2)", border: "1px dashed var(--imp-border-2)" }}
@@ -463,7 +457,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
               ) : (
                 <div className="flex flex-col items-center gap-2 text-[12.5px] font-medium" style={{ color: "var(--imp-muted)" }}>
                   <ImageIcon size={22} />
-                  {t("uploadLogo")}
+                  Upload logo
                 </div>
               )}
             </label>
@@ -473,14 +467,14 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
                 className="mt-2 text-[12.5px] font-medium"
                 style={{ color: "var(--imp-muted)" }}
               >
-                {t("removeLogo")}
+                Remove logo
               </button>
             )}
           </div>
 
           <div className="space-y-4">
             <div>
-              <Label className="mb-2 block">{t("colors")}</Label>
+              <Label className="mb-2 block">Brand colors</Label>
               <Textarea
                 value={brandColors}
                 onChange={(e) => setBrandColors(e.target.value)}
@@ -490,13 +484,13 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
               />
             </div>
             <div>
-              <Label className="mb-2 block">{t("assetNotes")}</Label>
+              <Label className="mb-2 block">Asset notes</Label>
               <Textarea
                 value={brandAssetsNote}
                 onChange={(e) => setBrandAssetsNote(e.target.value)}
                 rows={4}
                 className="text-[13px]"
-                placeholder={t("assetNotesPlaceholder")}
+                placeholder="Logo placement, clear space, forbidden colors, preferred image references, or website text rules."
               />
             </div>
           </div>
@@ -504,7 +498,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
       </div>
 
       <Button className="imp-btn-primary rounded-[10px] h-9 text-[13px] gap-1.5 mb-6" onClick={() => setShowNew(true)}>
-        <Plus size={14} /> {t("addStyle")}
+        <Plus size={14} /> Add image style
       </Button>
 
       {/* Style cards */}
@@ -517,11 +511,11 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
           >
             {editingId === style.id ? (
               <div className="p-4 space-y-3">
-                <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder={t("styleName")} />
+                <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Style name" />
                 <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={10} className="font-mono text-[13px] max-h-[40vh] overflow-y-auto" />
                 <div className="flex gap-2">
-                  <Button size="sm" className="imp-btn-primary" onClick={() => handleUpdate(style.id)}>{common("save")}</Button>
-                  <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>{common("cancel")}</Button>
+                  <Button size="sm" className="imp-btn-primary" onClick={() => handleUpdate(style.id)}>Save</Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>Cancel</Button>
                 </div>
               </div>
             ) : (
@@ -534,14 +528,14 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
                     <span className="text-[14.5px] font-bold" style={{ color: "var(--imp-text)" }}>{style.name}</span>
                     {style.isDefault && (
                       <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ color: "var(--imp-accent)", background: "var(--imp-accent-soft)" }}>
-                        <Check size={10} /> {t("default")}
+                        <Check size={10} /> Default
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
                     {!style.isDefault && (
                       <button onClick={() => handleSetDefault(style.id)} className="text-[12px] font-medium px-2.5 py-1 rounded-lg transition-colors hover:bg-[var(--imp-surface-2)]" style={{ color: "var(--imp-text-2)" }}>
-                        {t("setDefault")}
+                        Set default
                       </button>
                     )}
                     <button
@@ -567,19 +561,19 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
       {/* New style dialog */}
       <Dialog open={showNew} onOpenChange={setShowNew}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{t("newStyle")}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>New image style</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>{t("styleName")}</Label>
+              <Label>Style name</Label>
               <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. Electric Navy" autoFocus />
             </div>
             <div className="space-y-2">
-              <Label>{t("styleDescription")}</Label>
+              <Label>Style description</Label>
               <Textarea value={newContent} onChange={(e) => setNewContent(e.target.value)} rows={10} className="font-mono text-[13px] max-h-[40vh] overflow-y-auto" placeholder="Aspect ratio 16:9 (1600×900).&#10;&#10;Palette&#10;- Background: deep navy #0a1020 → #0d1426 gradient&#10;..." />
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" onClick={() => setShowNew(false)}>{common("cancel")}</Button>
-              <Button className="imp-btn-primary" onClick={handleCreate}>{t("createStyle")}</Button>
+              <Button variant="ghost" onClick={() => setShowNew(false)}>Cancel</Button>
+              <Button className="imp-btn-primary" onClick={handleCreate}>Create style</Button>
             </div>
           </div>
         </DialogContent>
@@ -590,37 +584,71 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
 
 /* --- X Accounts Panel --- */
 function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; onDelete: (id: string) => void; onUpdate: (p: Project) => void }) {
-  const t = useTranslations("settings.accounts");
-  const common = useTranslations("common");
   const [addOpen, setAddOpen] = useState(false);
   const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
   const [loading, setLoading] = useState(false);
-  const [xConnections, setXConnections] = useState<Record<string, { connected: boolean; username: string | null }>>({});
   const [xConfigured, setXConfigured] = useState(true);
+  const [projectConnections, setProjectConnections] = useState<Record<string, boolean>>({});
   const [checkingX, setCheckingX] = useState(true);
+  const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editHandle, setEditHandle] = useState("");
   const router = useRouter();
+
+  async function handleSaveEdit(projectId: string) {
+    if (!editName.trim() || !editHandle.trim()) return;
+    const res = await fetch("/api/projects", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectId, name: editName.trim(), handle: editHandle.trim().replace(/^@/, "") }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      onUpdate({ ...projects.find((p) => p.id === projectId)!, name: updated.name, handle: updated.handle });
+      toast.success("Account updated");
+    }
+    setEditingId(null);
+  }
 
   const AVATAR_COLORS = ["#FE3C9C", "#0ea5e9", "#a855f7", "#f59e0b", "#22c55e", "#6366f1"];
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadConnection() {
-      const res = await fetch("/api/x/connection");
-      if (!cancelled) {
+    async function loadConnections() {
+      const results: Record<string, boolean> = {};
+      const checks = projects.map(async (p) => {
+        const res = await fetch(`/api/x/connection?projectId=${p.id}`);
         const data = res.ok ? await res.json() : null;
-        setXConfigured(Boolean(data?.configured));
-        setXConnections(data?.projects || {});
+        if (!cancelled) {
+          if (data) setXConfigured(Boolean(data.configured));
+          results[p.id] = Boolean(data?.connected);
+        }
+      });
+      await Promise.all(checks);
+      if (!cancelled) {
+        setProjectConnections(results);
         setCheckingX(false);
       }
     }
 
-    void loadConnection();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    void loadConnections();
+    return () => { cancelled = true; };
+  }, [projects]);
+
+  async function handleDisconnectProject(projectId: string) {
+    setDisconnectingId(projectId);
+    const res = await fetch(`/api/x/connection?projectId=${projectId}`, { method: "DELETE" });
+    if (res.ok) {
+      setProjectConnections((prev) => ({ ...prev, [projectId]: false }));
+      toast.success("X account disconnected");
+    } else {
+      toast.error("Failed to disconnect");
+    }
+    setDisconnectingId(null);
+  }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -632,7 +660,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
     });
     if (res.ok) {
       setAddOpen(false); setName(""); setHandle("");
-      toast.success(t("accountAdded"));
+      toast.success("Account added");
       router.refresh();
     }
     setLoading(false);
@@ -642,7 +670,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
     const res = await fetch(`/api/projects?projectId=${projectId}`, { method: "DELETE" });
     if (res.ok) {
       onDelete(projectId);
-      toast.success(t("accountRemoved"));
+      toast.success("Account removed");
     }
   }
 
@@ -658,7 +686,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
       if (res.ok) {
         const updated = await res.json();
         onUpdate({ ...projects.find((p) => p.id === projectId)!, avatarUrl: updated.avatarUrl });
-        toast.success(t("avatarUpdated"));
+        toast.success("Avatar updated");
       }
     };
     reader.readAsDataURL(file);
@@ -668,17 +696,8 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
     <div>
       <div className="flex items-center gap-2 mb-6">
         <Button className="imp-btn-primary rounded-[10px] h-9 text-[13px] gap-1.5" onClick={() => setAddOpen(true)}>
-          <Plus size={14} /> {t("add")}
+          <Plus size={14} /> Add X account
         </Button>
-        {!xConfigured && (
-          <Button
-            variant="outline"
-            className="rounded-[10px] h-9 text-[13px] gap-1.5"
-            disabled
-          >
-            <X size={14} /> {t("xNotConfigured")}
-          </Button>
-        )}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -716,33 +735,80 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
               </div>
             </label>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[15px] font-bold" style={{ color: "var(--imp-text)" }}>{p.name}</span>
-                <span className="text-[13.5px] font-mono" style={{ color: "var(--imp-muted)" }}>@{p.handle}</span>
-              </div>
+              {editingId === p.id ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="h-7 text-[13.5px] w-[140px]"
+                    placeholder="Name"
+                    autoFocus
+                    onKeyDown={(e) => { if (e.key === "Enter") handleSaveEdit(p.id); if (e.key === "Escape") setEditingId(null); }}
+                  />
+                  <span className="text-[13.5px]" style={{ color: "var(--imp-muted)" }}>@</span>
+                  <Input
+                    value={editHandle}
+                    onChange={(e) => setEditHandle(e.target.value.replace(/^@/, ""))}
+                    className="h-7 text-[13.5px] w-[140px] font-mono"
+                    placeholder="handle"
+                    onKeyDown={(e) => { if (e.key === "Enter") handleSaveEdit(p.id); if (e.key === "Escape") setEditingId(null); }}
+                  />
+                  <Button size="sm" className="h-7 text-[12px] gap-1 imp-btn-primary" onClick={() => handleSaveEdit(p.id)}>
+                    <Check size={12} /> Save
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-7 text-[12px]" onClick={() => setEditingId(null)}>
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 group/name">
+                  <span className="text-[15px] font-bold" style={{ color: "var(--imp-text)" }}>{p.name}</span>
+                  <span className="text-[13.5px] font-mono" style={{ color: "var(--imp-muted)" }}>@{p.handle}</span>
+                  <button
+                    onClick={() => { setEditingId(p.id); setEditName(p.name); setEditHandle(p.handle); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center opacity-0 group-hover/name:opacity-100 transition-opacity hover:bg-[var(--imp-surface-3)]"
+                    style={{ color: "var(--imp-muted)" }}
+                    title="Edit name & handle"
+                  >
+                    <Pencil size={12} />
+                  </button>
+                </div>
+              )}
               <div className="text-[12.5px] mt-0.5" style={{ color: "var(--imp-muted)" }}>
-                {t("imageStyles", { count: p._count.styles })}
+                {p._count.styles} image style{p._count.styles !== 1 ? "s" : ""}
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {xConnections[p.id]?.connected ? (
-                <span
-                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-[12.5px] font-semibold"
-                  style={{ color: "var(--s-image)", background: "var(--s-image-bg)", border: "1px solid var(--imp-border)" }}
-                >
-                  <Check size={13} /> {xConnections[p.id]?.username ? t("connected", { username: `@${xConnections[p.id]?.username}` }) : t("connectedToX")}
-                </span>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 text-[12.5px] gap-1.5"
-                  disabled={!xConfigured || checkingX}
-                  onClick={() => { window.location.href = `/api/x/connect?projectId=${p.id}`; }}
-                >
-                  {checkingX ? <Loader2 size={13} className="animate-spin" /> : <X size={13} />}
-                  {t("connect", { handle: p.handle })}
-                </Button>
+              {xConfigured && !checkingX && (
+                projectConnections[p.id] ? (
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-[12.5px] font-semibold"
+                      style={{ color: "var(--s-image)", background: "var(--s-image-bg)" }}
+                    >
+                      <Check size={13} /> Connected @{p.handle}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-[12.5px] gap-1.5"
+                      onClick={() => handleDisconnectProject(p.id)}
+                      disabled={disconnectingId === p.id}
+                    >
+                      {disconnectingId === p.id ? <Loader2 size={13} className="animate-spin" /> : null}
+                      Disconnect
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-[12.5px] gap-1.5"
+                    onClick={() => { window.location.href = `/api/x/connect?projectId=${p.id}`; }}
+                  >
+                    <X size={13} /> Connect @{p.handle}
+                  </Button>
+                )
               )}
               <Button
                 variant="outline"
@@ -750,7 +816,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
                 className="h-8 text-[12.5px] gap-1.5"
                 onClick={() => router.push("/settings?tab=styles")}
               >
-                <ImageIcon size={13} /> {t("brandKit")}
+                <ImageIcon size={13} /> Brand kit
               </Button>
               <button
                 onClick={() => handleDelete(p.id)}
@@ -766,19 +832,19 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{t("add")}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Add X account</DialogTitle></DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
             <div className="space-y-2">
-              <Label>{t("accountName")}</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("accountPlaceholder")} required autoFocus />
+              <Label>Account name</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Hyperdrive" required autoFocus />
             </div>
             <div className="space-y-2">
-              <Label>{t("twitterHandle")}</Label>
-              <Input value={handle} onChange={(e) => setHandle(e.target.value.replace(/^@/, ""))} placeholder={t("handlePlaceholder")} required />
+              <Label>Twitter handle</Label>
+              <Input value={handle} onChange={(e) => setHandle(e.target.value.replace(/^@/, ""))} placeholder="handle" required />
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setAddOpen(false)}>{common("cancel")}</Button>
-              <Button type="submit" className="imp-btn-primary" disabled={loading}>{loading ? t("adding") : t("addAccount")}</Button>
+              <Button type="button" variant="ghost" onClick={() => setAddOpen(false)}>Cancel</Button>
+              <Button type="submit" className="imp-btn-primary" disabled={loading}>{loading ? "Adding..." : "Add account"}</Button>
             </div>
           </form>
         </DialogContent>
@@ -789,8 +855,6 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
 
 /* --- Appearance Panel --- */
 function SecurityPanel() {
-  const t = useTranslations("settings.security");
-  const auth = useTranslations("auth");
   const [currentPassword, setCurrentPassword] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -799,11 +863,11 @@ function SecurityPanel() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (password.length < 6) {
-      toast.error(auth("passwordMin"));
+      toast.error("Password must be at least 6 characters");
       return;
     }
     if (password !== confirmPassword) {
-      toast.error(auth("passwordMismatch"));
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -817,10 +881,10 @@ function SecurityPanel() {
       setCurrentPassword("");
       setPassword("");
       setConfirmPassword("");
-      toast.success(t("updated"));
+      toast.success("Password updated");
     } else {
       const data = await res.json();
-      toast.error(data.error || t("updateFailed"));
+      toast.error(data.error || "Failed to update password");
     }
     setSaving(false);
   }
@@ -828,7 +892,7 @@ function SecurityPanel() {
   return (
     <form onSubmit={handleSave} className="max-w-[420px] space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="current-password">{t("currentPassword")}</Label>
+        <Label htmlFor="current-password">Current password</Label>
         <Input
           id="current-password"
           type="password"
@@ -838,7 +902,7 @@ function SecurityPanel() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="new-password">{t("newPassword")}</Label>
+        <Label htmlFor="new-password">New password</Label>
         <Input
           id="new-password"
           type="password"
@@ -849,7 +913,7 @@ function SecurityPanel() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="confirm-new-password">{t("confirmNewPassword")}</Label>
+        <Label htmlFor="confirm-new-password">Confirm new password</Label>
         <Input
           id="confirm-new-password"
           type="password"
@@ -860,7 +924,7 @@ function SecurityPanel() {
         />
       </div>
       <Button type="submit" className="imp-btn-primary" disabled={saving}>
-        {saving ? t("updating") : t("updatePassword")}
+        {saving ? "Updating..." : "Update password"}
       </Button>
     </form>
   );
@@ -872,8 +936,6 @@ function getStoredPreference(key: string, fallback: string) {
 }
 
 function AppearancePanel() {
-  const t = useTranslations("settings.appearance");
-  const popover = useTranslations("settingsPopover");
   const { theme, setTheme } = useTheme();
   const [accent, setAccent] = useState(() => getStoredPreference("impulso-accent", "tomo"));
   const [density, setDensity] = useState(() => getStoredPreference("impulso-density", "regular"));
@@ -893,8 +955,8 @@ function AppearancePanel() {
       {/* Theme */}
       <div className="flex items-center justify-between py-5" style={{ borderBottom: "1px solid var(--imp-border)" }}>
         <div>
-          <div className="text-[15px] font-semibold" style={{ color: "var(--imp-text)" }}>{t("theme")}</div>
-          <div className="text-[13px] mt-0.5" style={{ color: "var(--imp-muted)" }}>{t("themeDesc")}</div>
+          <div className="text-[15px] font-semibold" style={{ color: "var(--imp-text)" }}>Theme</div>
+          <div className="text-[13px] mt-0.5" style={{ color: "var(--imp-muted)" }}>Switch between dark and light.</div>
         </div>
         <div
           className="flex items-center h-[38px] rounded-full p-1 gap-0.5"
@@ -909,7 +971,7 @@ function AppearancePanel() {
               boxShadow: theme === "dark" ? "var(--imp-shadow-sm)" : "none",
             }}
           >
-            <Moon size={14} /> {t("dark")}
+            <Moon size={14} /> Dark
           </button>
           <button
             onClick={() => setTheme("light")}
@@ -920,7 +982,7 @@ function AppearancePanel() {
               boxShadow: theme === "light" ? "var(--imp-shadow-sm)" : "none",
             }}
           >
-            <Sun size={14} /> {t("light")}
+            <Sun size={14} /> Light
           </button>
         </div>
       </div>
@@ -928,8 +990,8 @@ function AppearancePanel() {
       {/* Accent color */}
       <div className="flex items-center justify-between py-5" style={{ borderBottom: "1px solid var(--imp-border)" }}>
         <div>
-          <div className="text-[15px] font-semibold" style={{ color: "var(--imp-text)" }}>{t("accentColor")}</div>
-          <div className="text-[13px] mt-0.5" style={{ color: "var(--imp-muted)" }}>{t("accentDesc")}</div>
+          <div className="text-[15px] font-semibold" style={{ color: "var(--imp-text)" }}>Accent color</div>
+          <div className="text-[13px] mt-0.5" style={{ color: "var(--imp-muted)" }}>Used for highlights, buttons, and focus states.</div>
         </div>
         <div className="flex items-center gap-3">
           {ACCENTS.map((a) => (
@@ -942,7 +1004,7 @@ function AppearancePanel() {
                 transform: accent === a.key ? "scale(1.08)" : "scale(1)",
                 boxShadow: accent === a.key ? `0 0 0 2.5px var(--imp-bg), 0 0 0 4.5px ${a.hex}` : "none",
               }}
-              title={popover(a.key)}
+              title={a.label}
             >
               {accent === a.key && (
                 <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
@@ -957,8 +1019,8 @@ function AppearancePanel() {
       {/* Density */}
       <div className="flex items-center justify-between py-5" style={{ borderBottom: "1px solid var(--imp-border)" }}>
         <div>
-          <div className="text-[15px] font-semibold" style={{ color: "var(--imp-text)" }}>{t("density")}</div>
-          <div className="text-[13px] mt-0.5" style={{ color: "var(--imp-muted)" }}>{t("densityDesc")}</div>
+          <div className="text-[15px] font-semibold" style={{ color: "var(--imp-text)" }}>Density</div>
+          <div className="text-[13px] mt-0.5" style={{ color: "var(--imp-muted)" }}>Spacing of cards across the pipeline.</div>
         </div>
         <div
           className="flex items-center h-[38px] rounded-full p-1 gap-0.5"
@@ -975,7 +1037,7 @@ function AppearancePanel() {
                 boxShadow: density === d.key ? "var(--imp-shadow-sm)" : "none",
               }}
             >
-              {popover(d.key)}
+              {d.label}
             </button>
           ))}
         </div>
@@ -985,39 +1047,90 @@ function AppearancePanel() {
 }
 
 /* --- Main Settings Page --- */
-const SECTION_META: Record<string, { icon: typeof ImageIcon; titleKey: string; descKey: string }> = {
-  brief: { icon: FileText, titleKey: "briefTitle", descKey: "briefDesc" },
-  styles: { icon: ImageIcon, titleKey: "stylesTitle", descKey: "stylesDesc" },
-  accounts: { icon: X, titleKey: "accountsTitle", descKey: "accountsDesc" },
-  security: { icon: Lock, titleKey: "securityTitle", descKey: "securityDesc" },
-  appearance: { icon: SlidersHorizontal, titleKey: "appearanceTitle", descKey: "appearanceDesc" },
+const SECTION_META: Record<string, { icon: typeof ImageIcon; title: string; desc: string }> = {
+  brief: { icon: FileText, title: "Account brief", desc: "Context about your brand that AI reads before generating tweets. The more detail, the better the output." },
+  styles: { icon: ImageIcon, title: "Brand kit", desc: "Logo, colors, and reusable visual briefs Impulso applies when generating images." },
+  accounts: { icon: X, title: "X accounts", desc: "Connect the handles you manage. Each account keeps its own pipeline, schedule, and image styles." },
+  security: { icon: Lock, title: "Security", desc: "Update the password used to sign in with your email." },
+  appearance: { icon: SlidersHorizontal, title: "Appearance", desc: "Personal display preferences for this workspace. These only affect your view." },
 };
 
+const VALID_SECTION_IDS = new Set(NAV_ITEMS.map((n) => n.id));
+
+function buildSettingsQs(params: URLSearchParams) {
+  const qs = params.toString();
+  return qs ? `/settings?${qs}` : "/settings";
+}
+
 export function SettingsPage({ projects: initialProjects, user }: SettingsPageProps) {
-  const t = useTranslations("settings");
-  const common = useTranslations("common");
-  const [projects, setProjects] = useState(initialProjects);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(initialProjects[0] ?? null);
-  const [activeSection, setActiveSection] = useState("brief");
+  const searchParams = useSearchParams();
   const router = useRouter();
+  const [projects, setProjects] = useState(initialProjects);
+
+  const handleParam = searchParams.get("account");
+  const projectFromUrl = handleParam
+    ? initialProjects.find((p) => p.handle === handleParam) ?? null
+    : null;
+  const [selectedProject, setSelectedProjectState] = useState<Project | null>(
+    projectFromUrl ?? initialProjects[0] ?? null
+  );
+
+  const replaceUrl = useCallback((params: URLSearchParams) => {
+    router.replace(buildSettingsQs(params), { scroll: false });
+  }, [router]);
+
+  const setSelectedProject = useCallback((project: Project | null) => {
+    setSelectedProjectState(project);
+    const params = new URLSearchParams(searchParams.toString());
+    if (!project || project.handle === initialProjects[0]?.handle) {
+      params.delete("account");
+    } else {
+      params.set("account", project.handle);
+    }
+    replaceUrl(params);
+  }, [searchParams, replaceUrl, initialProjects]);
+
+  const tabParam = searchParams.get("tab");
+  const activeSection = tabParam && VALID_SECTION_IDS.has(tabParam) ? tabParam : "brief";
+
+  const setActiveSection = useCallback((id: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (id === "brief") {
+      params.delete("tab");
+    } else {
+      params.set("tab", id);
+    }
+    replaceUrl(params);
+  }, [searchParams, replaceUrl]);
 
   function handleProjectCreated(project: Project & { _count?: { tweets: number; styles: number } }) {
     const p = { ...project, _count: project._count || { tweets: 0, styles: 0 } };
     setProjects((prev) => [p, ...prev]);
-    setSelectedProject(p);
+    setSelectedProjectState(p);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("account", p.handle);
+    replaceUrl(params);
   }
 
   function handleProjectDeleted(id: string) {
     setProjects((prev) => prev.filter((p) => p.id !== id));
     if (selectedProject?.id === id) {
-      setSelectedProject(projects.find((p) => p.id !== id) ?? null);
+      const next = projects.find((p) => p.id !== id) ?? null;
+      setSelectedProjectState(next);
+      const params = new URLSearchParams(searchParams.toString());
+      if (!next || next.handle === initialProjects[0]?.handle) {
+        params.delete("account");
+      } else {
+        params.set("account", next.handle);
+      }
+      replaceUrl(params);
     }
   }
 
   function handleProjectUpdated(updated: Project) {
     setProjects((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
     if (selectedProject?.id === updated.id) {
-      setSelectedProject({ ...selectedProject, ...updated });
+      setSelectedProjectState({ ...selectedProject, ...updated });
     }
   }
 
@@ -1042,11 +1155,11 @@ export function SettingsPage({ projects: initialProjects, user }: SettingsPagePr
             className="flex items-center gap-1.5 text-[13px] font-medium mb-5 px-1 transition-colors hover:text-[var(--imp-accent)]"
             style={{ color: "var(--imp-text-2)" }}
           >
-            <ChevronLeft size={14} /> {common("backToPipeline")}
+            <ChevronLeft size={14} /> Back to pipeline
           </button>
 
           <div className="text-[11px] font-semibold uppercase tracking-wider px-2 mb-2" style={{ color: "var(--imp-faint)" }}>
-            {common("settings")}
+            Settings
           </div>
 
           <nav className="flex flex-col gap-0.5">
@@ -1064,7 +1177,7 @@ export function SettingsPage({ projects: initialProjects, user }: SettingsPagePr
                   }}
                 >
                   <NavIcon size={15} />
-                  {t(`nav.${item.labelKey}`)}
+                  {item.label}
                 </button>
               );
             })}
@@ -1082,11 +1195,11 @@ export function SettingsPage({ projects: initialProjects, user }: SettingsPagePr
               <Icon size={20} />
             </div>
             <h1 className="text-[24px] font-bold tracking-tight m-0" style={{ color: "var(--imp-text)" }}>
-              {t(`sections.${meta.titleKey}`)}
+              {meta.title}
             </h1>
           </div>
           <p className="text-[14px] mb-7 ml-[54px] mt-0" style={{ color: "var(--imp-muted)" }}>
-            {t(`sections.${meta.descKey}`)}
+            {meta.desc}
           </p>
 
           {/* Panel content */}

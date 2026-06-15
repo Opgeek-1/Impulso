@@ -24,6 +24,27 @@ function parseImageSource(imageUrl: string) {
   return null;
 }
 
+export interface XProfile {
+  name: string;
+  username: string;
+  profile_image_url?: string;
+}
+
+export async function fetchXProfile(accessToken: string, fetcher: FetchLike = fetch): Promise<XProfile> {
+  const res = await fetcher(`${X_API_BASE}/2/users/me?user.fields=name,username,profile_image_url`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(data?.detail || data?.title || data?.error || "Failed to fetch X profile");
+  }
+
+  const user = data?.data;
+  if (!user?.username) throw new Error("X profile did not return user data");
+  return { name: user.name, username: user.username, profile_image_url: user.profile_image_url };
+}
+
 export async function uploadXImage(imageUrl: string, accessToken: string, fetcher: FetchLike = fetch) {
   const parsed = parseImageSource(imageUrl);
   let bytes: Buffer;

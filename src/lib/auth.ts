@@ -3,9 +3,7 @@ import type { Provider } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
 import Twitter from "next-auth/providers/twitter";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
-import { getWorkspaceMemberIds } from "@/lib/workspace";
 
 type XProfile = {
   data?: { id?: string; name?: string; username?: string; profile_image_url?: string; email?: string | null };
@@ -141,27 +139,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   providers,
   callbacks: {
-    async signIn({ account, profile, user }) {
-      if (account?.provider === "twitter" && user?.id) {
-        const cookieStore = await cookies();
-        const projectId = cookieStore.get("impulso_x_project_id")?.value;
-        const connectingUserId = cookieStore.get("impulso_x_user_id")?.value;
-        if (projectId && connectingUserId) {
-          const xProfile = readXProfile(profile);
-          const memberIds = await getWorkspaceMemberIds(connectingUserId);
-          await prisma.project.updateMany({
-            where: { id: projectId, userId: { in: memberIds } },
-            data: {
-              xProviderAccountId: account.providerAccountId,
-              xUsername: xProfile.username || null,
-            },
-          });
-          cookieStore.delete("impulso_x_project_id");
-          cookieStore.delete("impulso_x_user_id");
-        }
-      }
-      return true;
-    },
     async session({ session, token }) {
       if (token.sub) {
         session.user.id = token.sub;

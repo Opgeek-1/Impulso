@@ -1,52 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<p align="center">
+  <img src="public/tomo-mark-color.png" alt="Impulso" width="48" height="48" />
+</p>
 
-## Getting Started
+<h1 align="center">Impulso</h1>
 
-First, run the development server:
+<p align="center">
+  AI-powered marketing content pipeline for X (Twitter).<br/>
+  Generate tweets, design visuals, schedule posts — all in one place.
+</p>
+
+<p align="center">
+  <a href="https://mkt.tomo.inc">Live App</a>
+</p>
+
+---
+
+## How it works
+
+Impulso turns a topic into a week of scheduled posts in four steps:
+
+| Step | What happens |
+|------|-------------|
+| **1. Generate** | Describe a topic and AI writes a batch of tweet angles in your chosen tone and language |
+| **2. Curate & Design** | Approve drafts, add visual briefs, and generate on-brand images with AI |
+| **3. Schedule** | Drag ready posts onto a weekly calendar to plan your publishing cadence |
+| **4. Publish** | Posts go out automatically via your connected X account |
+
+## Features
+
+- **Multi-account** — manage multiple X handles, each with its own pipeline and schedule
+- **Brand kit** — upload logos, set colors, and define style guidelines per account
+- **AI image generation** — GPT Image, Gemini Flash, and DALL-E 3 with iterative feedback
+- **Team workspace** — invite collaborators to manage content together
+- **Per-project X connections** — connect and disconnect each account independently
+- **Dark mode** — automatic or manual theme switching
+
+## Getting started
 
 ```bash
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Fill in your database URL, auth secrets, and API keys
+
+# Push database schema
+npm run db:push
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to use the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Docker
-
-Build the production image:
+Impulso runs on any platform that supports Node.js. A `Dockerfile` is included for container deployments.
 
 ```bash
-docker build -t impulso:production .
+# Build and run with Docker
+docker build -t impulso .
+docker run -p 3000:3000 --env-file .env impulso
 ```
 
-Run it with runtime environment variables supplied by your container platform or an env file:
+## License
 
-```bash
-docker run --rm -p 3000:3000 --env-file .env.production.local impulso:production
-```
-
-The image does not include `.env*` files. Provide values such as `DATABASE_URL`, `AUTH_SECRET`, `AI_API_BASE_URL`, and `AI_API_KEY` at runtime.
+Private — internal use only.

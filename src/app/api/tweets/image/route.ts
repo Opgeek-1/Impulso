@@ -40,12 +40,27 @@ export async function POST(req: NextRequest) {
   const feedbackClause = feedback?.trim()
     ? `\n\nUser feedback on previous image — apply these changes:\n${feedback.trim()}`
     : "";
+  const hasLogo = !!tweet.project.brandLogoUrl;
+  const logoInstructions = hasLogo
+    ? `\n\nCRITICAL — Logo reproduction:
+The attached reference image is the brand's official logo. You MUST:
+1. Copy the logo EXACTLY as it appears in the reference — same shape, icon, colors, background, and proportions.
+2. Do NOT redraw, reinterpret, simplify, add effects to, or stylize the logo in any way.
+3. Place the logo in the bottom-left corner of the composition with clear spacing around it.
+4. The logo must be clearly visible and not obscured by other elements.
+5. Treat the logo as a fixed asset — paste it as-is, do not regenerate it.`
+    : "";
   const prompt = `${basePrompt}
 
 Brand constraints:
 ${brandContext}
 
-Do not render any website URL unless it exactly matches the official website URL listed above.${feedbackClause}`;
+Typography rules:
+- Every word and letter in the image must be spelled correctly and rendered clearly.
+- Use simple, bold sans-serif fonts for readability.
+- Minimize the amount of text — prefer icons, symbols, and visual elements over written words.
+- Double-check that all text is legible, properly spaced, and not cut off.
+- Do not render any website URL unless it exactly matches the official website URL listed above.${logoInstructions}${feedbackClause}`;
 
   let result;
   try {

@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { TeamPage } from "@/components/team-page";
 
+export const dynamic = "force-dynamic";
+
 export default async function Team() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");

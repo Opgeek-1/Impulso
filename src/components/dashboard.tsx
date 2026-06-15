@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { TopNav } from "@/components/top-nav";
 import { GeneratePanel } from "@/components/generate-panel";
 import { CuratePanel } from "@/components/curate-panel";
@@ -8,7 +9,6 @@ import { SchedulePanel } from "@/components/schedule-panel";
 import { StylesPanel } from "@/components/styles-panel";
 import { Sparkles, Columns3, Calendar } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 interface Project {
   id: string;
@@ -90,22 +90,51 @@ function StageTabs({ active, setActive, counts }: {
   );
 }
 
+const VALID_TAB_IDS = new Set(TABS.map((t) => t.id));
+
+function buildQs(params: URLSearchParams) {
+  const qs = params.toString();
+  return qs ? `/?${qs}` : "/";
+}
+
 export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
   const t = useTranslations("dashboard");
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const accountParam = searchParams.get("account");
+  const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
-    findProjectByHandle(initialProjects, accountParam)?.id ?? initialProjects[0]?.id ?? null
+
+  const handleParam = searchParams.get("account");
+  const projectFromUrl = handleParam
+    ? initialProjects.find((p) => p.handle === handleParam) ?? null
+    : null;
+  const [selectedProject, setSelectedProjectState] = useState<Project | null>(
+    projectFromUrl ?? initialProjects[0] ?? null
   );
-  const selectedProject =
-    findProjectByHandle(projects, accountParam) ??
-    projects.find((project) => project.id === selectedProjectId) ??
-    projects[0] ??
-    null;
-  const [activeTab, setActiveTab] = useState("generate");
+
+  const setSelectedProject = useCallback((project: Project | null) => {
+    setSelectedProjectState(project);
+    const params = new URLSearchParams(searchParams.toString());
+    if (!project || project.handle === initialProjects[0]?.handle) {
+      params.delete("account");
+    } else {
+      params.set("account", project.handle);
+    }
+    router.replace(buildQs(params), { scroll: false });
+  }, [searchParams, router, initialProjects]);
+
+  const tabParam = searchParams.get("tab");
+  const activeTab = tabParam && VALID_TAB_IDS.has(tabParam) ? tabParam : "generate";
+
+  const setActiveTab = useCallback((id: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (id === "generate") {
+      params.delete("tab");
+    } else {
+      params.set("tab", id);
+    }
+    router.replace(buildQs(params), { scroll: false });
+  }, [searchParams, router]);
+
   const [counts, setCounts] = useState<Record<string, number | null>>({ generate: null, curate: null, schedule: null });
 
   const fetchCounts = useCallback(async (projectId: string) => {
@@ -140,17 +169,12 @@ export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
     };
   }, [fetchCounts, selectedProject]);
 
-  function handleProjectSelect(project: Project) {
-    setSelectedProjectId(project.id);
-
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("account", project.handle);
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }
-
   function handleProjectCreated(project: Project) {
     setProjects((prev) => [project, ...prev]);
-    handleProjectSelect(project);
+    setSelectedProjectState(project);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("account", project.handle);
+    router.replace(buildQs(params), { scroll: false });
   }
 
   return (
@@ -158,7 +182,7 @@ export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
       <TopNav
         projects={projects}
         selected={selectedProject}
-        onSelect={handleProjectSelect}
+        onSelect={setSelectedProject}
         onCreated={handleProjectCreated}
         user={user}
       />
@@ -168,16 +192,16 @@ export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
           <>
             <StageTabs active={activeTab} setActive={setActiveTab} counts={counts} />
             <div className="flex-1 overflow-auto min-h-0">
-              {activeTab === "generate" && selectedProject && (
+              {activeTab === "generate" && (
                 <GeneratePanel project={selectedProject} onComplete={() => { setActiveTab("curate"); void refreshCounts(); }} />
               )}
-              {activeTab === "curate" && selectedProject && (
+              {activeTab === "curate" && (
                 <CuratePanel project={selectedProject} onComplete={() => { setActiveTab("schedule"); void refreshCounts(); }} />
               )}
-              {activeTab === "schedule" && selectedProject && (
+              {activeTab === "schedule" && (
                 <SchedulePanel project={selectedProject} />
               )}
-              {activeTab === "styles" && selectedProject && (
+              {activeTab === "styles" && (
                 <div className="p-6">
                   <StylesPanel project={selectedProject} />
                 </div>
@@ -192,10 +216,4 @@ export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
       </main>
     </div>
   );
-}
-
-function findProjectByHandle(projects: Project[], handle: string | null) {
-  if (!handle) return null;
-  const normalizedHandle = handle.toLowerCase();
-  return projects.find((project) => project.handle.toLowerCase() === normalizedHandle) ?? null;
 }
