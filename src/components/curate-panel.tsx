@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -26,6 +26,8 @@ import {
   Calendar,
   MoreHorizontal,
   CheckCircle,
+  Copy,
+  Upload,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -110,12 +112,22 @@ const IMAGE_MODELS = [
 ];
 
 // --- Tweet card ---
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function TweetCard({
   tweet,
   styles,
   onApprove,
   onDesign,
   onImage,
+  onUploadImage,
   onDeleteImage,
   onDelete,
   onEdit,
@@ -126,6 +138,7 @@ function TweetCard({
   onApprove: () => void;
   onDesign: (styleId?: string) => void;
   onImage: (model?: string, feedback?: string) => void;
+  onUploadImage: (dataUrl: string) => void;
   onDeleteImage: () => void;
   onDelete: () => void;
   onEdit: () => void;
@@ -133,10 +146,52 @@ function TweetCard({
 }) {
   const [briefOpen, setBriefOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const len = tweet.content.length;
+
+  const handleFileSelect = useCallback(async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Only image files are supported");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image must be under 10 MB");
+      return;
+    }
+    const dataUrl = await fileToBase64(file);
+    onUploadImage(dataUrl);
+  }, [onUploadImage]);
+
+  const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) await handleFileSelect(file);
+        return;
+      }
+    }
+  }, [handleFileSelect]);
+
+  function copyImagePrompt() {
+    if (!tweet.designBrief) return;
+    try {
+      const brief = JSON.parse(tweet.designBrief);
+      const prompt = brief.imagePrompt || brief.concept || "";
+      navigator.clipboard.writeText(prompt);
+      toast.success("Image prompt copied");
+    } catch {
+      toast.error("Failed to copy prompt");
+    }
+  }
 
   return (
     <div
+      ref={cardRef}
+      onPaste={handlePaste}
       className="imp-card relative rounded-[13px] p-[var(--imp-card-pad)] flex flex-col gap-2.5 cursor-grab"
       style={{
         background: "var(--imp-surface)",
@@ -144,6 +199,18 @@ function TweetCard({
         boxShadow: "var(--imp-shadow-sm)",
       }}
     >
+      {/* Hidden file input for image upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (file) await handleFileSelect(file);
+          e.target.value = "";
+        }}
+      />
       {/* Busy overlay */}
       {isProcessing && (
         <div className="absolute inset-0 rounded-[13px] flex flex-col items-center justify-center gap-2 z-10"
@@ -221,6 +288,15 @@ function TweetCard({
               </DropdownMenuContent>
             </DropdownMenu>
             <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isProcessing}
+              className="w-7 h-7 rounded-md flex items-center justify-center bg-transparent border-none hover:bg-black/10"
+              style={{ color: "var(--imp-muted)" }}
+              title="Upload replacement image"
+            >
+              <Upload size={13} />
+            </button>
+            <button
               onClick={onDeleteImage}
               disabled={isProcessing}
               className="w-7 h-7 rounded-md flex items-center justify-center bg-transparent border-none hover:bg-red-500/10"
@@ -236,15 +312,25 @@ function TweetCard({
       {/* Design brief collapsible */}
       {tweet.designBrief && !tweet.imageUrl && (
         <div className="rounded-[9px] overflow-hidden" style={{ border: "1px solid var(--s-designed-line)", background: "var(--s-designed-bg)" }}>
-          <button
-            onClick={() => setBriefOpen(!briefOpen)}
-            className="flex items-center gap-1.5 w-full px-2.5 py-1.5 bg-transparent border-none text-[11.5px] font-semibold"
-            style={{ color: "var(--s-designed)" }}
-          >
-            <Palette size={13} />
-            <span className="flex-1 text-left">Design brief</span>
-            <span className="transition-transform" style={{ transform: briefOpen ? "rotate(180deg)" : "none" }}>▾</span>
-          </button>
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5">
+            <button
+              onClick={() => setBriefOpen(!briefOpen)}
+              className="flex items-center gap-1.5 flex-1 bg-transparent border-none text-[11.5px] font-semibold p-0"
+              style={{ color: "var(--s-designed)" }}
+            >
+              <Palette size={13} />
+              <span className="flex-1 text-left">Design brief</span>
+              <span className="transition-transform" style={{ transform: briefOpen ? "rotate(180deg)" : "none" }}>▾</span>
+            </button>
+            <button
+              onClick={copyImagePrompt}
+              className="flex items-center justify-center w-6 h-6 rounded-md bg-transparent border-none hover:bg-black/10"
+              style={{ color: "var(--s-designed)" }}
+              title="Copy image prompt"
+            >
+              <Copy size={12} />
+            </button>
+          </div>
           {briefOpen && (
             <p className="m-0 px-2.5 pb-2.5 text-[11.5px] leading-relaxed whitespace-pre-wrap" style={{ color: "var(--imp-text-2)" }}>
               {tweet.designBrief}
@@ -287,18 +373,28 @@ function TweetCard({
           </DropdownMenu>
         )}
         {tweet.status === "DESIGNED" && (
-          <DropdownMenu>
-            <DropdownMenuTrigger className="inline-flex items-center gap-1.5 h-7 text-[12px] px-2.5 rounded-md font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80" disabled={isProcessing}>
-              <ImageIcon size={13} /> Generate image ▾
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              {IMAGE_MODELS.map((m) => (
-                <DropdownMenuItem key={m.id} onClick={() => onImage(m.id)} className="gap-2 text-[12.5px]">
-                  <ImageIcon size={12} /> {m.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="inline-flex items-center gap-1.5 h-7 text-[12px] px-2.5 rounded-md font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80" disabled={isProcessing}>
+                <ImageIcon size={13} /> Generate image ▾
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                {IMAGE_MODELS.map((m) => (
+                  <DropdownMenuItem key={m.id} onClick={() => onImage(m.id)} className="gap-2 text-[12.5px]">
+                    <ImageIcon size={12} /> {m.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isProcessing}
+              className="inline-flex items-center gap-1.5 h-7 text-[12px] px-2.5 rounded-md font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 border-none"
+              title="Upload image or paste from clipboard"
+            >
+              <Upload size={13} /> Upload
+            </button>
+          </>
         )}
         {tweet.status === "IMAGE_GENERATED" && (
           <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold" style={{ color: "var(--s-image)" }}>
@@ -418,6 +514,29 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to generate image";
       toast.error(message);
+    } finally {
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(tweetId);
+        return next;
+      });
+    }
+  }
+
+  async function handleUploadImage(tweetId: string, dataUrl: string) {
+    setProcessingIds((prev) => new Set(prev).add(tweetId));
+    try {
+      const res = await fetch("/api/tweets", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tweetId, imageUrl: dataUrl, status: "IMAGE_GENERATED" }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      const updated = await res.json();
+      setTweets((prev) => prev.map((t) => (t.id === tweetId ? updated : t)));
+      toast.success("Image uploaded");
+    } catch {
+      toast.error("Failed to upload image");
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -580,6 +699,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
                             onApprove={() => updateStatus(tweet.id, "CURATED")}
                             onDesign={(styleId) => handleDesign(tweet.id, styleId)}
                             onImage={(model, feedback) => handleImage(tweet.id, model, feedback)}
+                            onUploadImage={(dataUrl) => handleUploadImage(tweet.id, dataUrl)}
                             onDeleteImage={() => handleDeleteImage(tweet.id)}
                             onDelete={() => handleDelete(tweet.id)}
                             onEdit={() => { setEditingId(tweet.id); setEditContent(tweet.content); }}
