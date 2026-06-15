@@ -2,6 +2,14 @@
   "name": "impulso",
   "version": "0.1.0",
   "private": true,
+
+  "overrides": {
+    "emnapi": "1.11.1",
+    "@emnapi/core": "1.11.1",
+    "@emnapi/runtime": "1.11.1",
+    "@emnapi/wasi-threads": "1.2.2"
+  },
+
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
@@ -52,5 +60,10 @@
     "eslint-config-next": "16.2.7",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+
+  "optionalDependencies": {
+    "onnxruntime-node": "^1.26.0",
+    "sharp": "^0.35.1"
   }
 }
