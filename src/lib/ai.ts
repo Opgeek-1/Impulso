@@ -4,14 +4,18 @@ export interface AIConfig {
 }
 
 function getAIConfig(): AIConfig {
-  const baseUrl = process.env.AI_API_BASE_URL;
-  const apiKey = process.env.AI_API_KEY;
+  const baseUrl = process.env.AI_API_BASE_URL?.trim();
+  const apiKey = process.env.AI_API_KEY?.trim();
 
   if (!baseUrl || !apiKey) {
     throw new Error("AI_API_BASE_URL and AI_API_KEY must be set");
   }
 
   return { baseUrl, apiKey };
+}
+
+function envOrDefault(name: string, fallback: string) {
+  return process.env[name]?.trim() || fallback;
 }
 
 interface ChatMessage {
@@ -93,7 +97,7 @@ async function generateImageWithFallback(config: AIConfig, prompt: string, optio
     return await generateImageFromPrompt(config, prompt, options);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    const fallbackModel = process.env.AI_IMAGE_FALLBACK_MODEL ?? "gemini-2.5-flash-image";
+    const fallbackModel = envOrDefault("AI_IMAGE_FALLBACK_MODEL", "gemini-2.5-flash-image");
     const canFallback = message.includes("Image API error: 503") && options?.model && options.model !== fallbackModel;
     if (!canFallback) throw error;
 
@@ -146,7 +150,7 @@ export async function generateImage(prompt: string, options?: ImageOptions) {
 }
 
 export const MODELS = {
-  tweet: process.env.AI_TWEET_MODEL ?? "claude-sonnet-4-6",
-  design: process.env.AI_DESIGN_MODEL ?? "claude-sonnet-4-6",
-  image: process.env.AI_IMAGE_MODEL ?? "gpt-image-2",
+  tweet: envOrDefault("AI_TWEET_MODEL", "claude-sonnet-4-6"),
+  design: envOrDefault("AI_DESIGN_MODEL", "claude-sonnet-4-6"),
+  image: envOrDefault("AI_IMAGE_MODEL", "gpt-image-2"),
 } as const;
