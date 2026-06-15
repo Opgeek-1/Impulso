@@ -8,10 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 export function LoginForm() {
   const router = useRouter();
   const { theme } = useTheme();
+  const t = useTranslations("auth");
+  const common = useTranslations("common");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -34,7 +38,7 @@ export function LoginForm() {
     });
 
     if (result?.error) {
-      setError("Invalid email or password");
+      setError(t("invalidCredentials"));
       setLoading(false);
     } else {
       router.push(safeCallbackUrl);
@@ -44,13 +48,16 @@ export function LoginForm() {
 
   return (
     <div
-      className="w-full max-w-sm rounded-2xl p-8"
+      className="relative w-full max-w-sm rounded-2xl p-8"
       style={{
         background: "var(--imp-surface)",
         border: "1px solid var(--imp-border-2)",
         boxShadow: "var(--imp-shadow)",
       }}
     >
+      <div className="absolute right-3 top-3">
+        <LanguageSwitcher />
+      </div>
       <div className="flex flex-col items-center mb-6">
         <Image
           src={theme === "dark" ? "/tomo-mark.png" : "/tomo-mark-color.png"}
@@ -61,13 +68,13 @@ export function LoginForm() {
         />
         <h1 className="text-xl font-bold" style={{ color: "var(--imp-text)" }}>Impulso</h1>
         <p className="text-[13px] mt-1 text-center" style={{ color: "var(--imp-muted)" }}>
-          Sign in to manage your content pipeline
+          {t("loginSubtitle")}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{common("email")}</Label>
           <Input
             id="email"
             type="email"
@@ -79,7 +86,7 @@ export function LoginForm() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{common("password")}</Label>
           <Input
             id="password"
             type="password"
@@ -91,14 +98,14 @@ export function LoginForm() {
         </div>
         {error && <p className="text-sm text-red-400">{error}</p>}
         <Button type="submit" className="w-full imp-btn-primary" disabled={loading}>
-          {loading ? "Signing in..." : "Sign in"}
+          {loading ? t("signingIn") : common("signIn")}
         </Button>
       </form>
 
       <p className="text-center text-[13px] mt-4" style={{ color: "var(--imp-muted)" }}>
-        Don&apos;t have an account?{" "}
+        {t("noAccount")}{" "}
         <a href="/register" className="font-medium" style={{ color: "var(--imp-accent)" }}>
-          Sign up
+          {t("signUp")}
         </a>
       </p>
     </div>

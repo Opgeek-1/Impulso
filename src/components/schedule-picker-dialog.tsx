@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +46,7 @@ export function SchedulePickerDialog({
   const [minute, setMinute] = useState<number>(
     initialDate ? initialDate.getMinutes() : Math.ceil(now.getMinutes() / 5) * 5 % 60
   );
+  const [nowTime, setNowTime] = useState(() => Date.now());
 
   const scheduledDateTime = useMemo(() => {
     const d = new Date(selectedDate);
@@ -53,11 +54,16 @@ export function SchedulePickerDialog({
     return d;
   }, [selectedDate, hour, minute]);
 
-  const isPast = scheduledDateTime.getTime() < Date.now();
+  const isPast = scheduledDateTime.getTime() < nowTime;
 
   function handleConfirm() {
     onConfirm(scheduledDateTime);
     onOpenChange(false);
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (nextOpen) setNowTime(Date.now());
+    onOpenChange(nextOpen);
   }
 
   function fmtHour(h: number) {
@@ -67,7 +73,7 @@ export function SchedulePickerDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

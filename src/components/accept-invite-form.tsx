@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 interface AcceptInviteFormProps {
   token: string;
@@ -18,6 +20,8 @@ interface AcceptInviteFormProps {
 export function AcceptInviteForm({ token, workspaceName, inviterName }: AcceptInviteFormProps) {
   const router = useRouter();
   const { theme } = useTheme();
+  const t = useTranslations("auth");
+  const common = useTranslations("common");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,12 +35,12 @@ export function AcceptInviteForm({ token, workspaceName, inviterName }: AcceptIn
     setError("");
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError(t("passwordMin"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t("passwordMismatch"));
       return;
     }
 
@@ -51,7 +55,7 @@ export function AcceptInviteForm({ token, workspaceName, inviterName }: AcceptIn
 
     if (!res.ok) {
       const data = await res.json();
-      setError(data.error || "Failed to accept invite");
+      setError(data.error || t("acceptFailed"));
       setLoading(false);
       return;
     }
@@ -64,7 +68,7 @@ export function AcceptInviteForm({ token, workspaceName, inviterName }: AcceptIn
     });
 
     if (result?.error) {
-      setError("Account created but sign in failed. Please go to login.");
+      setError(t("signInFailed"));
       setLoading(false);
     } else {
       router.push("/");
@@ -74,13 +78,16 @@ export function AcceptInviteForm({ token, workspaceName, inviterName }: AcceptIn
 
   return (
     <div
-      className="w-full max-w-sm rounded-2xl p-8"
+      className="relative w-full max-w-sm rounded-2xl p-8"
       style={{
         background: "var(--imp-surface)",
         border: "1px solid var(--imp-border-2)",
         boxShadow: "var(--imp-shadow)",
       }}
     >
+      <div className="absolute right-3 top-3">
+        <LanguageSwitcher />
+      </div>
       <div className="flex flex-col items-center mb-6">
         <Image
           src={theme === "dark" ? "/tomo-mark.png" : "/tomo-mark-color.png"}
@@ -89,15 +96,15 @@ export function AcceptInviteForm({ token, workspaceName, inviterName }: AcceptIn
           height={40}
           className="mb-3"
         />
-        <h1 className="text-xl font-bold" style={{ color: "var(--imp-text)" }}>Join {workspaceName}</h1>
+        <h1 className="text-xl font-bold" style={{ color: "var(--imp-text)" }}>{t("joinWorkspace", { workspaceName })}</h1>
         <p className="text-[13px] mt-1 text-center" style={{ color: "var(--imp-muted)" }}>
-          {inviterName} invited you to collaborate on Impulso
+          {t("invitedBy", { inviterName })}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{common("email")}</Label>
           <Input
             id="email"
             type="email"
@@ -108,29 +115,29 @@ export function AcceptInviteForm({ token, workspaceName, inviterName }: AcceptIn
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor="name">{common("name")}</Label>
           <Input
             id="name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
+            placeholder={t("yourName")}
             autoFocus
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{common("password")}</Label>
           <Input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="At least 6 characters"
+            placeholder={t("atLeastSix")}
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm password</Label>
+          <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
           <Input
             id="confirmPassword"
             type="password"
@@ -142,14 +149,14 @@ export function AcceptInviteForm({ token, workspaceName, inviterName }: AcceptIn
         </div>
         {error && <p className="text-sm text-red-400">{error}</p>}
         <Button type="submit" className="w-full imp-btn-primary" disabled={loading}>
-          {loading ? "Setting up..." : "Set password & join"}
+          {loading ? t("settingUp") : t("setPasswordJoin")}
         </Button>
       </form>
 
       <p className="text-center text-[13px] mt-4" style={{ color: "var(--imp-muted)" }}>
-        Already have an account?{" "}
+        {t("alreadyHaveAccount")}{" "}
         <a href={loginHref} className="font-medium" style={{ color: "var(--imp-accent)" }}>
-          Sign in first
+          {t("signInFirst")}
         </a>
       </p>
     </div>

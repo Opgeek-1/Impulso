@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { TopNav } from "@/components/top-nav";
-import { Sparkles, MousePointerClick, ImageIcon, CalendarDays, Send, ArrowRight } from "lucide-react";
+import { Sparkles, MousePointerClick, CalendarDays, Send, ArrowRight } from "lucide-react";
 
 interface Project {
   id: string;

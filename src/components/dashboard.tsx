@@ -8,6 +8,7 @@ import { CuratePanel } from "@/components/curate-panel";
 import { SchedulePanel } from "@/components/schedule-panel";
 import { StylesPanel } from "@/components/styles-panel";
 import { Sparkles, Columns3, Calendar } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Project {
   id: string;
@@ -24,9 +25,9 @@ interface DashboardProps {
 }
 
 const TABS = [
-  { id: "generate", n: 1, label: "Generate", icon: Sparkles },
-  { id: "curate", n: 2, label: "Curate & Design", icon: Columns3 },
-  { id: "schedule", n: 3, label: "Schedule", icon: Calendar },
+  { id: "generate", n: 1, labelKey: "generate", icon: Sparkles },
+  { id: "curate", n: 2, labelKey: "curate", icon: Columns3 },
+  { id: "schedule", n: 3, labelKey: "schedule", icon: Calendar },
 ];
 
 function StageTabs({ active, setActive, counts }: {
@@ -34,17 +35,19 @@ function StageTabs({ active, setActive, counts }: {
   setActive: (id: string) => void;
   counts: Record<string, number | null>;
 }) {
+  const t = useTranslations("dashboard.tabs");
+
   return (
     <div
       className="flex items-center px-6 pt-3 gap-1"
       style={{ borderBottom: "1px solid var(--imp-border)" }}
     >
-      {TABS.map((t) => {
-        const on = active === t.id;
+      {TABS.map((tab) => {
+        const on = active === tab.id;
         return (
           <button
-            key={t.id}
-            onClick={() => setActive(t.id)}
+            key={tab.id}
+            onClick={() => setActive(tab.id)}
             className="imp-tab relative flex items-center gap-2 px-3.5 py-2.5 pb-3 bg-transparent border-none"
             style={{ color: on ? "var(--imp-text)" : "var(--imp-muted)", fontSize: "13.5px", fontWeight: 600 }}
           >
@@ -58,11 +61,11 @@ function StageTabs({ active, setActive, counts }: {
                 boxShadow: on ? "0 2px 8px -3px var(--imp-accent-glow)" : "none",
               }}
             >
-              {t.n}
+              {tab.n}
             </span>
-            <span>{t.label}</span>
+            <span>{t(tab.labelKey)}</span>
             {/* Count badge */}
-            {counts[t.id] != null && (
+            {counts[tab.id] != null && (
               <span
                 className="font-mono text-[11px] rounded-full px-[7px] py-px"
                 style={{
@@ -70,7 +73,7 @@ function StageTabs({ active, setActive, counts }: {
                   background: on ? "var(--imp-accent-soft)" : "transparent",
                 }}
               >
-                {counts[t.id]}
+                {counts[tab.id]}
               </span>
             )}
             {/* Active underline */}
@@ -95,6 +98,7 @@ function buildQs(params: URLSearchParams) {
 }
 
 export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
+  const t = useTranslations("dashboard");
   const searchParams = useSearchParams();
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
@@ -206,7 +210,7 @@ export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
           </>
         ) : (
           <div className="flex items-center justify-center h-full" style={{ color: "var(--imp-muted)" }}>
-            Create a project to get started
+            {t("empty")}
           </div>
         )}
       </main>
