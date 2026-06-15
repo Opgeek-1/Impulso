@@ -1,0 +1,430 @@
+{
+  "language": {
+    "switchLanguage": "Switch language"
+  },
+  "common": {
+    "accounts": "Accounts",
+    "addTwitterAccount": "Add Twitter account",
+    "backToPipeline": "Back to pipeline",
+    "cancel": "Cancel",
+    "create": "Create",
+    "delete": "Delete",
+    "discard": "Discard",
+    "draft": "Draft",
+    "email": "Email",
+    "failed": "Failed",
+    "loading": "Loading...",
+    "name": "Name",
+    "password": "Password",
+    "preview": "Preview",
+    "save": "Save",
+    "settings": "Settings",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "user": "User"
+  },
+  "nav": {
+    "selectAccount": "Select account",
+    "workspaceSynced": "Workspace synced",
+    "toggleTheme": "Toggle theme",
+    "notifications": "Notifications",
+    "teamWorkspace": "Team & workspace",
+    "manual": "Manual",
+    "addDialogTitle": "Add Twitter Account",
+    "accountName": "Account name",
+    "accountNamePlaceholder": "e.g. Hyperdrive",
+    "twitterHandle": "Twitter handle",
+    "handlePlaceholder": "handle",
+    "adding": "Adding...",
+    "addAccount": "Add account"
+  },
+  "dashboard": {
+    "tabs": {
+      "generate": "Generate",
+      "curate": "Curate & Design",
+      "schedule": "Schedule"
+    },
+    "empty": "Create a project to get started"
+  },
+  "auth": {
+    "loginSubtitle": "Sign in to manage your content pipeline",
+    "invalidCredentials": "Invalid email or password",
+    "signingIn": "Signing in...",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "registerSubtitle": "Create your account",
+    "somethingWentWrong": "Something went wrong",
+    "creatingAccount": "Creating account...",
+    "alreadyHaveAccount": "Already have an account?",
+    "joinWorkspace": "Join {workspaceName}",
+    "invitedBy": "{inviterName} invited you to collaborate on Impulso",
+    "yourName": "Your name",
+    "confirmPassword": "Confirm password",
+    "passwordMin": "Password must be at least 6 characters",
+    "passwordMismatch": "Passwords do not match",
+    "acceptFailed": "Failed to accept invite",
+    "signInFailed": "Account created but sign in failed. Please go to login.",
+    "settingUp": "Setting up...",
+    "setPasswordJoin": "Set password & join",
+    "signInFirst": "Sign in first",
+    "invalidInvite": "Invalid invite",
+    "invalidInviteDesc": "This invite link is invalid or has already been used.",
+    "goToLogin": "Go to login",
+    "atLeastSix": "At least 6 characters"
+  },
+  "generate": {
+    "title": "Generate drafts",
+    "subtitle": "Describe a topic and Impulso writes a batch of tweet angles for @{handle}.",
+    "topicLabel": "Topic or theme",
+    "topicPlaceholder": "e.g. Why scaling your database to zero saves more than you think...",
+    "try": "Try:",
+    "tone": "Tone",
+    "drafts": "Drafts",
+    "language": "Language",
+    "customTonePlaceholder": "e.g. technical but warm, bold without hype",
+    "generateAnother": "Generate another",
+    "generateDrafts": "Generate {count} drafts",
+    "writingDrafts": "Writing drafts...",
+    "exploringAngles": "Exploring {count} angles",
+    "draftsReady": "{count} drafts ready",
+    "writingMore": "Writing {count} more...",
+    "sendToCurate": "Send {count} to Curate",
+    "readyHint": "Discard the weak ones, send the rest to Curate",
+    "emptyTitle": "Your drafts will appear here",
+    "emptyDesc": "Pick a topic, set the tone, and generate a batch. Everything starts as a draft you can curate, design, and schedule.",
+    "topicRequired": "Add a topic to generate from",
+    "customToneRequired": "Describe the custom tone to use",
+    "generateFailed": "Failed to generate tweets",
+    "generatedToast": "Generated {count} tweets",
+    "toneOptions": {
+      "professional": "Professional",
+      "casual": "Casual",
+      "witty": "Witty",
+      "authoritative": "Authoritative",
+      "inspirational": "Inspirational",
+      "custom": "Custom"
+    },
+    "presets": {
+      "database": "Why database branching beats staging environments",
+      "cloud": "Cutting cloud spend by scaling to zero",
+      "capacity": "The hidden cost of capacity planning",
+      "postgres": "Postgres tips most teams miss",
+      "exists": "Why {brand} exists now",
+      "lessons": "Lessons from building {brand}",
+      "wrong": "What most teams get wrong about {brand}",
+      "contrarian": "A contrarian take from @{handle}"
+    }
+  },
+  "curate": {
+    "columns": {
+      "draft": "Draft",
+      "draftHint": "Fresh from AI - review & approve",
+      "curated": "Curated",
+      "curatedHint": "Approved copy - ready to design",
+      "designed": "Designed",
+      "designedHint": "Has a visual brief",
+      "imageReady": "Image ready",
+      "imageReadyHint": "Art generated - ready to schedule"
+    },
+    "processing": "Processing...",
+    "editCopy": "Edit copy",
+    "generatedAlt": "Generated",
+    "feedbackPlaceholder": "Feedback to regenerate...",
+    "deleteImage": "Delete image",
+    "designBrief": "Design brief",
+    "approve": "Approve",
+    "default": "default",
+    "noStyle": "No style",
+    "generateBrief": "Generate brief",
+    "generateImage": "Generate image",
+    "readyToSchedule": "Ready to schedule",
+    "tweetUpdated": "Tweet updated",
+    "tweetDeleted": "Tweet deleted",
+    "briefGenerated": "Design brief generated",
+    "briefFailed": "Failed to generate design brief",
+    "imageGenerated": "Image generated",
+    "imageFailed": "Failed to generate image",
+    "imageDeleted": "Image deleted",
+    "deleteImageFailed": "Failed to delete image",
+    "movedTo": "Moved to {label}",
+    "loading": "Loading tweets...",
+    "emptyTitle": "Nothing to curate yet",
+    "emptyDesc": "Head to the Generate stage to create a batch of drafts. They'll land here as cards you can move through each stage.",
+    "title": "Curate & design",
+    "subtitle": "Drag cards across stages, or use the actions to approve, brief, and render images.",
+    "readyCount": "{count} ready to schedule",
+    "goToSchedule": "Go to Schedule",
+    "save": "Save"
+  },
+  "schedule": {
+    "status": {
+      "posted": "Posted",
+      "failed": "Failed",
+      "publishing": "Publishing"
+    },
+    "preview": "Preview",
+    "unschedule": "Unschedule",
+    "dayNames": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "dropToSchedule": "Drop to schedule",
+    "scheduledFor": "Scheduled for {day} {time}",
+    "movedBack": "Moved back to tray",
+    "loading": "Loading schedule...",
+    "title": "Schedule",
+    "subtitle": "Drag ready posts from the tray onto a day to plan @{handle}'s week.",
+    "thisWeek": "This week",
+    "today": "Today",
+    "readyToSchedule": "Ready to schedule",
+    "emptyTray": "All ready posts are scheduled. Curate more to fill the week."
+  },
+  "preview": {
+    "statuses": {
+      "draft": "Draft",
+      "curated": "Curated",
+      "designed": "Designed",
+      "imageReady": "Image ready",
+      "scheduled": "Scheduled",
+      "publishing": "Publishing",
+      "failed": "Failed",
+      "posted": "Posted"
+    },
+    "postPreview": "Post preview",
+    "state": {
+      "posted": "posted",
+      "scheduled": "scheduled",
+      "draft": "draft"
+    },
+    "aiGenerated": "AI GENERATED",
+    "posted": "Posted",
+    "scheduledFor": "Scheduled for",
+    "draftPreview": "Draft preview - not yet scheduled",
+    "projection": "Engagement shown is a projection",
+    "copied": "Copied",
+    "copy": "Copy",
+    "xNotConfigured": "X not configured",
+    "postedToX": "Posted to X",
+    "publishFailed": "Publish failed",
+    "publishing": "Publishing...",
+    "publishNow": "Publish now",
+    "connectX": "Connect X",
+    "looksGood": "Looks good"
+  },
+  "settings": {
+    "nav": {
+      "brief": "Account brief",
+      "styles": "Brand kit",
+      "accounts": "X accounts",
+      "security": "Security",
+      "appearance": "Appearance"
+    },
+    "sections": {
+      "briefTitle": "Account brief",
+      "briefDesc": "Context about your brand that AI reads before generating tweets. The more detail, the better the output.",
+      "stylesTitle": "Brand kit",
+      "stylesDesc": "Logo, colors, and reusable visual briefs Impulso applies when generating images.",
+      "accountsTitle": "X accounts",
+      "accountsDesc": "Connect the handles you manage. Each account keeps its own pipeline, schedule, and image styles.",
+      "securityTitle": "Security",
+      "securityDesc": "Update the password used to sign in with your email.",
+      "appearanceTitle": "Appearance",
+      "appearanceDesc": "Personal display preferences for this workspace. These only affect your view."
+    },
+    "brief": {
+      "notice": "Brief is saved per X account. You're editing the brief for:",
+      "importFromWebsite": "Import from website",
+      "import": "Import",
+      "importHint": "We'll extract key info from the page to use as context for content generation.",
+      "accountBrief": "Account brief",
+      "placeholder": "Describe your brand, target audience, tone of voice, key topics, and any guidelines for content generation.\n\nExample:\n- Brand: PayGate - Web3 payment infrastructure\n- Audience: Crypto-native builders, DeFi users\n- Tone: Technical but accessible, no hype\n- Topics: stablecoins, payment rails, cross-chain...",
+      "saving": "Saving...",
+      "saveBrief": "Save brief",
+      "saved": "Brief saved",
+      "saveFailed": "Failed to save brief",
+      "imported": "Website content imported",
+      "fetchFailed": "Failed to fetch website"
+    },
+    "brand": {
+      "notice": "Styles are saved per X account - they're never shared between accounts. You're editing styles for:",
+      "title": "Brand kit",
+      "desc": "Saved assets are included when Impulso creates image briefs and prompts for @{handle}.",
+      "saveKit": "Save kit",
+      "logo": "Logo",
+      "uploadLogo": "Upload logo",
+      "removeLogo": "Remove logo",
+      "colors": "Brand colors",
+      "assetNotes": "Asset notes",
+      "assetNotesPlaceholder": "Logo placement, clear space, forbidden colors, preferred image references, or website text rules.",
+      "addStyle": "Add image style",
+      "styleName": "Style name",
+      "newStyle": "New image style",
+      "styleDescription": "Style description",
+      "createStyle": "Create style",
+      "default": "Default",
+      "setDefault": "Set default",
+      "loading": "Loading styles...",
+      "styleCreated": "Style created",
+      "styleUpdated": "Style updated",
+      "defaultUpdated": "Default style updated",
+      "styleDeleted": "Style deleted",
+      "kitSaved": "Brand kit saved",
+      "kitSaveFailed": "Failed to save brand kit",
+      "logoTooLarge": "Logo must be under 2 MB"
+    },
+    "accounts": {
+      "add": "Add X account",
+      "xNotConfigured": "X not configured",
+      "accountAdded": "Account added",
+      "accountRemoved": "Account removed",
+      "avatarUpdated": "Avatar updated",
+      "imageStyles": "{count} image {count, plural, one {style} other {styles}}",
+      "connected": "Connected {username}",
+      "connectedToX": "Connected to X",
+      "connect": "Connect @{handle}",
+      "brandKit": "Brand kit",
+      "accountName": "Account name",
+      "accountPlaceholder": "e.g. Hyperdrive",
+      "twitterHandle": "Twitter handle",
+      "handlePlaceholder": "handle",
+      "adding": "Adding...",
+      "addAccount": "Add account"
+    },
+    "security": {
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmNewPassword": "Confirm new password",
+      "updating": "Updating...",
+      "updatePassword": "Update password",
+      "updated": "Password updated",
+      "updateFailed": "Failed to update password"
+    },
+    "appearance": {
+      "theme": "Theme",
+      "themeDesc": "Switch between dark and light.",
+      "dark": "Dark",
+      "light": "Light",
+      "accentColor": "Accent color",
+      "accentDesc": "Used for highlights, buttons, and focus states.",
+      "density": "Density",
+      "densityDesc": "Spacing of cards across the pipeline."
+    }
+  },
+  "settingsPopover": {
+    "accentColor": "Accent color",
+    "density": "Density",
+    "pink": "Pink",
+    "sky": "Sky",
+    "indigo": "Indigo",
+    "violet": "Violet",
+    "compact": "Compact",
+    "regular": "Regular",
+    "comfy": "Comfy"
+  },
+  "team": {
+    "loading": "Loading workspace...",
+    "plan": "{plan} plan",
+    "members": "Members",
+    "pending": "Pending",
+    "seats": "Seats",
+    "invitePeople": "Invite people",
+    "inviteDesc": "Create a single-use link for someone to join this workspace with their own account.",
+    "createInvite": "Create invite link",
+    "creating": "Creating...",
+    "permission": "One permission level.",
+    "permissionDesc": "Links expire after 7 days and can be used once.",
+    "activeCount": "{count} active",
+    "you": "You",
+    "activeNow": "Active now",
+    "activeMinutes": "Active {count}m ago",
+    "activeHours": "Active {count}h ago",
+    "activeYesterday": "Active yesterday",
+    "activeDays": "Active {count}d ago",
+    "inviteCopied": "Invite link copied!",
+    "inviteCreated": "Invite link created and copied",
+    "inviteFailed": "Failed to create invite link",
+    "memberRemoved": "Member removed",
+    "inviteCancelled": "Invite cancelled"
+    ,
+    "owner": "Owner",
+    "member": "Member",
+    "pendingInvites": "Pending invites",
+    "waiting": "{count} waiting",
+    "inviteLink": "Invite link",
+    "invitePending": "Invite pending",
+    "expires": "Expires {date}",
+    "waitingToAccept": "Waiting to accept",
+    "copyInviteLink": "Copy invite link"
+  },
+  "manual": {
+    "eyebrow": "Product manual",
+    "title": "Run the content pipeline from idea to scheduled post.",
+    "subtitle": "Impulso is organized around three working stages: generate drafts, curate and design the best ones, then schedule finished posts.",
+    "recommendedFlow": "Recommended flow",
+    "flow": "Generate → Curate → Schedule",
+    "step": "Step {number}",
+    "quickReference": "Quick reference",
+    "workingTips": "Working tips",
+    "sections": {
+      "generate": {
+        "title": "Generate",
+        "eyebrow": "Start with raw ideas",
+        "steps": {
+          "0": "Choose the Twitter account you want to work on.",
+          "1": "Pick a tone, language, and number of drafts.",
+          "2": "Use a suggested topic or write a custom prompt.",
+          "3": "Generate drafts, then keep the ones worth shaping."
+        }
+      },
+      "curate": {
+        "title": "Curate & Design",
+        "eyebrow": "Turn drafts into ready assets",
+        "steps": {
+          "0": "Review generated copy in the Draft column.",
+          "1": "Approve strong posts and move them through the board.",
+          "2": "Add or refine visual direction before generating images.",
+          "3": "Regenerate images with feedback when the first result misses."
+        }
+      },
+      "schedule": {
+        "title": "Schedule",
+        "eyebrow": "Plan publishing",
+        "steps": {
+          "0": "Drag image-ready posts from the tray into a calendar day.",
+          "1": "Impulso chooses the next available publishing slot for that day.",
+          "2": "Preview scheduled posts before they go live.",
+          "3": "Unschedule anything that needs another pass."
+        }
+      }
+    },
+    "quick": {
+      "accountSetup": {
+        "title": "Account setup",
+        "text": "Use the account switcher in the top bar to select or add a Twitter account before creating content."
+      },
+      "copyStatus": {
+        "title": "Copy status",
+        "text": "Drafts become curated, designed, image-ready, scheduled, and posted as they move through the workflow."
+      },
+      "images": {
+        "title": "Images",
+        "text": "A post needs a visual brief before image generation. Use short feedback to steer regenerations."
+      },
+      "publishing": {
+        "title": "Publishing",
+        "text": "Scheduled posts are handled by the publishing job. Failed posts stay visible so they can be checked."
+      }
+    },
+    "tips": {
+      "0": "Generate more drafts than you need, then curate aggressively.",
+      "1": "Keep one idea per post; save threads and dense announcements for later iterations.",
+      "2": "Use concrete image feedback like composition, object, color, or layout changes.",
+      "3": "Schedule around the moments your audience is likely to read, not just when content is ready."
+    }
+  }
+}

@@ -1,0 +1,429 @@
+{
+  "language": {
+    "switchLanguage": "切换语言"
+  },
+  "common": {
+    "accounts": "账号",
+    "addTwitterAccount": "添加 Twitter 账号",
+    "backToPipeline": "返回流程",
+    "cancel": "取消",
+    "create": "创建",
+    "delete": "删除",
+    "discard": "丢弃",
+    "draft": "草稿",
+    "email": "邮箱",
+    "failed": "失败",
+    "loading": "加载中...",
+    "name": "姓名",
+    "password": "密码",
+    "preview": "预览",
+    "save": "保存",
+    "settings": "设置",
+    "signIn": "登录",
+    "signOut": "退出登录",
+    "user": "用户"
+  },
+  "nav": {
+    "selectAccount": "选择账号",
+    "workspaceSynced": "工作区已同步",
+    "toggleTheme": "切换主题",
+    "notifications": "通知",
+    "teamWorkspace": "团队与工作区",
+    "manual": "手册",
+    "addDialogTitle": "添加 Twitter 账号",
+    "accountName": "账号名称",
+    "accountNamePlaceholder": "例如：Hyperdrive",
+    "twitterHandle": "Twitter 账号名",
+    "handlePlaceholder": "handle",
+    "adding": "添加中...",
+    "addAccount": "添加账号"
+  },
+  "dashboard": {
+    "tabs": {
+      "generate": "生成",
+      "curate": "筛选与设计",
+      "schedule": "排期"
+    },
+    "empty": "创建一个项目即可开始"
+  },
+  "auth": {
+    "loginSubtitle": "登录以管理你的内容流程",
+    "invalidCredentials": "邮箱或密码无效",
+    "signingIn": "登录中...",
+    "noAccount": "还没有账号？",
+    "signUp": "注册",
+    "registerSubtitle": "创建你的账号",
+    "somethingWentWrong": "出了点问题",
+    "creatingAccount": "正在创建账号...",
+    "alreadyHaveAccount": "已有账号？",
+    "joinWorkspace": "加入 {workspaceName}",
+    "invitedBy": "{inviterName} 邀请你在 Impulso 协作",
+    "yourName": "你的姓名",
+    "confirmPassword": "确认密码",
+    "passwordMin": "密码至少需要 6 个字符",
+    "passwordMismatch": "两次输入的密码不一致",
+    "acceptFailed": "接受邀请失败",
+    "signInFailed": "账号已创建，但登录失败。请前往登录页。",
+    "settingUp": "设置中...",
+    "setPasswordJoin": "设置密码并加入",
+    "signInFirst": "先登录",
+    "invalidInvite": "邀请无效",
+    "invalidInviteDesc": "此邀请链接无效，或已经被使用。",
+    "goToLogin": "前往登录",
+    "atLeastSix": "至少 6 个字符"
+  },
+  "generate": {
+    "title": "生成草稿",
+    "subtitle": "描述一个主题，Impulso 会为 @{handle} 写出一批推文角度。",
+    "topicLabel": "主题",
+    "topicPlaceholder": "例如：为什么数据库缩容到零比你想象中更省钱...",
+    "try": "试试：",
+    "tone": "语气",
+    "drafts": "草稿数",
+    "language": "语言",
+    "customTonePlaceholder": "例如：技术感但温暖，坚定但不夸张",
+    "generateAnother": "继续生成",
+    "generateDrafts": "生成 {count} 条草稿",
+    "writingDrafts": "正在写草稿...",
+    "exploringAngles": "正在探索 {count} 个角度",
+    "draftsReady": "{count} 条草稿已就绪",
+    "writingMore": "还在写 {count} 条...",
+    "sendToCurate": "发送 {count} 条到筛选",
+    "readyHint": "丢弃弱的角度，把其余内容送去筛选",
+    "emptyTitle": "你的草稿会出现在这里",
+    "emptyDesc": "选择主题、设置语气，然后生成一批内容。每条内容都会先成为草稿，之后可以筛选、设计并排期。",
+    "topicRequired": "请先添加一个生成主题",
+    "customToneRequired": "请描述要使用的自定义语气",
+    "generateFailed": "生成推文失败",
+    "generatedToast": "已生成 {count} 条推文",
+    "toneOptions": {
+      "professional": "专业",
+      "casual": "轻松",
+      "witty": "机智",
+      "authoritative": "权威",
+      "inspirational": "鼓舞",
+      "custom": "自定义"
+    },
+    "presets": {
+      "database": "为什么数据库分支优于预发布环境",
+      "cloud": "通过缩容到零降低云成本",
+      "capacity": "容量规划的隐藏成本",
+      "postgres": "大多数团队忽略的 Postgres 技巧",
+      "exists": "{brand} 为什么现在出现",
+      "lessons": "构建 {brand} 的经验",
+      "wrong": "大多数团队对 {brand} 的误解",
+      "contrarian": "@{handle} 的一个反常识观点"
+    }
+  },
+  "curate": {
+    "columns": {
+      "draft": "草稿",
+      "draftHint": "AI 新生成 - 审核并批准",
+      "curated": "已筛选",
+      "curatedHint": "文案已批准 - 可进入设计",
+      "designed": "已设计",
+      "designedHint": "已有视觉简报",
+      "imageReady": "图片就绪",
+      "imageReadyHint": "图片已生成 - 可进入排期"
+    },
+    "processing": "处理中...",
+    "editCopy": "编辑文案",
+    "generatedAlt": "已生成图片",
+    "feedbackPlaceholder": "输入反馈以重新生成...",
+    "deleteImage": "删除图片",
+    "designBrief": "设计简报",
+    "approve": "批准",
+    "default": "默认",
+    "noStyle": "无样式",
+    "generateBrief": "生成简报",
+    "generateImage": "生成图片",
+    "readyToSchedule": "可排期",
+    "tweetUpdated": "推文已更新",
+    "tweetDeleted": "推文已删除",
+    "briefGenerated": "设计简报已生成",
+    "briefFailed": "生成设计简报失败",
+    "imageGenerated": "图片已生成",
+    "imageFailed": "生成图片失败",
+    "imageDeleted": "图片已删除",
+    "deleteImageFailed": "删除图片失败",
+    "movedTo": "已移动到{label}",
+    "loading": "正在加载推文...",
+    "emptyTitle": "还没有可筛选内容",
+    "emptyDesc": "前往生成阶段创建一批草稿。它们会以卡片形式出现在这里，你可以推动它们经过每个阶段。",
+    "title": "筛选与设计",
+    "subtitle": "拖动卡片跨阶段移动，或使用操作来批准、生成简报和渲染图片。",
+    "readyCount": "{count} 条可排期",
+    "goToSchedule": "前往排期",
+    "save": "保存"
+  },
+  "schedule": {
+    "status": {
+      "posted": "已发布",
+      "failed": "失败",
+      "publishing": "发布中"
+    },
+    "preview": "预览",
+    "unschedule": "取消排期",
+    "dayNames": {
+      "mon": "周一",
+      "tue": "周二",
+      "wed": "周三",
+      "thu": "周四",
+      "fri": "周五",
+      "sat": "周六",
+      "sun": "周日"
+    },
+    "dropToSchedule": "放下以排期",
+    "scheduledFor": "已排到 {day} {time}",
+    "movedBack": "已移回待排区",
+    "loading": "正在加载排期...",
+    "title": "排期",
+    "subtitle": "把待排内容从托盘拖到日期上，为 @{handle} 规划本周。",
+    "thisWeek": "本周",
+    "today": "今天",
+    "readyToSchedule": "待排内容",
+    "emptyTray": "所有待排内容都已安排。继续筛选更多内容来填满本周。"
+  },
+  "preview": {
+    "statuses": {
+      "draft": "草稿",
+      "curated": "已筛选",
+      "designed": "已设计",
+      "imageReady": "图片就绪",
+      "scheduled": "已排期",
+      "publishing": "发布中",
+      "failed": "失败",
+      "posted": "已发布"
+    },
+    "postPreview": "发布预览",
+    "state": {
+      "posted": "已发布",
+      "scheduled": "已排期",
+      "draft": "草稿"
+    },
+    "aiGenerated": "AI 生成",
+    "posted": "已发布",
+    "scheduledFor": "排期于",
+    "draftPreview": "草稿预览 - 尚未排期",
+    "projection": "互动数据为预估值",
+    "copied": "已复制",
+    "copy": "复制",
+    "xNotConfigured": "X 未配置",
+    "postedToX": "已发布到 X",
+    "publishFailed": "发布失败",
+    "publishing": "发布中...",
+    "publishNow": "立即发布",
+    "connectX": "连接 X",
+    "looksGood": "看起来不错"
+  },
+  "settings": {
+    "nav": {
+      "brief": "账号简介",
+      "styles": "品牌套件",
+      "accounts": "X 账号",
+      "security": "安全",
+      "appearance": "外观"
+    },
+    "sections": {
+      "briefTitle": "账号简介",
+      "briefDesc": "AI 生成推文前会读取的品牌上下文。信息越详细，输出越好。",
+      "stylesTitle": "品牌套件",
+      "stylesDesc": "Impulso 生成图片时会应用的 Logo、颜色和可复用视觉简报。",
+      "accountsTitle": "X 账号",
+      "accountsDesc": "连接你管理的账号。每个账号都有独立流程、排期和图片样式。",
+      "securityTitle": "安全",
+      "securityDesc": "更新你用邮箱登录时使用的密码。",
+      "appearanceTitle": "外观",
+      "appearanceDesc": "此工作区的个人显示偏好。只会影响你的视图。"
+    },
+    "brief": {
+      "notice": "简介按 X 账号保存。你正在编辑此账号的简介：",
+      "importFromWebsite": "从网站导入",
+      "import": "导入",
+      "importHint": "我们会从页面提取关键信息，作为内容生成的上下文。",
+      "accountBrief": "账号简介",
+      "placeholder": "描述你的品牌、目标受众、语气、关键主题，以及内容生成时需要遵守的规则。\n\n示例：\n- 品牌：PayGate - Web3 支付基础设施\n- 受众：Crypto-native 开发者、DeFi 用户\n- 语气：技术但易懂，不夸张\n- 主题：稳定币、支付轨道、跨链...",
+      "saving": "保存中...",
+      "saveBrief": "保存简介",
+      "saved": "简介已保存",
+      "saveFailed": "保存简介失败",
+      "imported": "网站内容已导入",
+      "fetchFailed": "获取网站失败"
+    },
+    "brand": {
+      "notice": "样式按 X 账号保存，账号之间不会共享。你正在编辑此账号的样式：",
+      "title": "品牌套件",
+      "desc": "Impulso 为 @{handle} 创建图片简报和提示词时，会包含已保存素材。",
+      "saveKit": "保存套件",
+      "logo": "Logo",
+      "uploadLogo": "上传 Logo",
+      "removeLogo": "移除 Logo",
+      "colors": "品牌颜色",
+      "assetNotes": "素材备注",
+      "assetNotesPlaceholder": "Logo 摆放、留白、禁用颜色、偏好的图片参考或网站文字规则。",
+      "addStyle": "添加图片样式",
+      "styleName": "样式名称",
+      "newStyle": "新建图片样式",
+      "styleDescription": "样式描述",
+      "createStyle": "创建样式",
+      "default": "默认",
+      "setDefault": "设为默认",
+      "loading": "正在加载样式...",
+      "styleCreated": "样式已创建",
+      "styleUpdated": "样式已更新",
+      "defaultUpdated": "默认样式已更新",
+      "styleDeleted": "样式已删除",
+      "kitSaved": "品牌套件已保存",
+      "kitSaveFailed": "保存品牌套件失败",
+      "logoTooLarge": "Logo 必须小于 2 MB"
+    },
+    "accounts": {
+      "add": "添加 X 账号",
+      "xNotConfigured": "X 未配置",
+      "accountAdded": "账号已添加",
+      "accountRemoved": "账号已移除",
+      "avatarUpdated": "头像已更新",
+      "imageStyles": "{count} 个图片样式",
+      "connected": "已连接 {username}",
+      "connectedToX": "已连接到 X",
+      "connect": "连接 @{handle}",
+      "brandKit": "品牌套件",
+      "accountName": "账号名称",
+      "accountPlaceholder": "例如：Hyperdrive",
+      "twitterHandle": "Twitter 账号名",
+      "handlePlaceholder": "handle",
+      "adding": "添加中...",
+      "addAccount": "添加账号"
+    },
+    "security": {
+      "currentPassword": "当前密码",
+      "newPassword": "新密码",
+      "confirmNewPassword": "确认新密码",
+      "updating": "更新中...",
+      "updatePassword": "更新密码",
+      "updated": "密码已更新",
+      "updateFailed": "更新密码失败"
+    },
+    "appearance": {
+      "theme": "主题",
+      "themeDesc": "在深色和浅色之间切换。",
+      "dark": "深色",
+      "light": "浅色",
+      "accentColor": "强调色",
+      "accentDesc": "用于高亮、按钮和聚焦状态。",
+      "density": "密度",
+      "densityDesc": "流程中卡片的间距。"
+    }
+  },
+  "settingsPopover": {
+    "accentColor": "强调色",
+    "density": "密度",
+    "pink": "粉色",
+    "sky": "天蓝",
+    "indigo": "靛蓝",
+    "violet": "紫色",
+    "compact": "紧凑",
+    "regular": "常规",
+    "comfy": "舒适"
+  },
+  "team": {
+    "loading": "正在加载工作区...",
+    "plan": "{plan} 方案",
+    "members": "成员",
+    "pending": "待处理",
+    "seats": "席位",
+    "invitePeople": "邀请成员",
+    "inviteDesc": "创建一个一次性链接，让对方用自己的账号加入此工作区。",
+    "createInvite": "创建邀请链接",
+    "creating": "创建中...",
+    "permission": "单一权限级别。",
+    "permissionDesc": "链接 7 天后过期，且只能使用一次。",
+    "activeCount": "{count} 位活跃",
+    "you": "你",
+    "activeNow": "当前活跃",
+    "activeMinutes": "{count} 分钟前活跃",
+    "activeHours": "{count} 小时前活跃",
+    "activeYesterday": "昨天活跃",
+    "activeDays": "{count} 天前活跃",
+    "inviteCopied": "邀请链接已复制！",
+    "inviteCreated": "邀请链接已创建并复制",
+    "inviteFailed": "创建邀请链接失败",
+    "memberRemoved": "成员已移除",
+    "inviteCancelled": "邀请已取消",
+    "owner": "所有者",
+    "member": "成员",
+    "pendingInvites": "待处理邀请",
+    "waiting": "{count} 个等待中",
+    "inviteLink": "邀请链接",
+    "invitePending": "邀请待接受",
+    "expires": "{date} 过期",
+    "waitingToAccept": "等待接受",
+    "copyInviteLink": "复制邀请链接"
+  },
+  "manual": {
+    "eyebrow": "产品手册",
+    "title": "从灵感到定时发布，跑通整条内容流程。",
+    "subtitle": "Impulso 围绕三个工作阶段组织：生成草稿，筛选并设计最好的内容，然后安排成品发布。",
+    "recommendedFlow": "推荐流程",
+    "flow": "生成 → 筛选 → 排期",
+    "step": "第 {number} 步",
+    "quickReference": "快速参考",
+    "workingTips": "使用建议",
+    "sections": {
+      "generate": {
+        "title": "生成",
+        "eyebrow": "从原始想法开始",
+        "steps": {
+          "0": "选择你要运营的 Twitter 账号。",
+          "1": "选择语气、语言和草稿数量。",
+          "2": "使用推荐主题，或自己写一个提示词。",
+          "3": "生成草稿，然后保留值得继续打磨的内容。"
+        }
+      },
+      "curate": {
+        "title": "筛选与设计",
+        "eyebrow": "把草稿变成可用素材",
+        "steps": {
+          "0": "在草稿列检查生成的文案。",
+          "1": "批准表现好的内容，并推动它们通过看板。",
+          "2": "在生成图片前添加或优化视觉方向。",
+          "3": "如果首版效果不理想，用反馈重新生成图片。"
+        }
+      },
+      "schedule": {
+        "title": "排期",
+        "eyebrow": "规划发布",
+        "steps": {
+          "0": "把图片就绪的内容从托盘拖到日历日期中。",
+          "1": "Impulso 会为当天选择下一个可用发布时间段。",
+          "2": "在正式发布前预览已排期内容。",
+          "3": "取消仍需再次修改内容的排期。"
+        }
+      }
+    },
+    "quick": {
+      "accountSetup": {
+        "title": "账号设置",
+        "text": "创建内容前，先用顶部账号切换器选择或添加 Twitter 账号。"
+      },
+      "copyStatus": {
+        "title": "文案状态",
+        "text": "草稿会随着流程推进变成已筛选、已设计、图片就绪、已排期和已发布。"
+      },
+      "images": {
+        "title": "图片",
+        "text": "生成图片前，内容需要先有视觉简报。用简短反馈来引导重新生成。"
+      },
+      "publishing": {
+        "title": "发布",
+        "text": "已排期内容由发布任务处理。发布失败的内容会保留可见，方便检查。"
+      }
+    },
+    "tips": {
+      "0": "先生成比实际需要更多的草稿，再更严格地筛选。",
+      "1": "每条内容只保留一个想法；长线程和密集公告可以留到后续迭代。",
+      "2": "图片反馈尽量具体，比如构图、物体、颜色或版式调整。",
+      "3": "围绕受众更可能阅读的时刻排期，而不只是内容准备好的时间。"
+    }
+  }
+}

@@ -5,6 +5,7 @@ import { Eye, X, Clock, Check, Copy, MessageCircle, Repeat2, Heart, BarChart3, S
 import { Button } from "@/components/ui/button";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface Tweet {
   id: string;
@@ -31,20 +32,21 @@ interface TweetPreviewModalProps {
   onPublished?: (tweet: Tweet) => void;
 }
 
-const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
-  DRAFT: { label: "Draft", color: "var(--s-draft)", bg: "var(--s-draft-bg)" },
-  CURATED: { label: "Curated", color: "var(--s-curated)", bg: "var(--s-curated-bg)" },
-  DESIGNED: { label: "Designed", color: "var(--s-designed)", bg: "var(--s-designed-bg)" },
-  IMAGE_GENERATED: { label: "Image ready", color: "var(--s-image)", bg: "var(--s-image-bg)" },
-  SCHEDULED: { label: "Scheduled", color: "var(--s-sched)", bg: "var(--s-sched-bg)" },
-  PUBLISHING: { label: "Publishing", color: "var(--s-sched)", bg: "var(--s-sched-bg)" },
-  PUBLISH_FAILED: { label: "Failed", color: "#f43f5e", bg: "rgba(244,63,94,0.12)" },
-  POSTED: { label: "Posted", color: "var(--s-image)", bg: "var(--s-image-bg)" },
+const STATUS_MAP: Record<string, { labelKey: string; color: string; bg: string }> = {
+  DRAFT: { labelKey: "draft", color: "var(--s-draft)", bg: "var(--s-draft-bg)" },
+  CURATED: { labelKey: "curated", color: "var(--s-curated)", bg: "var(--s-curated-bg)" },
+  DESIGNED: { labelKey: "designed", color: "var(--s-designed)", bg: "var(--s-designed-bg)" },
+  IMAGE_GENERATED: { labelKey: "imageReady", color: "var(--s-image)", bg: "var(--s-image-bg)" },
+  SCHEDULED: { labelKey: "scheduled", color: "var(--s-sched)", bg: "var(--s-sched-bg)" },
+  PUBLISHING: { labelKey: "publishing", color: "var(--s-sched)", bg: "var(--s-sched-bg)" },
+  PUBLISH_FAILED: { labelKey: "failed", color: "#f43f5e", bg: "rgba(244,63,94,0.12)" },
+  POSTED: { labelKey: "posted", color: "var(--s-image)", bg: "var(--s-image-bg)" },
 };
 
 const PUBLISHABLE = new Set(["CURATED", "DESIGNED", "IMAGE_GENERATED", "SCHEDULED", "PUBLISH_FAILED"]);
 
 export function TweetPreviewModal({ tweet, project, onClose, onPublished }: TweetPreviewModalProps) {
+  const t = useTranslations("preview");
   const status = STATUS_MAP[tweet.status] || STATUS_MAP.DRAFT;
   const [connected, setConnected] = useState(false);
   const [xConfigured, setXConfigured] = useState(true);
@@ -59,7 +61,7 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
       if (!cancelled) {
         const data = res.ok ? await res.json() : null;
         setXConfigured(Boolean(data?.configured));
-        setConnected(Boolean(data?.connected));
+        setConnected(Boolean(data?.projects?.[project.id]?.connected));
         setCheckingConnection(false);
       }
     }
@@ -68,7 +70,7 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [project.id]);
 
   function formatSchedule(iso: string) {
     const d = new Date(iso);
@@ -91,17 +93,17 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
     });
     const data = await res.json();
     if (res.ok) {
-      toast.success("Posted to X");
+      toast.success(t("postedToX"));
       onPublished?.(data);
       onClose();
     } else {
-      toast.error(data.error || "Publish failed");
+      toast.error(data.error || t("publishFailed"));
     }
     setPublishing(false);
   }
 
   const canPublish = PUBLISHABLE.has(tweet.status) && !tweet.externalPostId;
-  const connectHref = "/api/x/connect";
+  const connectHref = `/api/x/connect?projectId=${project.id}`;
 
   return (
     <div
@@ -128,13 +130,13 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
         >
           <div className="flex items-center gap-2.5">
             <Eye size={16} style={{ color: "var(--imp-accent)" }} />
-            <span className="text-[13px] font-semibold" style={{ color: "var(--imp-text)" }}>Post preview</span>
+            <span className="text-[13px] font-semibold" style={{ color: "var(--imp-text)" }}>{t("postPreview")}</span>
             <span
               className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
               style={{ color: status.color, background: status.bg }}
             >
               <span className="w-[5px] h-[5px] rounded-full" style={{ background: status.color }} />
-              {status.label}
+              {t(`statuses.${status.labelKey}`)}
             </span>
           </div>
           <button
@@ -171,7 +173,7 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-[13.5px] font-mono" style={{ color: "var(--imp-muted)" }}>@{project.handle}</span>
-                <span className="text-[13.5px]" style={{ color: "var(--imp-faint)" }}>· {tweet.status === "POSTED" ? "posted" : tweet.status === "SCHEDULED" ? "scheduled" : "draft"}</span>
+                <span className="text-[13.5px]" style={{ color: "var(--imp-faint)" }}>· {tweet.status === "POSTED" ? t("state.posted") : tweet.status === "SCHEDULED" ? t("state.scheduled") : t("state.draft")}</span>
               </div>
             </div>
           </div>
@@ -195,7 +197,7 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
                   className="w-full h-[264px] object-cover"
                 />
                 <span className="absolute left-2 bottom-2 text-[9.5px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-1">
-                  ✦ AI GENERATED
+                  * {t("aiGenerated")}
                 </span>
               </div>
             </ImageLightbox>
@@ -205,18 +207,18 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
           {tweet.publishedAt ? (
             <div className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--imp-muted)" }}>
               <Check size={14} style={{ color: "var(--s-image)" }} />
-              <span>Posted</span>
+              <span>{t("posted")}</span>
               <span className="font-semibold" style={{ color: "var(--imp-text)" }}>{formatSchedule(tweet.publishedAt)}</span>
             </div>
           ) : tweet.scheduledAt ? (
             <div className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--imp-muted)" }}>
               <Clock size={14} style={{ color: "var(--s-sched)" }} />
-              <span>Scheduled for</span>
+              <span>{t("scheduledFor")}</span>
               <span className="font-semibold" style={{ color: "var(--imp-text)" }}>{formatSchedule(tweet.scheduledAt)}</span>
             </div>
           ) : (
             <div className="text-[13px]" style={{ color: "var(--imp-faint)" }}>
-              Draft preview · not yet scheduled
+              {t("draftPreview")}
             </div>
           )}
           {tweet.publishError && (
@@ -254,16 +256,16 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
           style={{ borderTop: "1px solid var(--imp-border)" }}
         >
           <span className="text-[11.5px]" style={{ color: "var(--imp-faint)" }}>
-            Engagement shown is a projection
+            {t("projection")}
           </span>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               className="h-8 text-[12.5px] gap-1.5"
-              onClick={() => { navigator.clipboard.writeText(tweet.content); toast.success("Copied"); }}
+              onClick={() => { navigator.clipboard.writeText(tweet.content); toast.success(t("copied")); }}
             >
-              <Copy size={13} /> Copy
+              <Copy size={13} /> {t("copy")}
             </Button>
             {canPublish && !xConfigured && (
               <Button
@@ -271,7 +273,7 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
                 className="imp-btn-primary h-8 text-[12.5px] gap-1.5 rounded-[8px]"
                 disabled
               >
-                <X size={13} /> X not configured
+                <X size={13} /> {t("xNotConfigured")}
               </Button>
             )}
             {canPublish && xConfigured && (
@@ -283,7 +285,7 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
                   disabled={publishing}
                 >
                   {publishing ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
-                  {publishing ? "Publishing..." : "Publish now"}
+                  {publishing ? t("publishing") : t("publishNow")}
                 </Button>
               ) : (
                 <Button
@@ -292,7 +294,7 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
                   disabled={checkingConnection}
                   onClick={() => { window.location.href = connectHref; }}
                 >
-                  <X size={13} /> Connect X
+                  <X size={13} /> {t("connectX")}
                 </Button>
               )
             )}
@@ -302,7 +304,7 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
                 className="imp-btn-primary h-8 text-[12.5px] gap-1.5 rounded-[8px]"
                 onClick={onClose}
               >
-                <Check size={13} /> Looks good
+                <Check size={13} /> {t("looksGood")}
               </Button>
             )}
           </div>

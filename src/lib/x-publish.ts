@@ -1,23 +1,56 @@
 import { prisma } from "@/lib/db";
 import { getWorkspaceMemberIds } from "@/lib/workspace";
-import { createXPost, uploadXImage } from "@/lib/x-api";
+import { createXPost, refreshXAccessToken, uploadXImage } from "@/lib/x-api";
 
 type PublishResult =
   | { ok: true; tweet: Awaited<ReturnType<typeof prisma.tweet.update>> }
   | { ok: false; status: number; error: string };
 
+export type XConnectionStatus = { connected: boolean; username: string | null };
+
 function publicError(message: string) {
   return message.length > 240 ? `${message.slice(0, 237)}...` : message;
 }
 
-async function getXAccessToken(userId: string) {
+function tokenExpiresSoon(expiresAt: number | null) {
+  if (!expiresAt) return false;
+  return expiresAt <= Math.floor(Date.now() / 1000) + 300;
+}
+
+async function getXAccessToken(providerAccountId: string | null) {
+  if (!providerAccountId) return null;
+
   const account = await prisma.account.findFirst({
-    where: { userId, provider: "twitter" },
-    orderBy: { expires_at: "desc" },
+    where: { provider: "twitter", providerAccountId },
   });
 
   if (!account?.access_token) return null;
-  return account.access_token;
+  if (!tokenExpiresSoon(account.expires_at)) return account.access_token;
+  if (!account.refresh_token || !process.env.AUTH_TWITTER_ID || !process.env.AUTH_TWITTER_SECRET) {
+    return account.access_token;
+  }
+
+  const refreshed = await refreshXAccessToken(
+    account.refresh_token,
+    process.env.AUTH_TWITTER_ID,
+    process.env.AUTH_TWITTER_SECRET
+  );
+
+  await prisma.account.update({
+    where: { provider_providerAccountId: { provider: "twitter", providerAccountId } },
+    data: {
+      access_token: refreshed.accessToken,
+      refresh_token: refreshed.refreshToken,
+      ...(refreshed.expiresAt && { expires_at: refreshed.expiresAt }),
+    },
+  });
+
+  return refreshed.accessToken;
+}
+
+async function markMissingConnection(tweetId: string, handle: string) {
+  const message = await markPublishFailure(tweetId, `Connect X for @${handle} before publishing`);
+  return { ok: false as const, status: 400, error: message };
 }
 
 async function markPublishFailure(tweetId: string, error: string) {
@@ -34,12 +67,29 @@ async function markPublishFailure(tweetId: string, error: string) {
   return message;
 }
 
-export async function hasXConnection(userId: string) {
-  const account = await prisma.account.findFirst({
-    where: { userId, provider: "twitter", access_token: { not: null } },
-    select: { providerAccountId: true },
+export async function getXConnectionMap(userId: string): Promise<Record<string, XConnectionStatus>> {
+  const projects = await prisma.project.findMany({
+    where: { userId },
+    select: { id: true, xProviderAccountId: true, xUsername: true },
   });
-  return Boolean(account);
+  const providerAccountIds = projects.flatMap((project) => project.xProviderAccountId ? [project.xProviderAccountId] : []);
+  const accounts = providerAccountIds.length
+    ? await prisma.account.findMany({
+        where: { provider: "twitter", providerAccountId: { in: providerAccountIds }, access_token: { not: null } },
+        select: { providerAccountId: true },
+      })
+    : [];
+  const connected = new Set(accounts.map((account) => account.providerAccountId));
+
+  return Object.fromEntries(
+    projects.map((project) => [
+      project.id,
+      {
+        connected: Boolean(project.xProviderAccountId && connected.has(project.xProviderAccountId)),
+        username: project.xUsername,
+      },
+    ])
+  );
 }
 
 export async function publishTweet(tweetId: string, userId: string): Promise<PublishResult> {
@@ -57,9 +107,16 @@ export async function publishTweet(tweetId: string, userId: string): Promise<Pub
     return { ok: false, status: 409, error: "Tweet has already been posted" };
   }
 
-  const accessToken = await getXAccessToken(userId);
+  let accessToken: string | null;
+  try {
+    accessToken = await getXAccessToken(tweet.project.xProviderAccountId);
+  } catch (err) {
+    const message = await markPublishFailure(tweet.id, err instanceof Error ? err.message : "X token refresh failed");
+    return { ok: false, status: 502, error: message };
+  }
+
   if (!accessToken) {
-    return { ok: false, status: 400, error: "Connect X before publishing" };
+    return markMissingConnection(tweet.id, tweet.project.handle);
   }
 
   const claimed = await prisma.tweet.updateMany({
