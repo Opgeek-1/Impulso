@@ -33,7 +33,7 @@ import {
   Check,
   Bell,
   Users,
-  HelpCircle,
+  BookOpen,
 } from "lucide-react";
 
 interface Project {
@@ -249,9 +249,9 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
                 <Users size={14} />
                 {t("teamWorkspace")}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/help")} className="gap-2">
-                <HelpCircle size={14} />
-                {t("help")}
+              <DropdownMenuItem onClick={() => router.push("/manual")} className="gap-2">
+                <BookOpen size={14} />
+                {t("manual")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push("/settings")} className="gap-2">
                 <Settings size={14} />

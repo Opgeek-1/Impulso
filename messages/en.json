@@ -360,5 +360,71 @@
     "expires": "Expires {date}",
     "waitingToAccept": "Waiting to accept",
     "copyInviteLink": "Copy invite link"
+  },
+  "manual": {
+    "eyebrow": "Product manual",
+    "title": "Run the content pipeline from idea to scheduled post.",
+    "subtitle": "Impulso is organized around three working stages: generate drafts, curate and design the best ones, then schedule finished posts.",
+    "recommendedFlow": "Recommended flow",
+    "flow": "Generate → Curate → Schedule",
+    "step": "Step {number}",
+    "quickReference": "Quick reference",
+    "workingTips": "Working tips",
+    "sections": {
+      "generate": {
+        "title": "Generate",
+        "eyebrow": "Start with raw ideas",
+        "steps": {
+          "0": "Choose the Twitter account you want to work on.",
+          "1": "Pick a tone, language, and number of drafts.",
+          "2": "Use a suggested topic or write a custom prompt.",
+          "3": "Generate drafts, then keep the ones worth shaping."
+        }
+      },
+      "curate": {
+        "title": "Curate & Design",
+        "eyebrow": "Turn drafts into ready assets",
+        "steps": {
+          "0": "Review generated copy in the Draft column.",
+          "1": "Approve strong posts and move them through the board.",
+          "2": "Add or refine visual direction before generating images.",
+          "3": "Regenerate images with feedback when the first result misses."
+        }
+      },
+      "schedule": {
+        "title": "Schedule",
+        "eyebrow": "Plan publishing",
+        "steps": {
+          "0": "Drag image-ready posts from the tray into a calendar day.",
+          "1": "Impulso chooses the next available publishing slot for that day.",
+          "2": "Preview scheduled posts before they go live.",
+          "3": "Unschedule anything that needs another pass."
+        }
+      }
+    },
+    "quick": {
+      "accountSetup": {
+        "title": "Account setup",
+        "text": "Use the account switcher in the top bar to select or add a Twitter account before creating content."
+      },
+      "copyStatus": {
+        "title": "Copy status",
+        "text": "Drafts become curated, designed, image-ready, scheduled, and posted as they move through the workflow."
+      },
+      "images": {
+        "title": "Images",
+        "text": "A post needs a visual brief before image generation. Use short feedback to steer regenerations."
+      },
+      "publishing": {
+        "title": "Publishing",
+        "text": "Scheduled posts are handled by the publishing job. Failed posts stay visible so they can be checked."
+      }
+    },
+    "tips": {
+      "0": "Generate more drafts than you need, then curate aggressively.",
+      "1": "Keep one idea per post; save threads and dense announcements for later iterations.",
+      "2": "Use concrete image feedback like composition, object, color, or layout changes.",
+      "3": "Schedule around the moments your audience is likely to read, not just when content is ready."
+    }
   }
 }
