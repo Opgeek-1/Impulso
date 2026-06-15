@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 
 export function LoginForm() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const { theme } = useTheme();
   const [email, setEmail] = useState("");
@@ -34,7 +36,7 @@ export function LoginForm() {
     });
 
     if (result?.error) {
-      setError("Invalid email or password");
+      setError(t("invalid_credentials"));
       setLoading(false);
     } else {
       router.push(safeCallbackUrl);
@@ -61,13 +63,13 @@ export function LoginForm() {
         />
         <h1 className="text-xl font-bold" style={{ color: "var(--imp-text)" }}>Impulso</h1>
         <p className="text-[13px] mt-1 text-center" style={{ color: "var(--imp-muted)" }}>
-          Sign in to manage your content pipeline
+          {t("sign_in_subtitle")}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t("email")}</Label>
           <Input
             id="email"
             type="email"
@@ -79,7 +81,7 @@ export function LoginForm() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{t("password")}</Label>
           <Input
             id="password"
             type="password"
@@ -91,14 +93,14 @@ export function LoginForm() {
         </div>
         {error && <p className="text-sm text-red-400">{error}</p>}
         <Button type="submit" className="w-full imp-btn-primary" disabled={loading}>
-          {loading ? "Signing in..." : "Sign in"}
+          {loading ? t("signing_in") : t("sign_in")}
         </Button>
       </form>
 
       <p className="text-center text-[13px] mt-4" style={{ color: "var(--imp-muted)" }}>
-        Don&apos;t have an account?{" "}
+        {t("no_account")}{" "}
         <a href="/register" className="font-medium" style={{ color: "var(--imp-accent)" }}>
-          Sign up
+          {t("sign_up")}
         </a>
       </p>
     </div>

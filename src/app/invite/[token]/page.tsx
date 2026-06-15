@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { acceptWorkspaceInvite } from "@/lib/invites";
 import { AcceptInviteForm } from "@/components/accept-invite-form";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
   });
 
   if (!invite || (invite.expiresAt && invite.expiresAt < new Date())) {
+    const t = await getTranslations("auth");
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: "var(--imp-bg)" }}>
         <div
@@ -34,16 +36,16 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
             boxShadow: "var(--imp-shadow)",
           }}
         >
-          <h1 className="text-xl font-bold mb-2" style={{ color: "var(--imp-text)" }}>Invalid invite</h1>
+          <h1 className="text-xl font-bold mb-2" style={{ color: "var(--imp-text)" }}>{t("invalid_invite")}</h1>
           <p className="text-[13px]" style={{ color: "var(--imp-muted)" }}>
-            This invite link is invalid or has already been used.
+            {t("invalid_invite_desc")}
           </p>
           <a
             href="/login"
             className="inline-block mt-4 text-[13px] font-medium"
             style={{ color: "var(--imp-accent)" }}
           >
-            Go to login
+            {t("go_to_login")}
           </a>
         </div>
       </div>

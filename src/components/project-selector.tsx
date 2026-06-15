@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,6 +36,7 @@ interface ProjectSelectorProps {
 }
 
 export function ProjectSelector({ projects, selected, onSelect, onCreated }: ProjectSelectorProps) {
+  const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
@@ -70,7 +72,7 @@ export function ProjectSelector({ projects, selected, onSelect, onCreated }: Pro
         }}
       >
         <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder="Select project" />
+          <SelectValue placeholder={t("select_project")} />
         </SelectTrigger>
         <SelectContent>
           {projects.map((p) => (
@@ -83,35 +85,35 @@ export function ProjectSelector({ projects, selected, onSelect, onCreated }: Pro
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background px-3 h-8 hover:bg-accent hover:text-accent-foreground">
-          + New
+          {t("new")}
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>New Twitter Account</DialogTitle>
+            <DialogTitle>{t("new_twitter_account")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="project-name">Project Name</Label>
+              <Label htmlFor="project-name">{t("project_name")}</Label>
               <Input
                 id="project-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="My SaaS Product"
+                placeholder={t("project_name_placeholder")}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="project-handle">Twitter Handle</Label>
+              <Label htmlFor="project-handle">{t("twitter_handle")}</Label>
               <Input
                 id="project-handle"
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
-                placeholder="mysaas"
+                placeholder={t("handle_placeholder")}
                 required
               />
             </div>
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Creating..." : "Create Project"}
+              {loading ? t("creating_project") : t("create_project")}
             </Button>
           </form>
         </DialogContent>

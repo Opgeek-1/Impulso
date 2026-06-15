@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { TopNav } from "@/components/top-nav";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -58,19 +59,21 @@ interface TeamPageProps {
 
 const AVATAR_COLORS = ["#334155", "#0ea5e9", "#FE3C9C", "#22c55e", "#f59e0b", "#6366f1", "#a855f7"];
 
-function timeAgo(date: string) {
+function timeAgo(date: string, t: (key: string, params?: Record<string, number>) => string) {
   const diff = Date.now() - new Date(date).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Active now";
-  if (mins < 60) return `Active ${mins}m ago`;
+  if (mins < 1) return t("active_now");
+  if (mins < 60) return t("active_minutes", { count: mins });
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `Active ${hrs}h ago`;
+  if (hrs < 24) return t("active_hours", { count: hrs });
   const days = Math.floor(hrs / 24);
-  if (days === 1) return "Active yesterday";
-  return `Active ${days}d ago`;
+  if (days === 1) return t("active_yesterday");
+  return t("active_days", { count: days });
 }
 
 export function TeamPage({ projects, user }: TeamPageProps) {
+  const t = useTranslations("team");
+  const tc = useTranslations("common");
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [loading, setLoading] = useState(true);
   const [inviting, setInviting] = useState(false);
@@ -111,10 +114,10 @@ export function TeamPage({ projects, user }: TeamPageProps) {
       navigator.clipboard.writeText(link);
       setCopiedToken(invite.token);
       setTimeout(() => setCopiedToken(null), 3000);
-      toast.success("Invite link created and copied");
+      toast.success(t("invite_created"));
     } else {
       const data = await res.json();
-      toast.error(data.error || "Failed to create invite link");
+      toast.error(data.error || t("invite_create_failed"));
     }
     setInviting(false);
   }
@@ -124,7 +127,7 @@ export function TeamPage({ projects, user }: TeamPageProps) {
     navigator.clipboard.writeText(link);
     setCopiedToken(token);
     setTimeout(() => setCopiedToken(null), 3000);
-    toast.success("Invite link copied!");
+    toast.success(t("invite_copied"));
   }
 
   async function handleRemoveMember(memberId: string) {
@@ -132,7 +135,7 @@ export function TeamPage({ projects, user }: TeamPageProps) {
     const res = await fetch(`/api/workspace/members?memberId=${memberId}`, { method: "DELETE" });
     if (res.ok) {
       setWorkspace({ ...workspace, members: workspace.members.filter((m) => m.id !== memberId) });
-      toast.success("Member removed");
+      toast.success(t("member_removed"));
     }
   }
 
@@ -141,7 +144,7 @@ export function TeamPage({ projects, user }: TeamPageProps) {
     const res = await fetch(`/api/workspace/invite?inviteId=${inviteId}`, { method: "DELETE" });
     if (res.ok) {
       setWorkspace({ ...workspace, invites: workspace.invites.filter((i) => i.id !== inviteId) });
-      toast.success("Invite cancelled");
+      toast.success(t("invite_cancelled"));
     }
   }
 
@@ -149,7 +152,7 @@ export function TeamPage({ projects, user }: TeamPageProps) {
     return (
       <div className="flex flex-col h-screen">
         <TopNav projects={projects} selected={selectedProject} onSelect={setSelectedProject} onCreated={() => {}} user={user} />
-        <div className="flex-1 flex items-center justify-center" style={{ color: "var(--imp-muted)" }}>Loading workspace...</div>
+        <div className="flex-1 flex items-center justify-center" style={{ color: "var(--imp-muted)" }}>{t("loading_workspace")}</div>
       </div>
     );
   }
@@ -166,7 +169,7 @@ export function TeamPage({ projects, user }: TeamPageProps) {
             className="flex items-center gap-1.5 text-[13px] font-medium mb-6 transition-colors hover:text-[var(--imp-accent)]"
             style={{ color: "var(--imp-text-2)" }}
           >
-            <ChevronLeft size={14} /> Back to pipeline
+            <ChevronLeft size={14} /> {tc("back_to_pipeline")}
           </button>
 
           {/* Workspace card */}
@@ -187,22 +190,22 @@ export function TeamPage({ projects, user }: TeamPageProps) {
                   {workspace.domain && <span className="text-[13px]" style={{ color: "var(--imp-muted)" }}>{workspace.domain}</span>}
                   {workspace.domain && <span style={{ color: "var(--imp-faint)" }}>·</span>}
                   <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold" style={{ color: "var(--imp-accent)" }}>
-                    <Crown size={11} /> {workspace.plan.charAt(0).toUpperCase() + workspace.plan.slice(1)} plan
+                    <Crown size={11} /> {t("plan", { plan: workspace.plan.charAt(0).toUpperCase() + workspace.plan.slice(1) })}
                   </span>
                 </div>
               </div>
               <div className="flex gap-6 text-center shrink-0">
                 <div>
                   <div className="text-[20px] font-bold" style={{ color: "var(--imp-text)" }}>{workspace.members.length}</div>
-                  <div className="text-[11px]" style={{ color: "var(--imp-muted)" }}>Members</div>
+                  <div className="text-[11px]" style={{ color: "var(--imp-muted)" }}>{t("members")}</div>
                 </div>
                 <div>
                   <div className="text-[20px] font-bold" style={{ color: "var(--imp-text)" }}>{workspace.invites.length}</div>
-                  <div className="text-[11px]" style={{ color: "var(--imp-muted)" }}>Pending</div>
+                  <div className="text-[11px]" style={{ color: "var(--imp-muted)" }}>{t("pending")}</div>
                 </div>
                 <div>
                   <div className="text-[20px] font-bold" style={{ color: "var(--imp-text)" }}>{workspace.seats}</div>
-                  <div className="text-[11px]" style={{ color: "var(--imp-muted)" }}>Seats</div>
+                  <div className="text-[11px]" style={{ color: "var(--imp-muted)" }}>{t("seats")}</div>
                 </div>
               </div>
             </div>
@@ -211,17 +214,17 @@ export function TeamPage({ projects, user }: TeamPageProps) {
           {/* Invite section */}
           {isOwner && (
             <div className="mb-8">
-              <h2 className="text-[16px] font-bold mb-1" style={{ color: "var(--imp-text)" }}>Invite people</h2>
+              <h2 className="text-[16px] font-bold mb-1" style={{ color: "var(--imp-text)" }}>{t("invite_people")}</h2>
               <p className="text-[13.5px] mb-4" style={{ color: "var(--imp-muted)" }}>
-                Create a single-use link for someone to join this workspace with their own account.
+                {t("invite_desc")}
               </p>
               <Button onClick={handleInvite} className="imp-btn-primary h-[48px] px-5 rounded-xl text-[13.5px] gap-2" disabled={inviting}>
-                <Link2 size={14} /> {inviting ? "Creating..." : "Create invite link"}
+                <Link2 size={14} /> {t(inviting ? "creating" : "create_invite_link")}
               </Button>
               <div className="flex items-center gap-2 mt-3 px-1">
                 <Key size={13} style={{ color: "var(--imp-muted)" }} />
                 <span className="text-[12.5px]" style={{ color: "var(--imp-muted)" }}>
-                  <strong style={{ color: "var(--imp-text-2)" }}>One permission level.</strong> Links expire after 7 days and can be used once.
+                  {t.rich("one_permission", { strong: (chunks) => <strong style={{ color: "var(--imp-text-2)" }}>{chunks}</strong> })}
                 </span>
               </div>
             </div>
@@ -231,8 +234,8 @@ export function TeamPage({ projects, user }: TeamPageProps) {
           {workspace && workspace.members.length > 0 && (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-[16px] font-bold" style={{ color: "var(--imp-text)" }}>Members</h2>
-                <span className="text-[12px] font-mono" style={{ color: "var(--imp-muted)" }}>{workspace.members.length} active</span>
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--imp-text)" }}>{t("members")}</h2>
+                <span className="text-[12px] font-mono" style={{ color: "var(--imp-muted)" }}>{t("active_count", { count: workspace.members.length })}</span>
               </div>
               <div className="flex flex-col gap-2">
                 {workspace.members.map((m, i) => (
@@ -251,13 +254,13 @@ export function TeamPage({ projects, user }: TeamPageProps) {
                       <div className="flex items-center gap-2">
                         <span className="text-[14px] font-semibold" style={{ color: "var(--imp-text)" }}>{m.user.name || m.user.email.split("@")[0]}</span>
                         {m.user.id === user.id && (
-                          <span className="text-[10.5px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "var(--imp-surface-3)", color: "var(--imp-muted)" }}>You</span>
+                          <span className="text-[10.5px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "var(--imp-surface-3)", color: "var(--imp-muted)" }}>{tc("you")}</span>
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "var(--imp-muted)" }}>
                         <span>{m.user.email}</span>
                         <span>·</span>
-                        <span>{timeAgo(m.lastActive)}</span>
+                        <span>{timeAgo(m.lastActive, t)}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -291,8 +294,8 @@ export function TeamPage({ projects, user }: TeamPageProps) {
           {workspace && workspace.invites.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-[16px] font-bold" style={{ color: "var(--imp-text)" }}>Pending invites</h2>
-                <span className="text-[12px] font-mono" style={{ color: "var(--imp-muted)" }}>{workspace.invites.length} waiting</span>
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--imp-text)" }}>{t("pending_invites")}</h2>
+                <span className="text-[12px] font-mono" style={{ color: "var(--imp-muted)" }}>{t("waiting_count", { count: workspace.invites.length })}</span>
               </div>
               <div className="flex flex-col gap-2">
                 {workspace.invites.map((inv) => (
@@ -308,24 +311,24 @@ export function TeamPage({ projects, user }: TeamPageProps) {
                       <Mail size={15} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="text-[14px] font-semibold" style={{ color: "var(--imp-text)" }}>Invite link</span>
+                      <span className="text-[14px] font-semibold" style={{ color: "var(--imp-text)" }}>{t("invite_link")}</span>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: "var(--s-image-bg)", color: "var(--s-image)" }}>
-                          <Clock size={9} /> Invite pending
+                          <Clock size={9} /> {t("invite_pending")}
                         </span>
                         <span className="text-[11.5px]" style={{ color: "var(--imp-muted)" }}>
-                          {inv.expiresAt ? `Expires ${new Date(inv.expiresAt).toLocaleDateString()}` : "Waiting to accept"}
+                          {inv.expiresAt ? t("expires", { date: new Date(inv.expiresAt).toLocaleDateString() }) : t("waiting_to_accept")}
                         </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold px-2.5 py-1 rounded-lg" style={{ background: "var(--imp-surface-3)", color: "var(--imp-text-2)" }}>
-                        <Users size={11} /> Member
+                        <Users size={11} /> {tc("member")}
                       </span>
                       <button
                         onClick={() => copyInviteLink(inv.token)}
                         className="imp-icon-btn w-7 h-7 flex items-center justify-center"
-                        title="Copy invite link"
+                        title={t("copy_invite_link")}
                         style={{ color: copiedToken === inv.token ? "var(--imp-accent)" : "var(--imp-muted)" }}
                       >
                         {copiedToken === inv.token ? <Check size={14} /> : <Link2 size={14} />}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +39,8 @@ export function SchedulePickerDialog({
   tweetContent,
   initialDate,
 }: SchedulePickerDialogProps) {
+  const t = useTranslations("preview");
+  const tc = useTranslations("common");
   const now = new Date();
   const defaultDate = initialDate ?? now;
 
@@ -72,7 +75,7 @@ export function SchedulePickerDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarIcon size={18} />
-            Schedule Post
+            {t("schedule_post")}
           </DialogTitle>
         </DialogHeader>
 
@@ -96,8 +99,8 @@ export function SchedulePickerDialog({
           >
             <Clock size={14} />
             {isPast
-              ? "Time is in the past"
-              : `Will send on ${format(scheduledDateTime, "EEE, MMM d, yyyy")} at ${format(scheduledDateTime, "h:mm a")}`}
+              ? t("time_in_past")
+              : t("will_send", { date: format(scheduledDateTime, "EEE, MMM d, yyyy"), time: format(scheduledDateTime, "h:mm a") })}
           </div>
 
           {/* Calendar */}
@@ -113,7 +116,7 @@ export function SchedulePickerDialog({
           {/* Time selectors */}
           <div>
             <label className="block text-[12px] font-semibold mb-1.5" style={{ color: "var(--imp-text-2, hsl(var(--muted-foreground)))" }}>
-              Time
+              {t("time")}
             </label>
             <div className="flex items-center gap-2">
               <Select value={String(hour)} onValueChange={(v) => setHour(Number(v))}>
@@ -147,10 +150,10 @@ export function SchedulePickerDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {tc("cancel")}
           </Button>
           <Button onClick={handleConfirm} disabled={isPast}>
-            Confirm
+            {tc("confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

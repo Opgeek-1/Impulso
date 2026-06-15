@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Sparkles, Minus, Plus, ArrowRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Project {
   id: string;
@@ -21,14 +22,7 @@ interface GeneratePanelProps {
   onComplete: () => void;
 }
 
-const TONES = [
-  { id: "professional", label: "Professional" },
-  { id: "casual", label: "Casual" },
-  { id: "witty", label: "Witty" },
-  { id: "authoritative", label: "Authoritative" },
-  { id: "inspirational", label: "Inspirational" },
-  { id: "custom", label: "Custom" },
-];
+const TONES = ["professional", "casual", "witty", "authoritative", "inspirational", "custom"];
 
 const LANGS = [
   { id: "en", label: "English" },
@@ -181,6 +175,7 @@ function SkeletonCard() {
 }
 
 function DraftCard({ tweet, index, onDiscard }: { tweet: { id: string; content: string }; index: number; onDiscard: () => void }) {
+  const t = useTranslations("generate");
   const len = tweet.content.length;
   return (
     <div
@@ -195,15 +190,15 @@ function DraftCard({ tweet, index, onDiscard }: { tweet: { id: string; content: 
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--imp-faint)" }}>
           <Sparkles size={12} style={{ color: "var(--imp-accent)" }} />
-          Draft {index + 1}
+          {t("draft_n", { n: index + 1 })}
         </div>
         <button
           onClick={onDiscard}
           className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] transition-colors"
           style={{ color: "var(--imp-faint)" }}
-          title="Discard"
+          title={t("discard")}
         >
-          ✕
+          &#x2715;
         </button>
       </div>
       <p className="m-0 text-[13.5px] leading-relaxed whitespace-pre-wrap" style={{ color: "var(--imp-text)" }}>
@@ -228,6 +223,9 @@ function DraftCard({ tweet, index, onDiscard }: { tweet: { id: string; content: 
 }
 
 export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
+  const t = useTranslations("generate");
+  const tt = useTranslations("tones");
+
   const [topic, setTopic] = useState("");
   const [tone, setTone] = useState("professional");
   const [customTone, setCustomTone] = useState("");
@@ -248,13 +246,13 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
 
   async function handleGenerate() {
     if (!topic.trim()) {
-      toast.error("Add a topic to generate from");
+      toast.error(t("add_topic_error"));
       return;
     }
 
     const selectedTone = tone === "custom" ? customTone.trim() : tone;
     if (tone === "custom" && !selectedTone) {
-      toast.error("Describe the custom tone to use");
+      toast.error(t("custom_tone_error"));
       return;
     }
 
@@ -279,9 +277,9 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
 
       const data = await res.json();
       setGenerated((prev) => [...data.tweets, ...prev]);
-      toast.success(`Generated ${data.tweets.length} tweets`);
+      toast.success(t("generated_n_tweets", { count: data.tweets.length }));
     } catch {
-      toast.error("Failed to generate tweets. Check your AI API settings.");
+      toast.error(t("generate_failed"));
     } finally {
       setPendingRequests((prev) => Math.max(0, prev - 1));
       setPendingDrafts((prev) => Math.max(0, prev - requestedCount));
@@ -293,11 +291,13 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
       {/* Header */}
       <div className="imp-fade-in">
         <h2 className="text-[22px] font-bold tracking-tight mb-1" style={{ color: "var(--imp-text)" }}>
-          Generate drafts
+          {t("title")}
         </h2>
         <p className="text-[13.5px] m-0" style={{ color: "var(--imp-muted)" }}>
-          Describe a topic and Impulso writes a batch of tweet angles for{" "}
-          <span className="font-mono" style={{ color: "var(--imp-text-2)" }}>@{project.handle}</span>.
+          {t.rich("subtitle", {
+            handle: project.handle,
+            mono: (chunks: React.ReactNode) => <span className="font-mono" style={{ color: "var(--imp-text-2)" }}>{chunks}</span>,
+          })}
         </p>
       </div>
 
@@ -323,12 +323,12 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
 
         <div className="relative flex flex-col gap-0">
           <label className="text-[12.5px] font-semibold mb-2" style={{ color: "var(--imp-text-2)" }}>
-            Topic or theme
+            {t("topic_label")}
           </label>
           <textarea
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            placeholder="e.g. Why scaling your database to zero saves more than you think…"
+            placeholder={t("topic_placeholder")}
             rows={3}
             className="w-full rounded-xl px-3.5 py-3 text-[15px] leading-relaxed outline-none transition-colors resize-none"
             style={{
@@ -340,7 +340,7 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
 
           {/* Presets */}
           <div className="flex flex-wrap gap-2 mt-3">
-            <span className="text-[11.5px] self-center mr-0.5" style={{ color: "var(--imp-faint)" }}>Try:</span>
+            <span className="text-[11.5px] self-center mr-0.5" style={{ color: "var(--imp-faint)" }}>{t("try")}</span>
             {presets.map((p) => (
               <button
                 key={p}
@@ -362,12 +362,12 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
           <div className="flex flex-wrap gap-6 items-start">
             <div>
               <div className="text-[11.5px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--imp-faint)" }}>
-                Tone
+                {t("tone")}
               </div>
               <div className="flex flex-wrap gap-2">
-                {TONES.map((t) => (
-                  <Chip key={t.id} active={tone === t.id} onClick={() => setTone(t.id)}>
-                    {t.label}
+                {TONES.map((toneId) => (
+                  <Chip key={toneId} active={tone === toneId} onClick={() => setTone(toneId)}>
+                    {tt(toneId)}
                   </Chip>
                 ))}
               </div>
@@ -375,7 +375,7 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
                 <input
                   value={customTone}
                   onChange={(e) => setCustomTone(e.target.value)}
-                  placeholder="e.g. technical but warm, bold without hype"
+                  placeholder={t("custom_tone_placeholder")}
                   className="mt-2 h-9 w-full min-w-[280px] rounded-xl px-3 text-[13px] outline-none transition-colors"
                   style={{
                     background: "var(--imp-bg)",
@@ -387,13 +387,13 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
             </div>
             <div>
               <div className="text-[11.5px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--imp-faint)" }}>
-                Drafts
+                {t("drafts")}
               </div>
               <Stepper value={count} onChange={setCount} />
             </div>
             <div>
               <div className="text-[11.5px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--imp-faint)" }}>
-                Language
+                {t("language")}
               </div>
               <div className="flex flex-wrap gap-2">
                 {LANGS.map((l) => (
@@ -411,12 +411,12 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
               {pendingRequests > 0 ? (
                 <span className="inline-flex items-center gap-2">
                   <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  Generate another
+                  {t("generate_another")}
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-2">
                   <Sparkles size={15} />
-                  Generate {count} drafts
+                  {t("generate_n_drafts", { count })}
                 </span>
               )}
             </Button>
@@ -430,10 +430,10 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
           <div className="flex items-end justify-between mb-4 gap-4 flex-wrap">
             <div>
               <h3 className="text-base font-semibold tracking-tight m-0 mb-0.5" style={{ color: "var(--imp-text)" }}>
-                Writing drafts…
+                {t("writing_drafts")}
               </h3>
               <p className="text-[12.5px] m-0" style={{ color: "var(--imp-muted)" }}>
-                Exploring {pendingDrafts} angles
+                {t("exploring_angles", { count: pendingDrafts })}
               </p>
             </div>
           </div>
@@ -448,15 +448,15 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
           <div className="flex items-end justify-between mb-4 gap-4 flex-wrap">
             <div>
               <h3 className="text-base font-semibold tracking-tight m-0 mb-0.5" style={{ color: "var(--imp-text)" }}>
-                {generated.length} drafts ready
+                {t("n_drafts_ready", { count: generated.length })}
               </h3>
               <p className="text-[12.5px] m-0" style={{ color: "var(--imp-muted)" }}>
-                {pendingDrafts > 0 ? `Writing ${pendingDrafts} more...` : "Discard the weak ones, send the rest to Curate"}
+                {pendingDrafts > 0 ? t("writing_more", { count: pendingDrafts }) : t("discard_weak")}
               </p>
             </div>
             <Button onClick={onComplete} className="imp-btn-primary h-9 px-3.5 text-[13px] rounded-[9px]">
               <span className="inline-flex items-center gap-2">
-                Send {generated.length} to Curate
+                {t("send_to_curate", { count: generated.length })}
                 <ArrowRight size={15} />
               </span>
             </Button>
@@ -467,7 +467,7 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
                 key={tweet.id}
                 tweet={tweet}
                 index={i}
-                onDiscard={() => setGenerated((prev) => prev.filter((t) => t.id !== tweet.id))}
+                onDiscard={() => setGenerated((prev) => prev.filter((tw) => tw.id !== tweet.id))}
               />
             ))}
             {Array.from({ length: pendingDrafts }).map((_, i) => (
@@ -494,10 +494,10 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
             <Sparkles size={26} />
           </div>
           <h3 className="text-base font-semibold mb-1" style={{ color: "var(--imp-text)" }}>
-            Your drafts will appear here
+            {t("drafts_appear_here")}
           </h3>
           <p className="text-[13px] max-w-[360px] mx-auto leading-relaxed" style={{ color: "var(--imp-muted)" }}>
-            Pick a topic, set the tone, and generate a batch. Everything starts as a draft you can curate, design, and schedule.
+            {t("drafts_appear_desc")}
           </p>
         </div>
       )}

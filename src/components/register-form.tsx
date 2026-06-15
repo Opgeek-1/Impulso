@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,6 +10,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 export function RegisterForm() {
+  const t = useTranslations("auth");
+  const tc = useTranslations("common");
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -29,7 +32,7 @@ export function RegisterForm() {
 
     if (!res.ok) {
       const data = await res.json();
-      setError(data.error || "Something went wrong");
+      setError(data.error || tc("something_went_wrong"));
       setLoading(false);
     } else {
       router.push("/login");
@@ -49,12 +52,12 @@ export function RegisterForm() {
         <Image src="/tomo-mark.png" alt="Impulso" width={40} height={40} className="mb-3" />
         <h1 className="text-xl font-bold" style={{ color: "var(--imp-text)" }}>Impulso</h1>
         <p className="text-[13px] mt-1" style={{ color: "var(--imp-muted)" }}>
-          Create your account
+          {t("create_account")}
         </p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor="name">{t("name")}</Label>
           <Input
             id="name"
             value={name}
@@ -63,7 +66,7 @@ export function RegisterForm() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t("email")}</Label>
           <Input
             id="email"
             type="email"
@@ -73,7 +76,7 @@ export function RegisterForm() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{t("password")}</Label>
           <Input
             id="password"
             type="password"
@@ -85,11 +88,11 @@ export function RegisterForm() {
         </div>
         {error && <p className="text-sm text-red-400">{error}</p>}
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Creating account..." : "Sign up"}
+          {loading ? t("creating_account") : t("sign_up")}
         </Button>
         <p className="text-[13px] text-center" style={{ color: "var(--imp-muted)" }}>
-          Already have an account?{" "}
-          <Link href="/login" className="font-medium" style={{ color: "var(--imp-accent)" }}>Sign in</Link>
+          {t("have_account")}{" "}
+          <Link href="/login" className="font-medium" style={{ color: "var(--imp-accent)" }}>{t("sign_in")}</Link>
         </p>
       </form>
     </div>
