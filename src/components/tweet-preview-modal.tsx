@@ -5,7 +5,7 @@ import { Eye, X, Clock, Check, Copy, MessageCircle, Repeat2, Heart, BarChart3, S
 import { Button } from "@/components/ui/button";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 interface Tweet {
   id: string;
@@ -52,6 +52,7 @@ function tweetImageSrc(imageUrl: string) {
 
 export function TweetPreviewModal({ tweet, project, onClose, onPublished }: TweetPreviewModalProps) {
   const t = useTranslations("preview");
+  const locale = useLocale();
   const status = STATUS_MAP[tweet.status] || STATUS_MAP.DRAFT;
   const [connected, setConnected] = useState(false);
   const [xConfigured, setXConfigured] = useState(true);
@@ -79,14 +80,13 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
 
   function formatSchedule(iso: string) {
     const d = new Date(iso);
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    let hh = d.getHours();
-    const mm = d.getMinutes();
-    const ap = hh >= 12 ? "PM" : "AM";
-    hh = hh % 12 || 12;
-    const time = hh + (mm ? ":" + String(mm).padStart(2, "0") : ":00") + " " + ap;
-    return `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()} · ${time}`;
+    return new Intl.DateTimeFormat(locale, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(d);
   }
 
   async function publishNow() {

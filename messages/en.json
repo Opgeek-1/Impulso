@@ -21,7 +21,8 @@
     "settings": "Settings",
     "signIn": "Sign in",
     "signOut": "Sign out",
-    "user": "User"
+    "user": "User",
+    "edit": "Edit"
   },
   "nav": {
     "selectAccount": "Select account",
@@ -154,7 +155,16 @@
     "subtitle": "Drag cards across stages, or use the actions to approve, brief, and render images.",
     "readyCount": "{count} ready to schedule",
     "goToSchedule": "Go to Schedule",
-    "save": "Save"
+    "save": "Save",
+    "onlyImageFiles": "Only image files are supported",
+    "imageTooLarge": "Image must be under 10 MB",
+    "imagePromptCopied": "Image prompt copied",
+    "copyPromptFailed": "Failed to copy prompt",
+    "uploadReplacement": "Upload replacement image",
+    "copyImagePrompt": "Copy image prompt",
+    "upload": "Upload",
+    "uploadOrPaste": "Upload image or paste from clipboard",
+    "imageUploaded": "Image uploaded"
   },
   "schedule": {
     "status": {
@@ -182,7 +192,10 @@
     "thisWeek": "This week",
     "today": "Today",
     "readyToSchedule": "Ready to schedule",
-    "emptyTray": "All ready posts are scheduled. Curate more to fill the week."
+    "emptyTray": "All ready posts are scheduled. Curate more to fill the week.",
+    "scheduleButton": "Schedule",
+    "scheduleWithDateTime": "Schedule with date & time",
+    "reschedule": "Reschedule"
   },
   "preview": {
     "statuses": {
@@ -293,7 +306,12 @@
       "twitterHandle": "Twitter handle",
       "handlePlaceholder": "handle",
       "adding": "Adding...",
-      "addAccount": "Add account"
+      "addAccount": "Add account",
+      "disconnect": "Disconnect",
+      "disconnected": "X account disconnected",
+      "disconnectFailed": "Failed to disconnect",
+      "accountUpdated": "Account updated",
+      "editNameHandle": "Edit name & handle"
     },
     "security": {
       "currentPassword": "Current password",
@@ -361,6 +379,24 @@
     "waitingToAccept": "Waiting to accept",
     "copyInviteLink": "Copy invite link"
   },
+  "projectSelector": {
+    "selectProject": "Select project",
+    "newButton": "+ New",
+    "newTwitterAccount": "New Twitter Account",
+    "projectName": "Project Name",
+    "twitterHandle": "Twitter Handle",
+    "projectNamePlaceholder": "My SaaS Product",
+    "handlePlaceholder": "mysaas",
+    "creating": "Creating...",
+    "createProject": "Create Project"
+  },
+  "stylesPanel": {
+    "brandStyles": "Brand Styles",
+    "defineStyles": "Define visual styles for @{handle}. The default style is used automatically when generating design briefs.",
+    "styleDescriptionLabel": "Style Description (natural language)",
+    "addStyle": "+ Add Style",
+    "setAsDefault": "Set as default"
+  },
   "manual": {
     "eyebrow": "Product manual",
     "title": "Run the content pipeline from idea to scheduled post.",
@@ -374,31 +410,63 @@
       "generate": {
         "title": "Generate",
         "eyebrow": "Start with raw ideas",
+        "description": "Describe a topic or theme and Impulso writes a batch of tweet angles for your account.",
         "steps": {
           "0": "Choose the Twitter account you want to work on.",
           "1": "Pick a tone, language, and number of drafts.",
           "2": "Use a suggested topic or write a custom prompt.",
           "3": "Generate drafts, then keep the ones worth shaping."
+        },
+        "details": {
+          "0": "Enter a topic, trend, or idea you want to post about",
+          "1": "Choose a tone: Professional, Casual, Witty, Authoritative, Inspirational, or Custom",
+          "2": "Select a language and number of drafts to generate",
+          "3": "AI produces multiple tweet variations you can review"
         }
       },
       "curate": {
         "title": "Curate & Design",
         "eyebrow": "Turn drafts into ready assets",
+        "description": "Review drafts, approve the ones you like, add design briefs, and generate images.",
         "steps": {
           "0": "Review generated copy in the Draft column.",
           "1": "Approve strong posts and move them through the board.",
           "2": "Add or refine visual direction before generating images.",
           "3": "Regenerate images with feedback when the first result misses."
+        },
+        "details": {
+          "0": "Drag cards across four stages: Draft → Curated → Designed → Image ready",
+          "1": "Approve drafts to move them to the Curated column",
+          "2": "Add a visual brief describing the image you want",
+          "3": "Generate images with AI (GPT Image, Gemini Flash, or DALL·E 3)",
+          "4": "Regenerate images with feedback until they look right"
         }
       },
       "schedule": {
         "title": "Schedule",
         "eyebrow": "Plan publishing",
+        "description": "Drag ready posts onto your weekly calendar to plan when each tweet goes out.",
         "steps": {
           "0": "Drag image-ready posts from the tray into a calendar day.",
           "1": "Impulso chooses the next available publishing slot for that day.",
           "2": "Preview scheduled posts before they go live.",
           "3": "Unschedule anything that needs another pass."
+        },
+        "details": {
+          "0": "Ready posts appear in the tray on the left",
+          "1": "Drag them onto any day of the week",
+          "2": "Set the exact time for each post",
+          "3": "Preview how the post will look on X before publishing"
+        }
+      },
+      "publish": {
+        "title": "Publish",
+        "description": "Impulso publishes your scheduled tweets automatically via your connected X account.",
+        "details": {
+          "0": "Connect each X account independently in Settings → X accounts",
+          "1": "Scheduled posts are published automatically at the set time",
+          "2": "Track post status: Scheduled → Publishing → Posted",
+          "3": "View engagement after a post goes live"
         }
       }
     },
@@ -418,6 +486,28 @@
       "publishing": {
         "title": "Publishing",
         "text": "Scheduled posts are handled by the publishing job. Failed posts stay visible so they can be checked."
+      }
+    },
+    "guideTitle": "Marketing Pipeline Guide",
+    "guideSubtitle": "Impulso turns a topic into scheduled posts in four steps. Here's how the pipeline works.",
+    "tipsTitle": "Tips",
+    "needHelp": "Need more help? Reach out at",
+    "helpTips": {
+      "brandKit": {
+        "title": "Brand kit",
+        "text": "Upload your logo, set brand colors, and add style notes in Settings → Brand kit. AI-generated images will follow your brand guidelines."
+      },
+      "accountBrief": {
+        "title": "Account brief",
+        "text": "Write a short brief for each X account in Settings → Account brief. This helps the AI understand your voice and audience."
+      },
+      "multipleAccounts": {
+        "title": "Multiple accounts",
+        "text": "Add as many X accounts as you need. Each keeps its own pipeline, schedule, and image styles."
+      },
+      "imageStyles": {
+        "title": "Image styles",
+        "text": "Create reusable image style templates per account so your visuals stay consistent across posts."
       }
     },
     "tips": {

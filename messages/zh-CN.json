@@ -21,7 +21,8 @@
     "settings": "设置",
     "signIn": "登录",
     "signOut": "退出登录",
-    "user": "用户"
+    "user": "用户",
+    "edit": "编辑"
   },
   "nav": {
     "selectAccount": "选择账号",
@@ -154,7 +155,16 @@
     "subtitle": "拖动卡片跨阶段移动，或使用操作来批准、生成简报和渲染图片。",
     "readyCount": "{count} 条可排期",
     "goToSchedule": "前往排期",
-    "save": "保存"
+    "save": "保存",
+    "onlyImageFiles": "仅支持图片文件",
+    "imageTooLarge": "图片必须小于 10 MB",
+    "imagePromptCopied": "图片提示词已复制",
+    "copyPromptFailed": "复制提示词失败",
+    "uploadReplacement": "上传替换图片",
+    "copyImagePrompt": "复制图片提示词",
+    "upload": "上传",
+    "uploadOrPaste": "上传图片或从剪贴板粘贴",
+    "imageUploaded": "图片已上传"
   },
   "schedule": {
     "status": {
@@ -182,7 +192,10 @@
     "thisWeek": "本周",
     "today": "今天",
     "readyToSchedule": "待排内容",
-    "emptyTray": "所有待排内容都已安排。继续筛选更多内容来填满本周。"
+    "emptyTray": "所有待排内容都已安排。继续筛选更多内容来填满本周。",
+    "scheduleButton": "排期",
+    "scheduleWithDateTime": "按日期和时间排期",
+    "reschedule": "重新排期"
   },
   "preview": {
     "statuses": {
@@ -293,7 +306,12 @@
       "twitterHandle": "Twitter 账号名",
       "handlePlaceholder": "handle",
       "adding": "添加中...",
-      "addAccount": "添加账号"
+      "addAccount": "添加账号",
+      "disconnect": "断开连接",
+      "disconnected": "X 账号已断开",
+      "disconnectFailed": "断开连接失败",
+      "accountUpdated": "账号已更新",
+      "editNameHandle": "编辑名称和账号名"
     },
     "security": {
       "currentPassword": "当前密码",
@@ -360,6 +378,24 @@
     "waitingToAccept": "等待接受",
     "copyInviteLink": "复制邀请链接"
   },
+  "projectSelector": {
+    "selectProject": "选择项目",
+    "newButton": "+ 新建",
+    "newTwitterAccount": "新建 Twitter 账号",
+    "projectName": "项目名称",
+    "twitterHandle": "Twitter 账号名",
+    "projectNamePlaceholder": "我的 SaaS 产品",
+    "handlePlaceholder": "mysaas",
+    "creating": "创建中...",
+    "createProject": "创建项目"
+  },
+  "stylesPanel": {
+    "brandStyles": "品牌样式",
+    "defineStyles": "为 @{handle} 定义视觉样式。默认样式在生成设计简报时会自动使用。",
+    "styleDescriptionLabel": "样式描述（自然语言）",
+    "addStyle": "+ 添加样式",
+    "setAsDefault": "设为默认"
+  },
   "manual": {
     "eyebrow": "产品手册",
     "title": "从灵感到定时发布，跑通整条内容流程。",
@@ -373,31 +409,63 @@
       "generate": {
         "title": "生成",
         "eyebrow": "从原始想法开始",
+        "description": "描述一个主题，Impulso 会为你的账号写出一批推文角度。",
         "steps": {
           "0": "选择你要运营的 Twitter 账号。",
           "1": "选择语气、语言和草稿数量。",
           "2": "使用推荐主题，或自己写一个提示词。",
           "3": "生成草稿，然后保留值得继续打磨的内容。"
+        },
+        "details": {
+          "0": "输入你想发布的主题、趋势或想法",
+          "1": "选择语气：专业、轻松、机智、权威、鼓舞或自定义",
+          "2": "选择语言和要生成的草稿数量",
+          "3": "AI 会生成多条推文变体供你审核"
         }
       },
       "curate": {
         "title": "筛选与设计",
         "eyebrow": "把草稿变成可用素材",
+        "description": "审核草稿，批准你喜欢的内容，添加设计简报，生成图片。",
         "steps": {
           "0": "在草稿列检查生成的文案。",
           "1": "批准表现好的内容，并推动它们通过看板。",
           "2": "在生成图片前添加或优化视觉方向。",
           "3": "如果首版效果不理想，用反馈重新生成图片。"
+        },
+        "details": {
+          "0": "拖动卡片经过四个阶段：草稿 → 已筛选 → 已设计 → 图片就绪",
+          "1": "批准草稿以将其移至已筛选列",
+          "2": "添加视觉简报，描述你想要的图片",
+          "3": "使用 AI 生成图片（GPT Image、Gemini Flash 或 DALL·E 3）",
+          "4": "用反馈重新生成图片，直到效果满意"
         }
       },
       "schedule": {
         "title": "排期",
         "eyebrow": "规划发布",
+        "description": "将就绪内容拖到每周日历上，规划每条推文的发布时间。",
         "steps": {
           "0": "把图片就绪的内容从托盘拖到日历日期中。",
           "1": "Impulso 会为当天选择下一个可用发布时间段。",
           "2": "在正式发布前预览已排期内容。",
           "3": "取消仍需再次修改内容的排期。"
+        },
+        "details": {
+          "0": "就绪内容出现在左侧托盘中",
+          "1": "将它们拖到一周中的任意一天",
+          "2": "为每条内容设置精确时间",
+          "3": "发布前预览内容在 X 上的展示效果"
+        }
+      },
+      "publish": {
+        "title": "发布",
+        "description": "Impulso 通过你连接的 X 账号自动发布已排期的推文。",
+        "details": {
+          "0": "在设置 → X 账号中独立连接每个 X 账号",
+          "1": "已排期内容在设定时间自动发布",
+          "2": "跟踪发布状态：已排期 → 发布中 → 已发布",
+          "3": "内容发布后查看互动数据"
         }
       }
     },
@@ -417,6 +485,28 @@
       "publishing": {
         "title": "发布",
         "text": "已排期内容由发布任务处理。发布失败的内容会保留可见，方便检查。"
+      }
+    },
+    "guideTitle": "营销流程指南",
+    "guideSubtitle": "Impulso 用四个步骤将主题变为排期发布的内容。以下是流程运作方式。",
+    "tipsTitle": "使用建议",
+    "needHelp": "需要更多帮助？请联系",
+    "helpTips": {
+      "brandKit": {
+        "title": "品牌套件",
+        "text": "在设置 → 品牌套件中上传 Logo、设置品牌颜色并添加样式备注。AI 生成的图片将遵循你的品牌规范。"
+      },
+      "accountBrief": {
+        "title": "账号简介",
+        "text": "在设置 → 账号简介中为每个 X 账号撰写简短说明。这有助于 AI 理解你的语气和受众。"
+      },
+      "multipleAccounts": {
+        "title": "多账号管理",
+        "text": "可添加任意数量的 X 账号。每个账号都有独立的流程、排期和图片样式。"
+      },
+      "imageStyles": {
+        "title": "图片样式",
+        "text": "为每个账号创建可复用的图片样式模板，让你的视觉内容保持一致。"
       }
     },
     "tips": {
