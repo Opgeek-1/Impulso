@@ -99,7 +99,7 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
         {/* Left: logo + account switcher */}
         <div className="flex items-center gap-4">
           <Link
-            href="/"
+            href="/dashboard"
             className="flex items-center gap-2.5 rounded-lg transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--imp-accent)]"
             aria-label="Impulso"
           >
@@ -121,7 +121,7 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
           {showBackToPipeline && (
             <>
               <Link
-                href="/"
+                href="/dashboard"
                 className="flex h-[34px] items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium transition-colors hover:bg-[var(--imp-hover)] hover:text-[var(--imp-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--imp-accent)]"
                 style={{ color: "var(--imp-text-2)" }}
               >

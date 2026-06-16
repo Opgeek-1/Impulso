@@ -53,7 +53,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
   const session = await auth();
   if (session?.user?.id) {
     await acceptWorkspaceInvite(token, session.user.id);
-    redirect("/");
+    redirect("/dashboard");
   }
 
   const owner = invite.workspace.members[0]?.user;

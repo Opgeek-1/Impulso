@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   Zap,
   ArrowRight,
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 
 export function LandingPage() {
+  const t = useTranslations("landing");
   const navRef = useRef<HTMLElement>(null);
 
   const handleScroll = useCallback(() => {
@@ -69,9 +71,9 @@ export function LandingPage() {
             Impulso
           </Link>
           <div className="landing-nav__links">
-            <a href="#pipeline">How it works</a>
-            <a href="#features">Features</a>
-            <a href="#workspace">Teams</a>
+            <a href="#pipeline">{t("nav.howItWorks")}</a>
+            <a href="#features">{t("nav.features")}</a>
+            <a href="#workspace">{t("nav.teams")}</a>
           </div>
           <div className="landing-nav__spacer" />
           <div className="landing-nav__cta">
@@ -79,13 +81,13 @@ export function LandingPage() {
               className="landing-btn landing-btn--ghost landing-btn--sm"
               href="/login"
             >
-              Sign in
+              {t("nav.signIn")}
             </Link>
             <Link
               className="landing-btn landing-btn--primary landing-btn--sm"
               href="/register"
             >
-              Open Impulso
+              {t("nav.openImpulso")}
               <ArrowRight size={18} />
             </Link>
           </div>
@@ -100,29 +102,27 @@ export function LandingPage() {
           <div className="landing-hero__center">
             <span className="landing-eyebrow" style={{ justifyContent: "center" }}>
               <Zap size={15} />
-              Generate · Curate · Schedule
+              {t("hero.eyebrow")}
             </span>
             <h1>
-              A content engine your <em>whole team</em> can run.
+              {t("hero.headlinePre")}
+              <em>{t("hero.headlineEm")}</em>
+              {t("hero.headlinePost")}
             </h1>
-            <p className="lead">
-              Impulso brings idea generation, curation, design, and scheduling
-              for X into one warm, focused workspace. Free to start — open it
-              and go.
-            </p>
+            <p className="lead">{t("hero.lead")}</p>
             <div className="landing-hero__actions">
               <Link
                 className="landing-btn landing-btn--primary landing-btn--lg"
                 href="/register"
               >
-                Start creating — it&apos;s free
+                {t("hero.ctaPrimary")}
                 <ArrowRight size={18} />
               </Link>
               <a
                 className="landing-btn landing-btn--ghost landing-btn--lg"
                 href="#pipeline"
               >
-                See how it works
+                {t("hero.ctaSecondary")}
               </a>
             </div>
 
@@ -141,7 +141,7 @@ export function LandingPage() {
                 name="Nova Labs"
                 handle="@novalabs"
                 badge={<Badge variant="designed" label="Designed" />}
-                body="Most teams have a finishing problem, not a content problem."
+                body={t("cards.nova.body")}
               />
               <PostCard
                 style={{
@@ -157,7 +157,7 @@ export function LandingPage() {
                 name="Tomo Team"
                 handle="@tomo"
                 badge={<Badge variant="sched" label="Tue 9:00a" />}
-                body="Here's what our calendar looks like this week 👇"
+                body={t("cards.tomo.body")}
               />
               <PostCard
                 style={{
@@ -173,7 +173,7 @@ export function LandingPage() {
                 name="Kira"
                 handle="@kirabuilds"
                 badge={<Badge variant="curated" label="Curated" />}
-                body="One idea → a week of content. Save this 🧵"
+                body={t("cards.kira.body")}
               />
             </div>
           </div>
@@ -182,21 +182,22 @@ export function LandingPage() {
           <div className="landing-stats landing-reveal">
             <div className="landing-stat">
               <div className="n">
-                <b>5×</b>
+                <b>{t("stats.speed")}</b>
               </div>
-              <div className="l">faster from idea to scheduled</div>
+              <div className="l">{t("stats.speedLabel")}</div>
             </div>
             <div className="landing-stat">
               <div className="n">
-                <b>1</b> workspace
+                <b>{t("stats.workspace")}</b>
+                {t("stats.workspaceUnit")}
               </div>
-              <div className="l">no more tool-switching</div>
+              <div className="l">{t("stats.workspaceLabel")}</div>
             </div>
             <div className="landing-stat">
               <div className="n">
-                ∞ <b>accounts</b>
+                ∞ <b>{t("stats.accounts")}</b>
               </div>
-              <div className="l">manage every brand in one place</div>
+              <div className="l">{t("stats.accountsLabel")}</div>
             </div>
           </div>
         </div>
@@ -204,9 +205,7 @@ export function LandingPage() {
 
       {/* LOGOS */}
       <div className="landing-wrap landing-logos">
-        <div className="landing-logos__lead">
-          Built by teams who ship on X every day
-        </div>
+        <div className="landing-logos__lead">{t("logos.lead")}</div>
         <div className="landing-logos__row">
           <span>Nova Labs</span>
           <span>Kira</span>
@@ -223,13 +222,10 @@ export function LandingPage() {
           <div className="landing-section__head landing-reveal">
             <span className="landing-eyebrow">
               <AlignJustify size={15} />
-              The pipeline
+              {t("pipeline.eyebrow")}
             </span>
-            <h2>Three stages. One smooth flow.</h2>
-            <p className="lead">
-              Every post moves through the same simple path — so nothing gets
-              stuck in someone&apos;s drafts folder.
-            </p>
+            <h2>{t("pipeline.title")}</h2>
+            <p className="lead">{t("pipeline.lead")}</p>
           </div>
           <div className="landing-pipe">
             <div className="landing-pipe__step landing-reveal">
@@ -243,17 +239,18 @@ export function LandingPage() {
               >
                 <Sparkles size={23} />
               </div>
-              <h3>Generate</h3>
-              <p>
-                Start from a topic, a link, or a rough thought. Impulso drafts
-                on-brand posts and threads in your voice — dozens at a time.
-              </p>
+              <h3>{t("pipeline.generate.title")}</h3>
+              <p>{t("pipeline.generate.body")}</p>
               <div className="landing-chips">
                 <span className="landing-chip landing-chip--accent">
-                  Topic → 12 drafts
+                  {t("pipeline.generate.chip1")}
                 </span>
-                <span className="landing-chip">Threads</span>
-                <span className="landing-chip">Brand voice</span>
+                <span className="landing-chip">
+                  {t("pipeline.generate.chip2")}
+                </span>
+                <span className="landing-chip">
+                  {t("pipeline.generate.chip3")}
+                </span>
               </div>
               <div className="landing-pipe__arrow">
                 <ArrowRight size={15} />
@@ -270,17 +267,18 @@ export function LandingPage() {
               >
                 <Palette size={23} />
               </div>
-              <h3>Curate &amp; design</h3>
-              <p>
-                Pick the keepers, refine the copy, and drop on matching visuals.
-                Approve as a team — drafts become designed posts ready to go.
-              </p>
+              <h3>{t("pipeline.curate.title")}</h3>
+              <p>{t("pipeline.curate.body")}</p>
               <div className="landing-chips">
-                <span className="landing-chip">Review &amp; approve</span>
-                <span className="landing-chip landing-chip--accent">
-                  Auto visuals
+                <span className="landing-chip">
+                  {t("pipeline.curate.chip1")}
                 </span>
-                <span className="landing-chip">Edit copy</span>
+                <span className="landing-chip landing-chip--accent">
+                  {t("pipeline.curate.chip2")}
+                </span>
+                <span className="landing-chip">
+                  {t("pipeline.curate.chip3")}
+                </span>
               </div>
               <div className="landing-pipe__arrow">
                 <ArrowRight size={15} />
@@ -297,16 +295,17 @@ export function LandingPage() {
               >
                 <CalendarDays size={23} />
               </div>
-              <h3>Schedule</h3>
-              <p>
-                Drag posts onto a calendar tuned to when your audience is
-                online. Set it, and Impulso ships the whole week for you.
-              </p>
+              <h3>{t("pipeline.schedule.title")}</h3>
+              <p>{t("pipeline.schedule.body")}</p>
               <div className="landing-chips">
-                <span className="landing-chip">Smart times</span>
-                <span className="landing-chip">Drag &amp; drop</span>
+                <span className="landing-chip">
+                  {t("pipeline.schedule.chip1")}
+                </span>
+                <span className="landing-chip">
+                  {t("pipeline.schedule.chip2")}
+                </span>
                 <span className="landing-chip landing-chip--accent">
-                  Auto-publish
+                  {t("pipeline.schedule.chip3")}
                 </span>
               </div>
             </div>
@@ -320,65 +319,46 @@ export function LandingPage() {
           <div className="landing-section__head landing-reveal">
             <span className="landing-eyebrow">
               <Layers size={15} />
-              Everything in the box
+              {t("features.eyebrow")}
             </span>
-            <h2>Built for the way teams actually publish.</h2>
-            <p className="lead">
-              No glue, no exports, no &quot;who has the latest draft?&quot; Just
-              one calm place to make great content together.
-            </p>
+            <h2>{t("features.title")}</h2>
+            <p className="lead">{t("features.lead")}</p>
           </div>
           <div className="landing-features">
             <div className="landing-feat landing-feat--wide landing-reveal">
               <div className="landing-feat__ico">
                 <MessageSquare size={20} />
               </div>
-              <h3>Stays in your brand voice</h3>
-              <p>
-                Teach Impulso your tone once. Every generated draft sounds like
-                you — not like a robot — across each account you run.
-              </p>
+              <h3>{t("features.brandVoice.title")}</h3>
+              <p>{t("features.brandVoice.body")}</p>
             </div>
             <div className="landing-feat landing-reveal">
               <div className="landing-feat__ico">
                 <ImageIcon size={20} />
               </div>
-              <h3>Visuals, attached</h3>
-              <p>
-                Generate or drop in images that match each post — no separate
-                design round-trip.
-              </p>
+              <h3>{t("features.visuals.title")}</h3>
+              <p>{t("features.visuals.body")}</p>
             </div>
             <div className="landing-feat landing-reveal">
               <div className="landing-feat__ico">
                 <CalendarDays size={20} />
               </div>
-              <h3>Smart calendar</h3>
-              <p>
-                A week-at-a-glance schedule that suggests the best times and
-                auto-publishes.
-              </p>
+              <h3>{t("features.calendar.title")}</h3>
+              <p>{t("features.calendar.body")}</p>
             </div>
             <div className="landing-feat landing-reveal">
               <div className="landing-feat__ico">
                 <Users size={20} />
               </div>
-              <h3>Team approvals</h3>
-              <p>
-                Comment, edit, and approve together. Everyone sees the same live
-                board.
-              </p>
+              <h3>{t("features.approvals.title")}</h3>
+              <p>{t("features.approvals.body")}</p>
             </div>
             <div className="landing-feat landing-feat--wide landing-reveal">
               <div className="landing-feat__ico">
                 <BarChart3 size={20} />
               </div>
-              <h3>See what&apos;s working</h3>
-              <p>
-                Lightweight performance signals flow back into the board, so
-                your next batch of drafts leans into the formats your audience
-                already loves.
-              </p>
+              <h3>{t("features.analytics.title")}</h3>
+              <p>{t("features.analytics.body")}</p>
             </div>
           </div>
         </div>
@@ -390,7 +370,7 @@ export function LandingPage() {
           <div className="landing-reveal">
             <span className="landing-eyebrow">
               <ScanLine size={15} />
-              One workspace, every brand
+              {t("workspace.eyebrow")}
             </span>
             <h2
               style={{
@@ -398,11 +378,10 @@ export function LandingPage() {
                 marginTop: 14,
               }}
             >
-              Run every account from a single home.
+              {t("workspace.title")}
             </h2>
             <p className="lead" style={{ marginTop: 14 }}>
-              Switch between brands without losing context. Each account keeps
-              its own voice, calendar, and team — all under one roof.
+              {t("workspace.lead")}
             </p>
             <div className="landing-work__list">
               <div className="landing-work__item">
@@ -410,11 +389,8 @@ export function LandingPage() {
                   <ScanLine size={19} />
                 </div>
                 <div>
-                  <h4>Instant account switching</h4>
-                  <p>
-                    Jump between brands in a click — context, drafts, and
-                    calendar follow you.
-                  </p>
+                  <h4>{t("workspace.switching.title")}</h4>
+                  <p>{t("workspace.switching.body")}</p>
                 </div>
               </div>
               <div className="landing-work__item">
@@ -422,11 +398,8 @@ export function LandingPage() {
                   <Users size={19} />
                 </div>
                 <div>
-                  <h4>Roles for everyone</h4>
-                  <p>
-                    Writers draft, editors approve, managers oversee — with the
-                    right access per account.
-                  </p>
+                  <h4>{t("workspace.roles.title")}</h4>
+                  <p>{t("workspace.roles.body")}</p>
                 </div>
               </div>
               <div className="landing-work__item">
@@ -434,11 +407,8 @@ export function LandingPage() {
                   <Globe size={19} />
                 </div>
                 <div>
-                  <h4>Separate voices, one bill</h4>
-                  <p>
-                    Each brand keeps its own tone and queue while you manage it
-                    all from a single workspace.
-                  </p>
+                  <h4>{t("workspace.billing.title")}</h4>
+                  <p>{t("workspace.billing.body")}</p>
                 </div>
               </div>
             </div>
@@ -459,7 +429,7 @@ export function LandingPage() {
                 <div className="landing-acct__spacer" />
                 <div className="landing-acct__stat">
                   <b>14</b>
-                  <span>queued</span>
+                  <span>{t("workspace.queued")}</span>
                 </div>
               </div>
               <div className="landing-acct">
@@ -478,7 +448,7 @@ export function LandingPage() {
                 <div className="landing-acct__spacer" />
                 <div className="landing-acct__stat">
                   <b>9</b>
-                  <span>queued</span>
+                  <span>{t("workspace.queued")}</span>
                 </div>
               </div>
               <div className="landing-acct">
@@ -497,7 +467,7 @@ export function LandingPage() {
                 <div className="landing-acct__spacer" />
                 <div className="landing-acct__stat">
                   <b>6</b>
-                  <span>queued</span>
+                  <span>{t("workspace.queued")}</span>
                 </div>
               </div>
               <div className="landing-acct">
@@ -516,7 +486,7 @@ export function LandingPage() {
                 <div className="landing-acct__spacer" />
                 <div className="landing-acct__stat">
                   <b>11</b>
-                  <span>queued</span>
+                  <span>{t("workspace.queued")}</span>
                 </div>
               </div>
             </div>
@@ -533,15 +503,13 @@ export function LandingPage() {
                 className="landing-eyebrow"
                 style={{ color: "#ff8cc6", justifyContent: "center" }}
               >
-                It&apos;s free — start now
+                {t("cta.eyebrow")}
               </span>
               <h2 style={{ marginTop: 14 }}>
-                Give your team a <em>content engine.</em>
+                {t("cta.headlinePre")}
+                <em>{t("cta.headlineEm")}</em>
               </h2>
-              <p>
-                Open Impulso and turn this week&apos;s ideas into a full
-                calendar of posts — no setup, no card, no catch.
-              </p>
+              <p>{t("cta.body")}</p>
               <div
                 className="landing-hero__actions"
                 style={{ justifyContent: "center" }}
@@ -550,14 +518,14 @@ export function LandingPage() {
                   className="landing-btn landing-btn--primary landing-btn--lg"
                   href="/register"
                 >
-                  Open Impulso
+                  {t("cta.primary")}
                   <ArrowRight size={18} />
                 </Link>
                 <a
                   className="landing-btn landing-btn--ghost landing-btn--lg"
                   href="#pipeline"
                 >
-                  See how it works
+                  {t("cta.secondary")}
                 </a>
               </div>
             </div>
@@ -580,36 +548,38 @@ export function LandingPage() {
                 />
                 Impulso
               </Link>
-              <p>
-                The warm, all-in-one workspace where content teams generate,
-                curate, design, and schedule for X.
-              </p>
+              <p>{t("footer.tagline")}</p>
             </div>
             <div className="landing-footer__cols">
               <div className="landing-fcol">
-                <h5>Product</h5>
-                <a href="#pipeline">How it works</a>
-                <a href="#features">Features</a>
-                <a href="#workspace">For teams</a>
-                <Link href="/register">Open app</Link>
+                <h5>{t("footer.product")}</h5>
+                <a href="#pipeline">{t("nav.howItWorks")}</a>
+                <a href="#features">{t("nav.features")}</a>
+                <a href="#workspace">{t("footer.forTeams")}</a>
+                <Link href="/register">{t("footer.openApp")}</Link>
               </div>
               <div className="landing-fcol">
-                <h5>Company</h5>
-                <a href="#">About</a>
-                <a href="#">Blog</a>
-                <a href="#">Careers</a>
+                <h5>{t("footer.company")}</h5>
+                <a href="#">{t("footer.about")}</a>
+                <a href="#">{t("footer.blog")}</a>
+                <a href="#">{t("footer.careers")}</a>
               </div>
               <div className="landing-fcol">
-                <h5>Legal</h5>
-                <a href="#">Privacy</a>
-                <a href="#">Terms</a>
+                <h5>{t("footer.legal")}</h5>
+                <a href="#">{t("footer.privacy")}</a>
+                <a href="#">{t("footer.terms")}</a>
               </div>
             </div>
           </div>
           <div className="landing-footer__bot">
-            <span>© 2025 Impulso · A Tomo product</span>
-            <span style={{ fontFamily: "var(--font-geist-mono), ui-monospace, monospace" }}>
-              Made for content teams on X
+            <span>{t("footer.copyright")}</span>
+            <span
+              style={{
+                fontFamily:
+                  "var(--font-geist-mono), ui-monospace, monospace",
+              }}
+            >
+              {t("footer.madeFor")}
             </span>
           </div>
         </div>

@@ -71,7 +71,7 @@ export function AcceptInviteForm({ token, workspaceName, inviterName }: AcceptIn
       setError(t("signInFailed"));
       setLoading(false);
     } else {
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     }
   }

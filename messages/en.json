@@ -522,5 +522,143 @@
       "2": "Use concrete image feedback like composition, object, color, or layout changes.",
       "3": "Schedule around the moments your audience is likely to read, not just when content is ready."
     }
+  },
+  "landing": {
+    "meta": {
+      "title": "Impulso — Your team's content engine for X",
+      "description": "Impulso is the warm, all-in-one workspace where content teams generate, curate, design, and schedule posts for X."
+    },
+    "nav": {
+      "howItWorks": "How it works",
+      "features": "Features",
+      "teams": "Teams",
+      "signIn": "Sign in",
+      "openImpulso": "Open Impulso"
+    },
+    "hero": {
+      "eyebrow": "Generate · Curate · Schedule",
+      "headline": "A content engine your <em>whole team</em> can run.",
+      "headlinePre": "A content engine your ",
+      "headlineEm": "whole team",
+      "headlinePost": " can run.",
+      "lead": "Impulso brings idea generation, curation, design, and scheduling for X into one warm, focused workspace. Free to start — open it and go.",
+      "ctaPrimary": "Start creating — it's free",
+      "ctaSecondary": "See how it works"
+    },
+    "cards": {
+      "nova": {
+        "body": "Most teams have a finishing problem, not a content problem."
+      },
+      "tomo": {
+        "body": "Here's what our calendar looks like this week 👇"
+      },
+      "kira": {
+        "body": "One idea → a week of content. Save this 🧵"
+      }
+    },
+    "stats": {
+      "speed": "5×",
+      "speedLabel": "faster from idea to scheduled",
+      "workspace": "1",
+      "workspaceUnit": " workspace",
+      "workspaceLabel": "no more tool-switching",
+      "accounts": "accounts",
+      "accountsLabel": "manage every brand in one place"
+    },
+    "logos": {
+      "lead": "Built by teams who ship on X every day"
+    },
+    "pipeline": {
+      "eyebrow": "The pipeline",
+      "title": "Three stages. One smooth flow.",
+      "lead": "Every post moves through the same simple path — so nothing gets stuck in someone's drafts folder.",
+      "generate": {
+        "title": "Generate",
+        "body": "Start from a topic, a link, or a rough thought. Impulso drafts on-brand posts and threads in your voice — dozens at a time.",
+        "chip1": "Topic → 12 drafts",
+        "chip2": "Threads",
+        "chip3": "Brand voice"
+      },
+      "curate": {
+        "title": "Curate & design",
+        "body": "Pick the keepers, refine the copy, and drop on matching visuals. Approve as a team — drafts become designed posts ready to go.",
+        "chip1": "Review & approve",
+        "chip2": "Auto visuals",
+        "chip3": "Edit copy"
+      },
+      "schedule": {
+        "title": "Schedule",
+        "body": "Drag posts onto a calendar tuned to when your audience is online. Set it, and Impulso ships the whole week for you.",
+        "chip1": "Smart times",
+        "chip2": "Drag & drop",
+        "chip3": "Auto-publish"
+      }
+    },
+    "features": {
+      "eyebrow": "Everything in the box",
+      "title": "Built for the way teams actually publish.",
+      "lead": "No glue, no exports, no \"who has the latest draft?\" Just one calm place to make great content together.",
+      "brandVoice": {
+        "title": "Stays in your brand voice",
+        "body": "Teach Impulso your tone once. Every generated draft sounds like you — not like a robot — across each account you run."
+      },
+      "visuals": {
+        "title": "Visuals, attached",
+        "body": "Generate or drop in images that match each post — no separate design round-trip."
+      },
+      "calendar": {
+        "title": "Smart calendar",
+        "body": "A week-at-a-glance schedule that suggests the best times and auto-publishes."
+      },
+      "approvals": {
+        "title": "Team approvals",
+        "body": "Comment, edit, and approve together. Everyone sees the same live board."
+      },
+      "analytics": {
+        "title": "See what's working",
+        "body": "Lightweight performance signals flow back into the board, so your next batch of drafts leans into the formats your audience already loves."
+      }
+    },
+    "workspace": {
+      "eyebrow": "One workspace, every brand",
+      "title": "Run every account from a single home.",
+      "lead": "Switch between brands without losing context. Each account keeps its own voice, calendar, and team — all under one roof.",
+      "switching": {
+        "title": "Instant account switching",
+        "body": "Jump between brands in a click — context, drafts, and calendar follow you."
+      },
+      "roles": {
+        "title": "Roles for everyone",
+        "body": "Writers draft, editors approve, managers oversee — with the right access per account."
+      },
+      "billing": {
+        "title": "Separate voices, one bill",
+        "body": "Each brand keeps its own tone and queue while you manage it all from a single workspace."
+      },
+      "queued": "queued"
+    },
+    "cta": {
+      "eyebrow": "It's free — start now",
+      "headlinePre": "Give your team a ",
+      "headlineEm": "content engine.",
+      "body": "Open Impulso and turn this week's ideas into a full calendar of posts — no setup, no card, no catch.",
+      "primary": "Open Impulso",
+      "secondary": "See how it works"
+    },
+    "footer": {
+      "tagline": "The warm, all-in-one workspace where content teams generate, curate, design, and schedule for X.",
+      "product": "Product",
+      "forTeams": "For teams",
+      "openApp": "Open app",
+      "company": "Company",
+      "about": "About",
+      "blog": "Blog",
+      "careers": "Careers",
+      "legal": "Legal",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "copyright": "© 2025 Impulso · A Tomo product",
+      "madeFor": "Made for content teams on X"
+    }
   }
 }

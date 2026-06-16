@@ -165,7 +165,7 @@ export function TeamPage({ projects, user }: TeamPageProps) {
         <div className="max-w-[680px] mx-auto px-6 py-8">
           {/* Back link */}
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/dashboard")}
             className="flex items-center gap-1.5 text-[13px] font-medium mb-6 transition-colors hover:text-[var(--imp-accent)]"
             style={{ color: "var(--imp-text-2)" }}
           >

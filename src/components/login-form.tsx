@@ -24,7 +24,7 @@ export function LoginForm() {
     typeof window !== "undefined"
       ? new URLSearchParams(window.location.search).get("callbackUrl")
       : null;
-  const safeCallbackUrl = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/";
+  const safeCallbackUrl = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/dashboard";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

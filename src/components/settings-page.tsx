@@ -1245,7 +1245,7 @@ export function SettingsPage({ projects: initialProjects, user }: SettingsPagePr
         {/* Sidebar */}
         <aside className="w-[210px] shrink-0 flex flex-col pt-5 px-4" style={{ borderRight: "1px solid var(--imp-border)" }}>
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/dashboard")}
             className="flex items-center gap-1.5 text-[13px] font-medium mb-5 px-1 transition-colors hover:text-[var(--imp-accent)]"
             style={{ color: "var(--imp-text-2)" }}
           >
