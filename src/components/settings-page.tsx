@@ -31,6 +31,7 @@ import {
   Globe,
   Loader2,
   Lock,
+  Tag,
 } from "lucide-react";
 
 /* --- Types --- */
@@ -66,6 +67,7 @@ const NAV_ITEMS = [
   { id: "accounts", label: "X accounts", icon: X },
   { id: "security", label: "Security", icon: Lock },
   { id: "appearance", label: "Appearance", icon: SlidersHorizontal },
+  { id: "version", label: "Version", icon: Tag },
 ];
 
 const ACCENTS = [
@@ -1059,6 +1061,82 @@ function AppearancePanel() {
   );
 }
 
+/* --- Version Panel --- */
+const VERSION_LOG = [
+  {
+    version: "1.2.0",
+    date: "2026-06-16",
+    changes: [
+      "Added Version tab in settings to track update history",
+      "Full Chinese (zh-CN) localization for all UI strings",
+      "Replaced hardcoded English text with i18n throughout the app",
+    ],
+  },
+  {
+    version: "1.1.0",
+    date: "2026-06-10",
+    changes: [
+      "Image upload and paste support in the curate panel",
+      "Copyable image prompts for generated visuals",
+      "Editable account display names with auto-sync from X profile",
+      "Brand kit panel with logo, colors, and reusable visual briefs",
+    ],
+  },
+  {
+    version: "1.0.0",
+    date: "2026-06-01",
+    changes: [
+      "Initial release of Impulso",
+      "AI-powered tweet generation pipeline",
+      "Multi-account support with per-account briefs and schedules",
+      "Image style management and generation",
+      "Dark / light theme with accent color customization",
+    ],
+  },
+];
+
+function VersionPanel() {
+  const tv = useTranslations("settings.version");
+
+  return (
+    <div className="max-w-[580px]">
+      <div className="text-[13px] mb-6" style={{ color: "var(--imp-muted)" }}>
+        {tv("currentVersion")}: <span className="font-semibold" style={{ color: "var(--imp-text)" }}>{VERSION_LOG[0].version}</span>
+      </div>
+
+      <div className="flex flex-col gap-0">
+        {VERSION_LOG.map((entry, idx) => (
+          <div
+            key={entry.version}
+            className="py-5"
+            style={{ borderBottom: idx < VERSION_LOG.length - 1 ? "1px solid var(--imp-border)" : undefined }}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <span
+                className="text-[13px] font-bold px-2.5 py-0.5 rounded-full"
+                style={{ background: "var(--imp-accent-soft)", color: "var(--imp-accent)" }}
+              >
+                v{entry.version}
+              </span>
+              <span className="text-[12px]" style={{ color: "var(--imp-faint)" }}>
+                {entry.date}
+              </span>
+            </div>
+            <ul className="list-none m-0 p-0 flex flex-col gap-1.5">
+              {entry.changes.map((change, i) => (
+                <li key={i} className="flex items-start gap-2 text-[13.5px]" style={{ color: "var(--imp-text-2)" }}>
+                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "var(--imp-accent)" }} />
+                  {change}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* --- Main Settings Page --- */
 const SECTION_ICONS: Record<string, typeof ImageIcon> = {
   brief: FileText,
@@ -1066,6 +1144,7 @@ const SECTION_ICONS: Record<string, typeof ImageIcon> = {
   accounts: X,
   security: Lock,
   appearance: SlidersHorizontal,
+  version: Tag,
 };
 
 const VALID_SECTION_IDS = new Set(NAV_ITEMS.map((n) => n.id));
@@ -1224,6 +1303,7 @@ export function SettingsPage({ projects: initialProjects, user }: SettingsPagePr
             {activeSection === "accounts" && <AccountsPanel projects={projects} onDelete={handleProjectDeleted} onUpdate={handleProjectUpdated} />}
             {activeSection === "security" && <SecurityPanel />}
             {activeSection === "appearance" && <AppearancePanel />}
+            {activeSection === "version" && <VersionPanel />}
           </div>
         </main>
       </div>

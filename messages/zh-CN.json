@@ -235,7 +235,8 @@
       "styles": "品牌套件",
       "accounts": "X 账号",
       "security": "安全",
-      "appearance": "外观"
+      "appearance": "外观",
+      "version": "版本"
     },
     "sections": {
       "briefTitle": "账号简介",
@@ -247,7 +248,9 @@
       "securityTitle": "安全",
       "securityDesc": "更新你用邮箱登录时使用的密码。",
       "appearanceTitle": "外观",
-      "appearanceDesc": "此工作区的个人显示偏好。只会影响你的视图。"
+      "appearanceDesc": "此工作区的个人显示偏好。只会影响你的视图。",
+      "versionTitle": "版本",
+      "versionDesc": "Impulso 各版本的发布历史和更新详情。"
     },
     "brief": {
       "notice": "简介按 X 账号保存。你正在编辑此账号的简介：",
@@ -331,6 +334,9 @@
       "accentDesc": "用于高亮、按钮和聚焦状态。",
       "density": "密度",
       "densityDesc": "流程中卡片的间距。"
+    },
+    "version": {
+      "currentVersion": "当前版本"
     }
   },
   "settingsPopover": {
