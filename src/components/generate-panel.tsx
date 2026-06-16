@@ -143,9 +143,22 @@ function Stepper({ value, onChange, min = 1, max = 14 }: { value: number; onChan
       >
         <Minus size={14} />
       </button>
-      <span className="w-[30px] text-center text-sm font-semibold font-mono" style={{ color: "var(--imp-text)" }}>
-        {value}
-      </span>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={value}
+        onChange={(e) => {
+          const raw = e.target.value.replace(/\D/g, "");
+          if (raw === "") return;
+          const n = Math.min(max, Math.max(min, parseInt(raw, 10)));
+          onChange(n);
+        }}
+        onBlur={(e) => {
+          if (e.target.value.trim() === "") onChange(min);
+        }}
+        className="w-[30px] text-center text-sm font-semibold font-mono bg-transparent border-none outline-none p-0"
+        style={{ color: "var(--imp-text)" }}
+      />
       <button
         onClick={() => onChange(Math.min(max, value + 1))}
         className="w-7 h-7 rounded-[7px] flex items-center justify-center border-none bg-transparent transition-colors"
