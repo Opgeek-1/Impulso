@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { TopNav } from "@/components/top-nav";
 import { Sparkles, MousePointerClick, CalendarDays, Send, ArrowRight } from "lucide-react";
 
@@ -18,71 +19,31 @@ interface HelpPageProps {
   user: { id?: string; name?: string | null; email?: string | null };
 }
 
-const STEPS = [
-  {
-    number: 1,
-    icon: Sparkles,
-    title: "Generate",
-    color: "#FE3C9C",
-    description: "Describe a topic or theme and Impulso writes a batch of tweet angles for your account.",
-    details: [
-      "Enter a topic, trend, or idea you want to post about",
-      "Choose a tone: Professional, Casual, Witty, Authoritative, Inspirational, or Custom",
-      "Select a language and number of drafts to generate",
-      "AI produces multiple tweet variations you can review",
-    ],
-  },
-  {
-    number: 2,
-    icon: MousePointerClick,
-    title: "Curate & Design",
-    color: "#f59e0b",
-    description: "Review drafts, approve the ones you like, add design briefs, and generate images.",
-    details: [
-      "Drag cards across four stages: Draft → Curated → Designed → Image ready",
-      "Approve drafts to move them to the Curated column",
-      "Add a visual brief describing the image you want",
-      "Generate images with AI (GPT Image, Gemini Flash, or DALL·E 3)",
-      "Regenerate images with feedback until they look right",
-    ],
-  },
-  {
-    number: 3,
-    icon: CalendarDays,
-    title: "Schedule",
-    color: "#0ea5e9",
-    description: "Drag ready posts onto your weekly calendar to plan when each tweet goes out.",
-    details: [
-      "Ready posts appear in the tray on the left",
-      "Drag them onto any day of the week",
-      "Set the exact time for each post",
-      "Preview how the post will look on X before publishing",
-    ],
-  },
-  {
-    number: 4,
-    icon: Send,
-    title: "Publish",
-    color: "#22c55e",
-    description: "Impulso publishes your scheduled tweets automatically via your connected X account.",
-    details: [
-      "Connect each X account independently in Settings → X accounts",
-      "Scheduled posts are published automatically at the set time",
-      "Track post status: Scheduled → Publishing → Posted",
-      "View engagement after a post goes live",
-    ],
-  },
-];
+const STEP_ICONS = [Sparkles, MousePointerClick, CalendarDays, Send];
+const STEP_COLORS = ["#FE3C9C", "#f59e0b", "#0ea5e9", "#22c55e"];
+const STEP_KEYS = ["generate", "curate", "schedule", "publish"] as const;
 
-const TIPS = [
-  { title: "Brand kit", text: "Upload your logo, set brand colors, and add style notes in Settings → Brand kit. AI-generated images will follow your brand guidelines." },
-  { title: "Account brief", text: "Write a short brief for each X account in Settings → Account brief. This helps the AI understand your voice and audience." },
-  { title: "Multiple accounts", text: "Add as many X accounts as you need. Each keeps its own pipeline, schedule, and image styles." },
-  { title: "Image styles", text: "Create reusable image style templates per account so your visuals stay consistent across posts." },
-];
+const HELP_TIP_KEYS = ["brandKit", "accountBrief", "multipleAccounts", "imageStyles"] as const;
 
 export function HelpPage({ projects, user }: HelpPageProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(projects[0] ?? null);
+  const t = useTranslations("manual");
+
+  const steps = STEP_KEYS.map((key, i) => ({
+    number: i + 1,
+    icon: STEP_ICONS[i],
+    color: STEP_COLORS[i],
+    title: t(`sections.${key}.title`),
+    description: t(`sections.${key}.description`),
+    details: key === "curate"
+      ? [0,1,2,3,4].map(j => t(`sections.${key}.details.${j}`))
+      : [0,1,2,3].map(j => t(`sections.${key}.details.${j}`)),
+  }));
+
+  const tips = HELP_TIP_KEYS.map(key => ({
+    title: t(`helpTips.${key}.title`),
+    text: t(`helpTips.${key}.text`),
+  }));
 
   return (
     <div className="flex flex-col h-screen">
@@ -90,14 +51,14 @@ export function HelpPage({ projects, user }: HelpPageProps) {
       <div className="flex-1 overflow-y-auto" style={{ background: "var(--imp-bg)" }}>
         <div className="max-w-3xl mx-auto px-6 py-12">
           <h1 className="text-[28px] font-bold mb-2" style={{ color: "var(--imp-text)" }}>
-            Marketing Pipeline Guide
+            {t("guideTitle")}
           </h1>
           <p className="text-[15px] mb-10" style={{ color: "var(--imp-muted)" }}>
-            Impulso turns a topic into scheduled posts in four steps. Here&apos;s how the pipeline works.
+            {t("guideSubtitle")}
           </p>
 
           <div className="flex flex-col gap-6">
-            {STEPS.map((step, i) => (
+            {steps.map((step, i) => (
               <div key={step.number}>
                 <div
                   className="rounded-2xl p-6 transition-all"
@@ -127,7 +88,7 @@ export function HelpPage({ projects, user }: HelpPageProps) {
                     ))}
                   </ul>
                 </div>
-                {i < STEPS.length - 1 && (
+                {i < steps.length - 1 && (
                   <div className="flex justify-center py-1">
                     <div className="w-px h-4" style={{ background: "var(--imp-border)" }} />
                   </div>
@@ -137,10 +98,10 @@ export function HelpPage({ projects, user }: HelpPageProps) {
           </div>
 
           <h2 className="text-[20px] font-bold mt-12 mb-4" style={{ color: "var(--imp-text)" }}>
-            Tips
+            {t("tipsTitle")}
           </h2>
           <div className="grid grid-cols-2 gap-4">
-            {TIPS.map((tip) => (
+            {tips.map((tip) => (
               <div
                 key={tip.title}
                 className="rounded-xl p-5"
@@ -157,7 +118,7 @@ export function HelpPage({ projects, user }: HelpPageProps) {
           </div>
 
           <div className="mt-12 mb-8 text-center text-[13px]" style={{ color: "var(--imp-muted)" }}>
-            Need more help? Reach out at <a href="mailto:support@tomo.inc" className="underline">support@tomo.inc</a>
+            {t("needHelp")} <a href="mailto:support@tomo.inc" className="underline">support@tomo.inc</a>
           </div>
         </div>
       </div>

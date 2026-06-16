@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import {
   DndContext,
   DragOverlay,
@@ -66,11 +67,18 @@ interface CuratePanelProps {
 }
 
 const COLUMNS = [
-  { status: "DRAFT", label: "Draft", color: "--s-draft", hint: "Fresh from AI — review & approve" },
-  { status: "CURATED", label: "Curated", color: "--s-curated", hint: "Approved copy — ready to design" },
-  { status: "DESIGNED", label: "Designed", color: "--s-designed", hint: "Has a visual brief" },
-  { status: "IMAGE_GENERATED", label: "Image ready", color: "--s-image", hint: "Art generated — ready to schedule" },
+  { status: "DRAFT", color: "--s-draft", labelKey: "columns.draft", hintKey: "columns.draftHint" },
+  { status: "CURATED", color: "--s-curated", labelKey: "columns.curated", hintKey: "columns.curatedHint" },
+  { status: "DESIGNED", color: "--s-designed", labelKey: "columns.designed", hintKey: "columns.designedHint" },
+  { status: "IMAGE_GENERATED", color: "--s-image", labelKey: "columns.imageReady", hintKey: "columns.imageReadyHint" },
 ];
+
+const LABEL_KEYS: Record<string, string> = {
+  DRAFT: "columns.draft",
+  CURATED: "columns.curated",
+  DESIGNED: "columns.designed",
+  IMAGE_GENERATED: "columns.imageReady",
+};
 
 // --- Draggable card wrapper ---
 function DraggableCard({ tweet, children }: { tweet: Tweet; children: React.ReactNode }) {
@@ -153,6 +161,8 @@ function TweetCard({
   onEdit: () => void;
   isProcessing: boolean;
 }) {
+  const t = useTranslations("curate");
+  const tc = useTranslations("common");
   const [briefOpen, setBriefOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -161,11 +171,11 @@ function TweetCard({
 
   const handleFileSelect = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) {
-      toast.error("Only image files are supported");
+      toast.error(t("onlyImageFiles"));
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("Image must be under 10 MB");
+      toast.error(t("imageTooLarge"));
       return;
     }
     onUploadImage(file);
@@ -190,9 +200,9 @@ function TweetCard({
       const brief = JSON.parse(tweet.designBrief);
       const prompt = brief.imagePrompt || brief.concept || "";
       navigator.clipboard.writeText(prompt);
-      toast.success("Image prompt copied");
+      toast.success(t("imagePromptCopied"));
     } catch {
-      toast.error("Failed to copy prompt");
+      toast.error(t("copyPromptFailed"));
     }
   }
 
@@ -224,7 +234,7 @@ function TweetCard({
         <div className="absolute inset-0 rounded-[13px] flex flex-col items-center justify-center gap-2 z-10"
           style={{ background: "color-mix(in srgb, var(--imp-surface) 78%, transparent)", backdropFilter: "blur(2px)" }}>
           <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" style={{ color: "var(--imp-accent)" }} />
-          <span className="text-[12px] font-semibold" style={{ color: "var(--imp-text-2)" }}>Processing…</span>
+          <span className="text-[12px] font-semibold" style={{ color: "var(--imp-text-2)" }}>{t("processing")}</span>
         </div>
       )}
 
@@ -238,11 +248,11 @@ function TweetCard({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem onClick={onEdit} className="gap-2">
-              <Pencil size={13} /> Edit copy
+              <Pencil size={13} /> {t("editCopy")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onDelete} className="gap-2 text-red-400">
-              <Trash2 size={13} /> Delete
+              <Trash2 size={13} /> {tc("delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -258,13 +268,13 @@ function TweetCard({
         <>
           <ImageLightbox
             src={tweetImageSrc(tweet.imageUrl)}
-            alt="Generated"
+            alt={t("generatedAlt")}
           >
             <div className="rounded-[10px] overflow-hidden h-[120px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={tweetImageSrc(tweet.imageUrl)}
-                alt="Generated"
+                alt={t("generatedAlt")}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -275,7 +285,7 @@ function TweetCard({
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && feedback.trim()) { onImage(undefined, feedback); setFeedback(""); } }}
-              placeholder="Feedback to regenerate…"
+              placeholder={t("feedbackPlaceholder")}
               disabled={isProcessing}
               className="flex-1 h-7 rounded-md px-2 text-[12px] outline-none"
               style={{ background: "var(--imp-bg)", border: "1px solid var(--imp-border)", color: "var(--imp-text)" }}
@@ -300,7 +310,7 @@ function TweetCard({
               disabled={isProcessing}
               className="w-7 h-7 rounded-md flex items-center justify-center bg-transparent border-none hover:bg-black/10"
               style={{ color: "var(--imp-muted)" }}
-              title="Upload replacement image"
+              title={t("uploadReplacement")}
             >
               <Upload size={13} />
             </button>
@@ -309,7 +319,7 @@ function TweetCard({
               disabled={isProcessing}
               className="w-7 h-7 rounded-md flex items-center justify-center bg-transparent border-none hover:bg-red-500/10"
               style={{ color: "var(--imp-muted)" }}
-              title="Delete image"
+              title={t("deleteImage")}
             >
               <Trash2 size={13} />
             </button>
@@ -327,14 +337,14 @@ function TweetCard({
               style={{ color: "var(--s-designed)" }}
             >
               <Palette size={13} />
-              <span className="flex-1 text-left">Design brief</span>
+              <span className="flex-1 text-left">{t("designBrief")}</span>
               <span className="transition-transform" style={{ transform: briefOpen ? "rotate(180deg)" : "none" }}>▾</span>
             </button>
             <button
               onClick={copyImagePrompt}
               className="flex items-center justify-center w-6 h-6 rounded-md bg-transparent border-none hover:bg-black/10"
               style={{ color: "var(--s-designed)" }}
-              title="Copy image prompt"
+              title={t("copyImagePrompt")}
             >
               <Copy size={12} />
             </button>
@@ -351,30 +361,30 @@ function TweetCard({
       <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
         {tweet.status === "DRAFT" && (
           <Button size="sm" onClick={onApprove} className="h-7 text-[12px] gap-1.5 px-2.5" style={{ background: "var(--imp-accent-soft)", color: "var(--imp-accent)", border: "1px solid var(--imp-accent-line)" }}>
-            <Check size={13} /> Approve
+            <Check size={13} /> {t("approve")}
           </Button>
         )}
         {tweet.status === "CURATED" && (
           <DropdownMenu>
             <DropdownMenuTrigger className="inline-flex items-center gap-1.5 h-7 text-[12px] px-2.5 rounded-md font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80" disabled={isProcessing}>
-              <Palette size={13} /> Design brief ▾
+              <Palette size={13} /> {t("designBrief")} ▾
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
               {styles.length > 0 ? (
                 <>
                   {styles.map((s) => (
                     <DropdownMenuItem key={s.id} onClick={() => onDesign(s.id)} className="gap-2 text-[12.5px]">
-                      <Palette size={12} /> {s.name} {s.isDefault && "(default)"}
+                      <Palette size={12} /> {s.name} {s.isDefault && `(${t("default")})`}
                     </DropdownMenuItem>
                   ))}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => onDesign()} className="gap-2 text-[12.5px]">
-                    No style
+                    {t("noStyle")}
                   </DropdownMenuItem>
                 </>
               ) : (
                 <DropdownMenuItem onClick={() => onDesign()} className="gap-2 text-[12.5px]">
-                  <Palette size={12} /> Generate brief
+                  <Palette size={12} /> {t("generateBrief")}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -384,7 +394,7 @@ function TweetCard({
           <>
             <DropdownMenu>
               <DropdownMenuTrigger className="inline-flex items-center gap-1.5 h-7 text-[12px] px-2.5 rounded-md font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80" disabled={isProcessing}>
-                <ImageIcon size={13} /> Generate image ▾
+                <ImageIcon size={13} /> {t("generateImage")} ▾
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
                 {IMAGE_MODELS.map((m) => (
@@ -398,15 +408,15 @@ function TweetCard({
               onClick={() => fileInputRef.current?.click()}
               disabled={isProcessing}
               className="inline-flex items-center gap-1.5 h-7 text-[12px] px-2.5 rounded-md font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 border-none"
-              title="Upload image or paste from clipboard"
+              title={t("uploadOrPaste")}
             >
-              <Upload size={13} /> Upload
+              <Upload size={13} /> {t("upload")}
             </button>
           </>
         )}
         {tweet.status === "IMAGE_GENERATED" && (
           <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold" style={{ color: "var(--s-image)" }}>
-            <CheckCircle size={14} /> Ready to schedule
+            <CheckCircle size={14} /> {t("readyToSchedule")}
           </span>
         )}
         <div className="flex-1" />
@@ -419,6 +429,8 @@ function TweetCard({
 }
 
 export function CuratePanel({ project, onComplete }: CuratePanelProps) {
+  const t = useTranslations("curate");
+  const tc = useTranslations("common");
   const [tweets, setTweets] = useState<Tweet[]>([]);
   const [styles, setStyles] = useState<Style[]>([]);
   const [loading, setLoading] = useState(true);
@@ -469,7 +481,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     if (res.ok) {
       setTweets((prev) => prev.map((t) => (t.id === tweetId ? { ...t, content: editContent, status: "CURATED" } : t)));
       setEditingId(null);
-      toast.success("Tweet updated");
+      toast.success(t("tweetUpdated"));
     }
   }
 
@@ -477,7 +489,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     const res = await fetch(`/api/tweets?tweetId=${tweetId}`, { method: "DELETE" });
     if (res.ok) {
       setTweets((prev) => prev.filter((t) => t.id !== tweetId));
-      toast.success("Tweet deleted");
+      toast.success(t("tweetDeleted"));
     }
   }
 
@@ -492,9 +504,9 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
       if (!res.ok) throw new Error("Failed");
       const updated = await res.json();
       setTweets((prev) => prev.map((t) => (t.id === tweetId ? updated : t)));
-      toast.success("Design brief generated");
+      toast.success(t("briefGenerated"));
     } catch {
-      toast.error("Failed to generate design brief");
+      toast.error(t("briefFailed"));
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -518,7 +530,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
       }
       const updated = await res.json();
       setTweets((prev) => prev.map((t) => (t.id === tweetId ? updated : t)));
-      toast.success("Image generated");
+      toast.success(t("imageGenerated"));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to generate image";
       toast.error(message);
@@ -558,7 +570,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
 
       if (!updated) throw new Error("Image upload did not complete.");
       setTweets((prev) => prev.map((t) => (t.id === tweetId ? updated : t)));
-      toast.success("Image uploaded");
+      toast.success(t("imageUploaded"));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to upload image";
       toast.error(message);
@@ -582,7 +594,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
       if (!res.ok) throw new Error(await responseError(res, "Failed to delete image"));
       const updated = await res.json();
       setTweets((prev) => prev.map((t) => (t.id === tweetId ? updated : t)));
-      toast.success("Image deleted");
+      toast.success(t("imageDeleted"));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to delete image";
       toast.error(message);
@@ -608,13 +620,13 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     const tweet = tweets.find((t) => t.id === tweetId);
     if (!tweet || tweet.status === newStatus) return;
     updateStatus(tweetId, newStatus);
-    toast.info(`Moved to ${COLUMNS.find((c) => c.status === newStatus)?.label}`);
+    toast.info(t("movedTo", { label: t(LABEL_KEYS[newStatus] || "") }));
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64" style={{ color: "var(--imp-muted)" }}>
-        Loading tweets...
+        {t("loading")}
       </div>
     );
   }
@@ -633,9 +645,9 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
           >
             <Palette size={26} />
           </div>
-          <h3 className="text-base font-semibold mb-1" style={{ color: "var(--imp-text)" }}>Nothing to curate yet</h3>
+          <h3 className="text-base font-semibold mb-1" style={{ color: "var(--imp-text)" }}>{t("emptyTitle")}</h3>
           <p className="text-[13px] leading-relaxed" style={{ color: "var(--imp-muted)" }}>
-            Head to the Generate stage to create a batch of drafts. They&apos;ll land here as cards you can move through each stage.
+            {t("emptyDesc")}
           </p>
         </div>
       </div>
@@ -648,19 +660,18 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
       <div className="flex items-end justify-between px-7 pt-5 pb-3 gap-4 flex-wrap">
         <div>
           <h2 className="text-[22px] font-bold tracking-tight mb-1" style={{ color: "var(--imp-text)" }}>
-            Curate & design
+            {t("title")}
           </h2>
           <p className="text-[13.5px] m-0" style={{ color: "var(--imp-muted)" }}>
-            Drag cards across stages, or use the actions to approve, brief, and render images.
+            {t("subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-[12.5px]" style={{ color: "var(--imp-text-2)" }}>
-            <span className="font-mono font-semibold" style={{ color: "var(--imp-text)" }}>{readyCount}</span>
-            ready to schedule
+            {t("readyCount", { count: readyCount })}
           </div>
           <Button onClick={onComplete} className="imp-btn-primary h-9 px-3.5 text-[13px] rounded-[9px] gap-1.5">
-            <Calendar size={14} /> Go to Schedule
+            <Calendar size={14} /> {t("goToSchedule")}
           </Button>
         </div>
       </div>
@@ -675,7 +686,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
                 {/* Column header */}
                 <div className="flex items-center gap-2 px-2 py-2 pb-2.5">
                   <span className="w-2 h-2 rounded-full" style={{ background: `var(${col.color})`, boxShadow: `0 0 8px var(${col.color})` }} />
-                  <span className="text-[13px] font-semibold" style={{ color: "var(--imp-text)" }}>{col.label}</span>
+                  <span className="text-[13px] font-semibold" style={{ color: "var(--imp-text)" }}>{t(col.labelKey)}</span>
                   <span
                     className="font-mono text-[11.5px] rounded-full px-1.5 min-w-[22px] text-center"
                     style={{ color: "var(--imp-muted)", background: "var(--imp-surface-2)", border: "1px solid var(--imp-border)" }}
@@ -690,7 +701,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
                       className="rounded-xl p-5 text-center text-[12px] leading-relaxed"
                       style={{ border: "1.5px dashed var(--imp-border-2)", color: "var(--imp-faint)" }}
                     >
-                      {col.hint}
+                      {t(col.hintKey)}
                     </div>
                   ) : (
                     colTweets.map((tweet) => (
@@ -710,10 +721,10 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
                             />
                             <div className="flex gap-2">
                               <Button size="sm" onClick={() => handleSave(tweet.id)} className="h-7 text-[12px] gap-1">
-                                <Check size={13} /> Save
+                                <Check size={13} /> {t("save")}
                               </Button>
                               <Button size="sm" variant="ghost" onClick={() => setEditingId(null)} className="h-7 text-[12px]">
-                                Cancel
+                                {tc("cancel")}
                               </Button>
                             </div>
                           </div>

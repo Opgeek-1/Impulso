@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTheme } from "next-themes";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { TopNav } from "@/components/top-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,6 +83,7 @@ const DENSITIES = [
 
 /* --- Account Brief Panel --- */
 function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { project: Project; projects: Project[]; onSwitchProject: (p: Project) => void; onUpdate: (p: Project) => void }) {
+  const t = useTranslations("settings.brief");
   const [brief, setBrief] = useState(project.brief || "");
   const [url, setUrl] = useState("");
   const [saving, setSaving] = useState(false);
@@ -98,9 +100,9 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
     if (res.ok) {
       const updated = await res.json();
       onUpdate({ ...project, brief: updated.brief });
-      toast.success("Brief saved");
+      toast.success(t("saved"));
     } else {
-      toast.error("Failed to save brief");
+      toast.error(t("saveFailed"));
     }
     setSaving(false);
   }
@@ -118,12 +120,12 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
         const data = await res.json();
         setBrief((prev) => prev ? `${prev}\n\n---\n\n${data.content}` : data.content);
         setUrl("");
-        toast.success("Website content imported");
+        toast.success(t("imported"));
       } else {
-        toast.error("Failed to fetch website");
+        toast.error(t("fetchFailed"));
       }
     } catch {
-      toast.error("Failed to fetch website");
+      toast.error(t("fetchFailed"));
     }
     setFetching(false);
   }
@@ -137,7 +139,7 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
       >
         <div className="w-5 h-5 rounded-full border-2 shrink-0" style={{ borderColor: "var(--imp-border-2)" }} />
         <p className="text-[13.5px] m-0 flex-1" style={{ color: "var(--imp-text-2)" }}>
-          Brief is saved <strong style={{ color: "var(--imp-text)" }}>per X account</strong>. You&apos;re editing the brief for:
+          {t("notice")}
         </p>
         <div className="relative">
           <button
@@ -180,7 +182,7 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
 
       {/* URL import */}
       <div className="mb-5">
-        <Label className="mb-2 block">Import from website</Label>
+        <Label className="mb-2 block">{t("importFromWebsite")}</Label>
         <div className="flex gap-2">
           <div
             className="flex-1 flex items-center gap-2.5 rounded-xl px-4 h-[42px]"
@@ -201,30 +203,30 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
             disabled={fetching || !url.trim()}
             className="imp-btn-primary h-[42px] px-4 rounded-xl text-[13px]"
           >
-            {fetching ? <Loader2 size={14} className="animate-spin" /> : "Import"}
+            {fetching ? <Loader2 size={14} className="animate-spin" /> : t("import")}
           </Button>
         </div>
         <p className="text-[12px] mt-1.5 px-1" style={{ color: "var(--imp-muted)" }}>
-          We&apos;ll extract key info from the page to use as context for content generation.
+          {t("importHint")}
         </p>
       </div>
 
       {/* Manual brief */}
       <div className="mb-5">
-        <Label className="mb-2 block">Account brief</Label>
+        <Label className="mb-2 block">{t("accountBrief")}</Label>
         <Textarea
           value={brief}
           onChange={(e) => setBrief(e.target.value)}
           rows={14}
           className="font-mono text-[13px] max-h-[50vh] overflow-y-auto"
-          placeholder={"Describe your brand, target audience, tone of voice, key topics, and any guidelines for content generation.\n\nExample:\n- Brand: PayGate — Web3 payment infrastructure\n- Audience: Crypto-native builders, DeFi users\n- Tone: Technical but accessible, no hype\n- Topics: stablecoins, payment rails, cross-chain..."}
+          placeholder={t("placeholder")}
         />
       </div>
 
       {/* Save */}
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving} className="imp-btn-primary">
-          {saving ? "Saving..." : "Save brief"}
+          {saving ? t("saving") : t("saveBrief")}
         </Button>
       </div>
     </div>
@@ -233,6 +235,9 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
 
 /* --- Image Styles Panel --- */
 function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { project: Project; projects: Project[]; onSwitchProject: (p: Project) => void; onUpdate: (p: Project) => void }) {
+  const ts = useTranslations("settings.brand");
+  const tBrief = useTranslations("settings.brief");
+  const tc = useTranslations("common");
   const [styles, setStyles] = useState<Style[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -274,7 +279,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
       const style = await res.json();
       setStyles((prev) => [...prev, style]);
       setNewName(""); setNewContent(""); setShowNew(false);
-      toast.success("Style created");
+      toast.success(ts("styleCreated"));
     }
   }
 
@@ -288,7 +293,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
       const updated = await res.json();
       setStyles((prev) => prev.map((s) => (s.id === styleId ? updated : s)));
       setEditingId(null);
-      toast.success("Style updated");
+      toast.success(ts("styleUpdated"));
     }
   }
 
@@ -300,7 +305,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
     });
     if (res.ok) {
       setStyles((prev) => prev.map((s) => ({ ...s, isDefault: s.id === styleId })));
-      toast.success("Default style updated");
+      toast.success(ts("defaultUpdated"));
     }
   }
 
@@ -308,7 +313,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
     const res = await fetch(`/api/styles?styleId=${styleId}`, { method: "DELETE" });
     if (res.ok) {
       setStyles((prev) => prev.filter((s) => s.id !== styleId));
-      toast.success("Style deleted");
+      toast.success(ts("styleDeleted"));
     }
   }
 
@@ -328,16 +333,16 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
     if (res.ok) {
       const updated = await res.json();
       onUpdate({ ...project, ...updated });
-      toast.success("Brand kit saved");
+      toast.success(ts("kitSaved"));
     } else {
-      toast.error("Failed to save brand kit");
+      toast.error(ts("kitSaveFailed"));
     }
     setSavingBrandKit(false);
   }
 
   function handleLogoUpload(file: File) {
     if (file.size > 2_000_000) {
-      toast.error("Logo must be under 2 MB");
+      toast.error(ts("logoTooLarge"));
       return;
     }
 
@@ -348,7 +353,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
     reader.readAsDataURL(file);
   }
 
-  if (loading) return <p style={{ color: "var(--imp-muted)" }}>Loading styles...</p>;
+  if (loading) return <p style={{ color: "var(--imp-muted)" }}>{ts("loading")}</p>;
 
   return (
     <div>
@@ -359,7 +364,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
       >
         <div className="w-5 h-5 rounded-full border-2 shrink-0" style={{ borderColor: "var(--imp-border-2)" }} />
         <p className="text-[13.5px] m-0 flex-1" style={{ color: "var(--imp-text-2)" }}>
-          Styles are saved <strong style={{ color: "var(--imp-text)" }}>per X account</strong> — they&apos;re never shared between accounts. You&apos;re editing styles for:
+          {ts("notice")}
         </p>
         <div className="relative">
           <button
@@ -425,19 +430,19 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
       >
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
-            <h2 className="text-[16px] font-bold m-0" style={{ color: "var(--imp-text)" }}>Brand kit</h2>
+            <h2 className="text-[16px] font-bold m-0" style={{ color: "var(--imp-text)" }}>{ts("title")}</h2>
             <p className="text-[13px] mt-1 mb-0" style={{ color: "var(--imp-muted)" }}>
-              Saved assets are included when Impulso creates image briefs and prompts for @{project.handle}.
+              {ts("desc", { handle: project.handle })}
             </p>
           </div>
           <Button onClick={handleBrandKitSave} disabled={savingBrandKit} className="imp-btn-primary h-9 rounded-[10px] text-[13px]">
-            {savingBrandKit ? "Saving..." : "Save kit"}
+            {savingBrandKit ? tBrief("saving") : ts("saveKit")}
           </Button>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[180px_1fr] gap-5">
           <div>
-            <Label className="mb-2 block">Logo</Label>
+            <Label className="mb-2 block">{ts("logo")}</Label>
             <label
               className="group flex h-[132px] w-[180px] cursor-pointer items-center justify-center overflow-hidden rounded-xl"
               style={{ background: "var(--imp-surface-2)", border: "1px dashed var(--imp-border-2)" }}
@@ -457,7 +462,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
               ) : (
                 <div className="flex flex-col items-center gap-2 text-[12.5px] font-medium" style={{ color: "var(--imp-muted)" }}>
                   <ImageIcon size={22} />
-                  Upload logo
+                  {ts("uploadLogo")}
                 </div>
               )}
             </label>
@@ -467,14 +472,14 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
                 className="mt-2 text-[12.5px] font-medium"
                 style={{ color: "var(--imp-muted)" }}
               >
-                Remove logo
+                {ts("removeLogo")}
               </button>
             )}
           </div>
 
           <div className="space-y-4">
             <div>
-              <Label className="mb-2 block">Brand colors</Label>
+              <Label className="mb-2 block">{ts("colors")}</Label>
               <Textarea
                 value={brandColors}
                 onChange={(e) => setBrandColors(e.target.value)}
@@ -484,7 +489,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
               />
             </div>
             <div>
-              <Label className="mb-2 block">Asset notes</Label>
+              <Label className="mb-2 block">{ts("assetNotes")}</Label>
               <Textarea
                 value={brandAssetsNote}
                 onChange={(e) => setBrandAssetsNote(e.target.value)}
@@ -584,6 +589,8 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
 
 /* --- X Accounts Panel --- */
 function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; onDelete: (id: string) => void; onUpdate: (p: Project) => void }) {
+  const ta = useTranslations("settings.accounts");
+  const tc = useTranslations("common");
   const [addOpen, setAddOpen] = useState(false);
   const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
@@ -607,7 +614,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
     if (res.ok) {
       const updated = await res.json();
       onUpdate({ ...projects.find((p) => p.id === projectId)!, name: updated.name, handle: updated.handle });
-      toast.success("Account updated");
+      toast.success(ta("accountUpdated"));
     }
     setEditingId(null);
   }
@@ -643,9 +650,9 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
     const res = await fetch(`/api/x/connection?projectId=${projectId}`, { method: "DELETE" });
     if (res.ok) {
       setProjectConnections((prev) => ({ ...prev, [projectId]: false }));
-      toast.success("X account disconnected");
+      toast.success(ta("disconnected"));
     } else {
-      toast.error("Failed to disconnect");
+      toast.error(ta("disconnectFailed"));
     }
     setDisconnectingId(null);
   }
@@ -660,7 +667,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
     });
     if (res.ok) {
       setAddOpen(false); setName(""); setHandle("");
-      toast.success("Account added");
+      toast.success(ta("accountAdded"));
       router.refresh();
     }
     setLoading(false);
@@ -670,7 +677,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
     const res = await fetch(`/api/projects?projectId=${projectId}`, { method: "DELETE" });
     if (res.ok) {
       onDelete(projectId);
-      toast.success("Account removed");
+      toast.success(ta("accountRemoved"));
     }
   }
 
@@ -686,7 +693,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
       if (res.ok) {
         const updated = await res.json();
         onUpdate({ ...projects.find((p) => p.id === projectId)!, avatarUrl: updated.avatarUrl });
-        toast.success("Avatar updated");
+        toast.success(ta("avatarUpdated"));
       }
     };
     reader.readAsDataURL(file);
@@ -696,7 +703,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
     <div>
       <div className="flex items-center gap-2 mb-6">
         <Button className="imp-btn-primary rounded-[10px] h-9 text-[13px] gap-1.5" onClick={() => setAddOpen(true)}>
-          <Plus size={14} /> Add X account
+          <Plus size={14} /> {ta("add")}
         </Button>
       </div>
 
@@ -741,7 +748,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     className="h-7 text-[13.5px] w-[140px]"
-                    placeholder="Name"
+                    placeholder={tc("name")}
                     autoFocus
                     onKeyDown={(e) => { if (e.key === "Enter") handleSaveEdit(p.id); if (e.key === "Escape") setEditingId(null); }}
                   />
@@ -750,14 +757,14 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
                     value={editHandle}
                     onChange={(e) => setEditHandle(e.target.value.replace(/^@/, ""))}
                     className="h-7 text-[13.5px] w-[140px] font-mono"
-                    placeholder="handle"
+                    placeholder={ta("handlePlaceholder")}
                     onKeyDown={(e) => { if (e.key === "Enter") handleSaveEdit(p.id); if (e.key === "Escape") setEditingId(null); }}
                   />
                   <Button size="sm" className="h-7 text-[12px] gap-1 imp-btn-primary" onClick={() => handleSaveEdit(p.id)}>
-                    <Check size={12} /> Save
+                    <Check size={12} /> {tc("save")}
                   </Button>
                   <Button size="sm" variant="ghost" className="h-7 text-[12px]" onClick={() => setEditingId(null)}>
-                    Cancel
+                    {tc("cancel")}
                   </Button>
                 </div>
               ) : (
@@ -768,14 +775,14 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
                     onClick={() => { setEditingId(p.id); setEditName(p.name); setEditHandle(p.handle); }}
                     className="w-6 h-6 rounded-md flex items-center justify-center opacity-0 group-hover/name:opacity-100 transition-opacity hover:bg-[var(--imp-surface-3)]"
                     style={{ color: "var(--imp-muted)" }}
-                    title="Edit name & handle"
+                    title={ta("editNameHandle")}
                   >
                     <Pencil size={12} />
                   </button>
                 </div>
               )}
               <div className="text-[12.5px] mt-0.5" style={{ color: "var(--imp-muted)" }}>
-                {p._count.styles} image style{p._count.styles !== 1 ? "s" : ""}
+                {ta("imageStyles", { count: p._count.styles })}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -786,7 +793,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
                       className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-[12.5px] font-semibold"
                       style={{ color: "var(--s-image)", background: "var(--s-image-bg)" }}
                     >
-                      <Check size={13} /> Connected @{p.handle}
+                      <Check size={13} /> {ta("connected", { username: p.handle })}
                     </span>
                     <Button
                       variant="outline"
@@ -796,7 +803,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
                       disabled={disconnectingId === p.id}
                     >
                       {disconnectingId === p.id ? <Loader2 size={13} className="animate-spin" /> : null}
-                      Disconnect
+                      {ta("disconnect")}
                     </Button>
                   </div>
                 ) : (
@@ -806,7 +813,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
                     className="h-8 text-[12.5px] gap-1.5"
                     onClick={() => { window.location.href = `/api/x/connect?projectId=${p.id}`; }}
                   >
-                    <X size={13} /> Connect @{p.handle}
+                    <X size={13} /> {ta("connect", { handle: p.handle })}
                   </Button>
                 )
               )}
@@ -816,7 +823,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
                 className="h-8 text-[12.5px] gap-1.5"
                 onClick={() => router.push("/settings?tab=styles")}
               >
-                <ImageIcon size={13} /> Brand kit
+                <ImageIcon size={13} /> {ta("brandKit")}
               </Button>
               <button
                 onClick={() => handleDelete(p.id)}
@@ -832,19 +839,19 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Add X account</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{ta("add")}</DialogTitle></DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
             <div className="space-y-2">
-              <Label>Account name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Hyperdrive" required autoFocus />
+              <Label>{ta("accountName")}</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={ta("accountPlaceholder")} required autoFocus />
             </div>
             <div className="space-y-2">
-              <Label>Twitter handle</Label>
-              <Input value={handle} onChange={(e) => setHandle(e.target.value.replace(/^@/, ""))} placeholder="handle" required />
+              <Label>{ta("twitterHandle")}</Label>
+              <Input value={handle} onChange={(e) => setHandle(e.target.value.replace(/^@/, ""))} placeholder={ta("handlePlaceholder")} required />
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setAddOpen(false)}>Cancel</Button>
-              <Button type="submit" className="imp-btn-primary" disabled={loading}>{loading ? "Adding..." : "Add account"}</Button>
+              <Button type="button" variant="ghost" onClick={() => setAddOpen(false)}>{tc("cancel")}</Button>
+              <Button type="submit" className="imp-btn-primary" disabled={loading}>{loading ? ta("adding") : ta("addAccount")}</Button>
             </div>
           </form>
         </DialogContent>
@@ -855,6 +862,8 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
 
 /* --- Appearance Panel --- */
 function SecurityPanel() {
+  const ts = useTranslations("settings.security");
+  const tAuth = useTranslations("auth");
   const [currentPassword, setCurrentPassword] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -863,11 +872,11 @@ function SecurityPanel() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error(tAuth("passwordMin"));
       return;
     }
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(tAuth("passwordMismatch"));
       return;
     }
 
@@ -881,10 +890,10 @@ function SecurityPanel() {
       setCurrentPassword("");
       setPassword("");
       setConfirmPassword("");
-      toast.success("Password updated");
+      toast.success(ts("updated"));
     } else {
       const data = await res.json();
-      toast.error(data.error || "Failed to update password");
+      toast.error(data.error || ts("updateFailed"));
     }
     setSaving(false);
   }
@@ -892,7 +901,7 @@ function SecurityPanel() {
   return (
     <form onSubmit={handleSave} className="max-w-[420px] space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="current-password">Current password</Label>
+        <Label htmlFor="current-password">{ts("currentPassword")}</Label>
         <Input
           id="current-password"
           type="password"
@@ -902,7 +911,7 @@ function SecurityPanel() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="new-password">New password</Label>
+        <Label htmlFor="new-password">{ts("newPassword")}</Label>
         <Input
           id="new-password"
           type="password"
@@ -913,7 +922,7 @@ function SecurityPanel() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="confirm-new-password">Confirm new password</Label>
+        <Label htmlFor="confirm-new-password">{ts("confirmNewPassword")}</Label>
         <Input
           id="confirm-new-password"
           type="password"
@@ -924,7 +933,7 @@ function SecurityPanel() {
         />
       </div>
       <Button type="submit" className="imp-btn-primary" disabled={saving}>
-        {saving ? "Updating..." : "Update password"}
+        {saving ? ts("updating") : ts("updatePassword")}
       </Button>
     </form>
   );
@@ -936,9 +945,13 @@ function getStoredPreference(key: string, fallback: string) {
 }
 
 function AppearancePanel() {
+  const ta = useTranslations("settings.appearance");
+  const tp = useTranslations("settingsPopover");
   const { theme, setTheme } = useTheme();
   const [accent, setAccent] = useState(() => getStoredPreference("impulso-accent", "tomo"));
   const [density, setDensity] = useState(() => getStoredPreference("impulso-density", "regular"));
+
+  const ACCENT_LABEL_KEYS: Record<string, string> = { tomo: "pink", sky: "sky", indigo: "indigo", violet: "violet" };
 
   useEffect(() => {
     document.documentElement.setAttribute("data-accent", accent);
@@ -955,8 +968,8 @@ function AppearancePanel() {
       {/* Theme */}
       <div className="flex items-center justify-between py-5" style={{ borderBottom: "1px solid var(--imp-border)" }}>
         <div>
-          <div className="text-[15px] font-semibold" style={{ color: "var(--imp-text)" }}>Theme</div>
-          <div className="text-[13px] mt-0.5" style={{ color: "var(--imp-muted)" }}>Switch between dark and light.</div>
+          <div className="text-[15px] font-semibold" style={{ color: "var(--imp-text)" }}>{ta("theme")}</div>
+          <div className="text-[13px] mt-0.5" style={{ color: "var(--imp-muted)" }}>{ta("themeDesc")}</div>
         </div>
         <div
           className="flex items-center h-[38px] rounded-full p-1 gap-0.5"
@@ -971,7 +984,7 @@ function AppearancePanel() {
               boxShadow: theme === "dark" ? "var(--imp-shadow-sm)" : "none",
             }}
           >
-            <Moon size={14} /> Dark
+            <Moon size={14} /> {ta("dark")}
           </button>
           <button
             onClick={() => setTheme("light")}
@@ -982,7 +995,7 @@ function AppearancePanel() {
               boxShadow: theme === "light" ? "var(--imp-shadow-sm)" : "none",
             }}
           >
-            <Sun size={14} /> Light
+            <Sun size={14} /> {ta("light")}
           </button>
         </div>
       </div>
@@ -990,8 +1003,8 @@ function AppearancePanel() {
       {/* Accent color */}
       <div className="flex items-center justify-between py-5" style={{ borderBottom: "1px solid var(--imp-border)" }}>
         <div>
-          <div className="text-[15px] font-semibold" style={{ color: "var(--imp-text)" }}>Accent color</div>
-          <div className="text-[13px] mt-0.5" style={{ color: "var(--imp-muted)" }}>Used for highlights, buttons, and focus states.</div>
+          <div className="text-[15px] font-semibold" style={{ color: "var(--imp-text)" }}>{ta("accentColor")}</div>
+          <div className="text-[13px] mt-0.5" style={{ color: "var(--imp-muted)" }}>{ta("accentDesc")}</div>
         </div>
         <div className="flex items-center gap-3">
           {ACCENTS.map((a) => (
@@ -1004,7 +1017,7 @@ function AppearancePanel() {
                 transform: accent === a.key ? "scale(1.08)" : "scale(1)",
                 boxShadow: accent === a.key ? `0 0 0 2.5px var(--imp-bg), 0 0 0 4.5px ${a.hex}` : "none",
               }}
-              title={a.label}
+              title={tp(ACCENT_LABEL_KEYS[a.key])}
             >
               {accent === a.key && (
                 <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
@@ -1019,8 +1032,8 @@ function AppearancePanel() {
       {/* Density */}
       <div className="flex items-center justify-between py-5" style={{ borderBottom: "1px solid var(--imp-border)" }}>
         <div>
-          <div className="text-[15px] font-semibold" style={{ color: "var(--imp-text)" }}>Density</div>
-          <div className="text-[13px] mt-0.5" style={{ color: "var(--imp-muted)" }}>Spacing of cards across the pipeline.</div>
+          <div className="text-[15px] font-semibold" style={{ color: "var(--imp-text)" }}>{ta("density")}</div>
+          <div className="text-[13px] mt-0.5" style={{ color: "var(--imp-muted)" }}>{ta("densityDesc")}</div>
         </div>
         <div
           className="flex items-center h-[38px] rounded-full p-1 gap-0.5"
@@ -1037,7 +1050,7 @@ function AppearancePanel() {
                 boxShadow: density === d.key ? "var(--imp-shadow-sm)" : "none",
               }}
             >
-              {d.label}
+              {tp(d.key)}
             </button>
           ))}
         </div>
@@ -1047,12 +1060,12 @@ function AppearancePanel() {
 }
 
 /* --- Main Settings Page --- */
-const SECTION_META: Record<string, { icon: typeof ImageIcon; title: string; desc: string }> = {
-  brief: { icon: FileText, title: "Account brief", desc: "Context about your brand that AI reads before generating tweets. The more detail, the better the output." },
-  styles: { icon: ImageIcon, title: "Brand kit", desc: "Logo, colors, and reusable visual briefs Impulso applies when generating images." },
-  accounts: { icon: X, title: "X accounts", desc: "Connect the handles you manage. Each account keeps its own pipeline, schedule, and image styles." },
-  security: { icon: Lock, title: "Security", desc: "Update the password used to sign in with your email." },
-  appearance: { icon: SlidersHorizontal, title: "Appearance", desc: "Personal display preferences for this workspace. These only affect your view." },
+const SECTION_ICONS: Record<string, typeof ImageIcon> = {
+  brief: FileText,
+  styles: ImageIcon,
+  accounts: X,
+  security: Lock,
+  appearance: SlidersHorizontal,
 };
 
 const VALID_SECTION_IDS = new Set(NAV_ITEMS.map((n) => n.id));
@@ -1063,6 +1076,9 @@ function buildSettingsQs(params: URLSearchParams) {
 }
 
 export function SettingsPage({ projects: initialProjects, user }: SettingsPageProps) {
+  const tn = useTranslations("settings.nav");
+  const tSec = useTranslations("settings.sections");
+  const tc = useTranslations("common");
   const searchParams = useSearchParams();
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
@@ -1134,8 +1150,7 @@ export function SettingsPage({ projects: initialProjects, user }: SettingsPagePr
     }
   }
 
-  const meta = SECTION_META[activeSection];
-  const Icon = meta.icon;
+  const Icon = SECTION_ICONS[activeSection];
 
   return (
     <div className="flex flex-col h-screen">
@@ -1155,11 +1170,11 @@ export function SettingsPage({ projects: initialProjects, user }: SettingsPagePr
             className="flex items-center gap-1.5 text-[13px] font-medium mb-5 px-1 transition-colors hover:text-[var(--imp-accent)]"
             style={{ color: "var(--imp-text-2)" }}
           >
-            <ChevronLeft size={14} /> Back to pipeline
+            <ChevronLeft size={14} /> {tc("backToPipeline")}
           </button>
 
           <div className="text-[11px] font-semibold uppercase tracking-wider px-2 mb-2" style={{ color: "var(--imp-faint)" }}>
-            Settings
+            {tc("settings")}
           </div>
 
           <nav className="flex flex-col gap-0.5">
@@ -1177,7 +1192,7 @@ export function SettingsPage({ projects: initialProjects, user }: SettingsPagePr
                   }}
                 >
                   <NavIcon size={15} />
-                  {item.label}
+                  {tn(item.id)}
                 </button>
               );
             })}
@@ -1195,11 +1210,11 @@ export function SettingsPage({ projects: initialProjects, user }: SettingsPagePr
               <Icon size={20} />
             </div>
             <h1 className="text-[24px] font-bold tracking-tight m-0" style={{ color: "var(--imp-text)" }}>
-              {meta.title}
+              {tSec(`${activeSection}Title`)}
             </h1>
           </div>
           <p className="text-[14px] mb-7 ml-[54px] mt-0" style={{ color: "var(--imp-muted)" }}>
-            {meta.desc}
+            {tSec(`${activeSection}Desc`)}
           </p>
 
           {/* Panel content */}

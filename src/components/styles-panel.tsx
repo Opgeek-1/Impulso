@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface Project {
   id: string;
@@ -27,6 +28,9 @@ interface StylesPanelProps {
 }
 
 export function StylesPanel({ project }: StylesPanelProps) {
+  const t = useTranslations("stylesPanel");
+  const ts = useTranslations("settings.brand");
+  const tc = useTranslations("common");
   const [styles, setStyles] = useState<Style[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -70,7 +74,7 @@ export function StylesPanel({ project }: StylesPanelProps) {
       setNewName("");
       setNewContent("");
       setShowNew(false);
-      toast.success("Style created");
+      toast.success(ts("styleCreated"));
     }
   }
 
@@ -84,7 +88,7 @@ export function StylesPanel({ project }: StylesPanelProps) {
       const updated = await res.json();
       setStyles((prev) => prev.map((s) => (s.id === styleId ? updated : s)));
       setEditingId(null);
-      toast.success("Style updated");
+      toast.success(ts("styleUpdated"));
     }
   }
 
@@ -98,7 +102,7 @@ export function StylesPanel({ project }: StylesPanelProps) {
       setStyles((prev) =>
         prev.map((s) => ({ ...s, isDefault: s.id === styleId }))
       );
-      toast.success("Default style updated");
+      toast.success(ts("defaultUpdated"));
     }
   }
 
@@ -106,18 +110,18 @@ export function StylesPanel({ project }: StylesPanelProps) {
     const res = await fetch(`/api/styles?styleId=${styleId}`, { method: "DELETE" });
     if (res.ok) {
       setStyles((prev) => prev.filter((s) => s.id !== styleId));
-      toast.success("Style deleted");
+      toast.success(ts("styleDeleted"));
     }
   }
 
-  if (loading) return <p className="text-muted-foreground">Loading styles...</p>;
+  if (loading) return <p className="text-muted-foreground">{ts("loading")}</p>;
 
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">Brand Styles</h2>
+        <h2 className="text-lg font-semibold">{t("brandStyles")}</h2>
         <p className="text-sm text-muted-foreground">
-          Define visual styles for @{project.handle}. The default style is used automatically when generating design briefs.
+          {t("defineStyles", { handle: project.handle })}
         </p>
       </div>
 
@@ -129,7 +133,7 @@ export function StylesPanel({ project }: StylesPanelProps) {
                 <Input
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  placeholder="Style name"
+                  placeholder={ts("styleName")}
                 />
                 <Textarea
                   value={editContent}
@@ -138,8 +142,8 @@ export function StylesPanel({ project }: StylesPanelProps) {
                   className="font-mono text-sm"
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => handleUpdate(style.id)}>Save</Button>
-                  <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>Cancel</Button>
+                  <Button size="sm" onClick={() => handleUpdate(style.id)}>{tc("save")}</Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>{tc("cancel")}</Button>
                 </div>
               </div>
             ) : (
@@ -147,12 +151,12 @@ export function StylesPanel({ project }: StylesPanelProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h3 className="font-medium">{style.name}</h3>
-                    {style.isDefault && <Badge variant="secondary">default</Badge>}
+                    {style.isDefault && <Badge variant="secondary">{ts("default")}</Badge>}
                   </div>
                   <div className="flex gap-2">
                     {!style.isDefault && (
                       <Button size="sm" variant="ghost" onClick={() => handleSetDefault(style.id)}>
-                        Set as default
+                        {t("setAsDefault")}
                       </Button>
                     )}
                     <Button
@@ -160,10 +164,10 @@ export function StylesPanel({ project }: StylesPanelProps) {
                       variant="ghost"
                       onClick={() => { setEditingId(style.id); setEditName(style.name); setEditContent(style.content); }}
                     >
-                      Edit
+                      {tc("edit")}
                     </Button>
                     <Button size="sm" variant="ghost" className="text-red-500" onClick={() => handleDelete(style.id)}>
-                      Delete
+                      {tc("delete")}
                     </Button>
                   </div>
                 </div>
@@ -179,13 +183,13 @@ export function StylesPanel({ project }: StylesPanelProps) {
       {showNew ? (
         <Card>
           <CardContent className="py-4 space-y-3">
-            <Label>Style Name</Label>
+            <Label>{ts("styleName")}</Label>
             <Input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="e.g. PayGate推文配图标准"
             />
-            <Label>Style Description (natural language)</Label>
+            <Label>{t("styleDescriptionLabel")}</Label>
             <Textarea
               value={newContent}
               onChange={(e) => setNewContent(e.target.value)}
@@ -194,14 +198,14 @@ export function StylesPanel({ project }: StylesPanelProps) {
               placeholder="尺寸 1500×500&#10;&#10;色板&#10;- 背景：#f5efe1&#10;- 主色：#eaac09&#10;..."
             />
             <div className="flex gap-2">
-              <Button size="sm" onClick={handleCreate}>Create</Button>
-              <Button size="sm" variant="ghost" onClick={() => setShowNew(false)}>Cancel</Button>
+              <Button size="sm" onClick={handleCreate}>{tc("create")}</Button>
+              <Button size="sm" variant="ghost" onClick={() => setShowNew(false)}>{tc("cancel")}</Button>
             </div>
           </CardContent>
         </Card>
       ) : (
         <Button variant="outline" onClick={() => setShowNew(true)}>
-          + Add Style
+          {t("addStyle")}
         </Button>
       )}
     </div>
