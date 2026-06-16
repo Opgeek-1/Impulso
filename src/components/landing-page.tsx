@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { setUserLocale } from "@/app/actions/locale";
+import { locales, type Locale } from "@/i18n/config";
 import {
   Zap,
   ArrowRight,
@@ -18,6 +21,8 @@ import {
   BarChart3,
   ScanLine,
   Globe,
+  Languages,
+  ChevronDown,
 } from "lucide-react";
 
 export function LandingPage() {
@@ -76,6 +81,7 @@ export function LandingPage() {
             <a href="#workspace">{t("nav.teams")}</a>
           </div>
           <div className="landing-nav__spacer" />
+          <LandingLangSwitcher />
           <div className="landing-nav__cta">
             <Link
               className="landing-btn landing-btn--ghost landing-btn--sm"
@@ -631,5 +637,63 @@ function Badge({ variant, label }: { variant: string; label: string }) {
       <span className="dot" />
       {label}
     </span>
+  );
+}
+
+const LANG_LABELS: Record<Locale, string> = {
+  en: "EN",
+  "zh-CN": "中文",
+};
+
+function LandingLangSwitcher() {
+  const locale = useLocale() as Locale;
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  function switchTo(next: Locale) {
+    setOpen(false);
+    startTransition(async () => {
+      await setUserLocale(next);
+      router.refresh();
+    });
+  }
+
+  return (
+    <div className="landing-lang" ref={ref}>
+      <button
+        className="landing-lang__trigger"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        disabled={isPending}
+      >
+        <Languages size={15} />
+        {LANG_LABELS[locale]}
+        <ChevronDown size={13} style={{ opacity: 0.5 }} />
+      </button>
+      {open && (
+        <div className="landing-lang__menu">
+          {locales.map((option) => (
+            <button
+              key={option}
+              className={`landing-lang__item${option === locale ? " active" : ""}`}
+              onClick={() => switchTo(option)}
+            >
+              {option === "en" ? "English" : "简体中文"}
+              {option === locale && <span style={{ color: "var(--accent)", marginLeft: "auto" }}>✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

@@ -65,6 +65,34 @@
 
 .landing .lead { color: var(--text-2); font-size: 19px; line-height: 1.6; }
 
+/* ---------- language switcher ---------- */
+.landing-lang { position: relative; }
+.landing-lang__trigger {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 36px; padding: 0 12px; border-radius: 9px;
+  font-family: inherit; font-size: 13.5px; font-weight: 600;
+  color: var(--text-2); background: transparent;
+  border: 1px solid transparent; cursor: pointer;
+  transition: background .14s, color .14s, border-color .14s;
+}
+.landing-lang__trigger:hover { color: var(--text); background: var(--surface-3); }
+.landing-lang__trigger svg { flex: none; }
+.landing-lang__menu {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 60;
+  min-width: 140px; padding: 5px;
+  background: var(--surface); border: 1px solid var(--border-2);
+  border-radius: 12px; box-shadow: var(--shadow);
+}
+.landing-lang__item {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 8px 12px; border: 0; border-radius: 8px;
+  font-family: inherit; font-size: 13.5px; font-weight: 500;
+  color: var(--text-2); background: transparent;
+  cursor: pointer; transition: background .12s, color .12s;
+}
+.landing-lang__item:hover { background: var(--surface-3); color: var(--text); }
+.landing-lang__item.active { color: var(--text); font-weight: 600; }
+
 /* ---------- buttons ---------- */
 .landing-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 9px;
