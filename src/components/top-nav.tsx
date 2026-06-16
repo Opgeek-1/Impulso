@@ -86,7 +86,7 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
     setLoading(false);
   }
 
-  const showBackToPipeline = pathname !== "/";
+  const showBackToPipeline = pathname !== "/" && pathname !== "/dashboard";
 
   return (
     <>
