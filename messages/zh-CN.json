@@ -330,9 +330,7 @@
       "dark": "深色",
       "light": "浅色",
       "accentColor": "强调色",
-      "accentDesc": "用于高亮、按钮和聚焦状态。",
-      "density": "密度",
-      "densityDesc": "流程中卡片的间距。"
+      "accentDesc": "用于高亮、按钮和聚焦状态。"
     },
     "version": {
       "currentVersion": "当前版本"
@@ -340,14 +338,10 @@
   },
   "settingsPopover": {
     "accentColor": "强调色",
-    "density": "密度",
     "pink": "粉色",
     "sky": "天蓝",
     "indigo": "靛蓝",
-    "violet": "紫色",
-    "compact": "紧凑",
-    "regular": "常规",
-    "comfy": "舒适"
+    "violet": "紫色"
   },
   "team": {
     "loading": "正在加载工作区...",

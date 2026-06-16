@@ -15,12 +15,6 @@ const ACCENTS = [
   { key: "violet", hex: "#a855f7", label: "Violet" },
 ];
 
-const DENSITIES = [
-  { key: "compact", label: "Compact" },
-  { key: "regular", label: "Regular" },
-  { key: "comfy", label: "Comfy" },
-];
-
 function getStoredPreference(key: string, fallback: string) {
   if (typeof window === "undefined") return fallback;
   return localStorage.getItem(key) || fallback;
@@ -28,17 +22,11 @@ function getStoredPreference(key: string, fallback: string) {
 
 export function SettingsPopover() {
   const [accent, setAccent] = useState(() => getStoredPreference("impulso-accent", "tomo"));
-  const [density, setDensity] = useState(() => getStoredPreference("impulso-density", "regular"));
 
   useEffect(() => {
     document.documentElement.setAttribute("data-accent", accent);
     localStorage.setItem("impulso-accent", accent);
   }, [accent]);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-density", density);
-    localStorage.setItem("impulso-density", density);
-  }, [density]);
 
   return (
     <DropdownMenu>
@@ -78,28 +66,6 @@ export function SettingsPopover() {
           </div>
         </div>
 
-        {/* Density */}
-        <div>
-          <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--imp-faint)" }}>
-            Density
-          </div>
-          <div className="flex gap-1">
-            {DENSITIES.map((d) => (
-              <button
-                key={d.key}
-                onClick={() => setDensity(d.key)}
-                className="flex-1 h-7 rounded-lg text-[11.5px] font-medium transition-all"
-                style={{
-                  background: density === d.key ? "var(--imp-accent-soft)" : "var(--imp-surface-2)",
-                  color: density === d.key ? "var(--imp-accent)" : "var(--imp-text-2)",
-                  border: `1px solid ${density === d.key ? "var(--imp-accent-line)" : "var(--imp-border-2)"}`,
-                }}
-              >
-                {d.label}
-              </button>
-            ))}
-          </div>
-        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

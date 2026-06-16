@@ -93,10 +93,7 @@
   --s-sched: #f59e0b; --s-sched-bg: rgba(245,158,11,0.14); --s-sched-line: rgba(245,158,11,0.34);
 }
 
-/* --- Density --- */
 :root { --imp-gap: 20px; --imp-card-pad: 16px; --imp-col-w: 300px; }
-[data-density="compact"] { --imp-gap: 12px; --imp-card-pad: 12px; --imp-col-w: 270px; }
-[data-density="comfy"] { --imp-gap: 26px; --imp-card-pad: 20px; --imp-col-w: 320px; }
 
 /* --- Light theme --- */
 :root {

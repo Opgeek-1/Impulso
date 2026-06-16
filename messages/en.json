@@ -330,9 +330,7 @@
       "dark": "Dark",
       "light": "Light",
       "accentColor": "Accent color",
-      "accentDesc": "Used for highlights, buttons, and focus states.",
-      "density": "Density",
-      "densityDesc": "Spacing of cards across the pipeline."
+      "accentDesc": "Used for highlights, buttons, and focus states."
     },
     "version": {
       "currentVersion": "Current version"
@@ -340,14 +338,10 @@
   },
   "settingsPopover": {
     "accentColor": "Accent color",
-    "density": "Density",
     "pink": "Pink",
     "sky": "Sky",
     "indigo": "Indigo",
-    "violet": "Violet",
-    "compact": "Compact",
-    "regular": "Regular",
-    "comfy": "Comfy"
+    "violet": "Violet"
   },
   "team": {
     "loading": "Loading workspace...",

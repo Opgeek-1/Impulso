@@ -77,11 +77,6 @@ const ACCENTS = [
   { key: "violet", hex: "#a855f7", label: "Violet" },
 ];
 
-const DENSITIES = [
-  { key: "compact", label: "Compact" },
-  { key: "regular", label: "Regular" },
-  { key: "comfy", label: "Comfy" },
-];
 
 /* --- Account Brief Panel --- */
 function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { project: Project; projects: Project[]; onSwitchProject: (p: Project) => void; onUpdate: (p: Project) => void }) {
@@ -953,7 +948,6 @@ function AppearancePanel() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const [accent, setAccent] = useState(() => getStoredPreference("impulso-accent", "tomo"));
-  const [density, setDensity] = useState(() => getStoredPreference("impulso-density", "regular"));
 
   const ACCENT_LABEL_KEYS: Record<string, string> = { tomo: "pink", sky: "sky", indigo: "indigo", violet: "violet" };
 
@@ -961,11 +955,6 @@ function AppearancePanel() {
     document.documentElement.setAttribute("data-accent", accent);
     localStorage.setItem("impulso-accent", accent);
   }, [accent]);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-density", density);
-    localStorage.setItem("impulso-density", density);
-  }, [density]);
 
   return (
     <div className="max-w-[580px]">
@@ -1033,32 +1022,6 @@ function AppearancePanel() {
         </div>
       </div>
 
-      {/* Density */}
-      <div className="flex items-center justify-between py-5" style={{ borderBottom: "1px solid var(--imp-border)" }}>
-        <div>
-          <div className="text-[15px] font-semibold" style={{ color: "var(--imp-text)" }}>{ta("density")}</div>
-          <div className="text-[13px] mt-0.5" style={{ color: "var(--imp-muted)" }}>{ta("densityDesc")}</div>
-        </div>
-        <div
-          className="flex items-center h-[38px] rounded-full p-1 gap-0.5"
-          style={{ background: "var(--imp-surface-2)", border: "1px solid var(--imp-border)" }}
-        >
-          {DENSITIES.map((d) => (
-            <button
-              key={d.key}
-              onClick={() => setDensity(d.key)}
-              className="h-[30px] px-4 rounded-full text-[13px] font-medium transition-all"
-              style={{
-                background: density === d.key ? "var(--imp-surface)" : "transparent",
-                color: density === d.key ? "var(--imp-accent)" : "var(--imp-muted)",
-                boxShadow: density === d.key ? "var(--imp-shadow-sm)" : "none",
-              }}
-            >
-              {tp(d.key)}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
