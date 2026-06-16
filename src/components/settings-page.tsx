@@ -949,7 +949,9 @@ function getStoredPreference(key: string, fallback: string) {
 function AppearancePanel() {
   const ta = useTranslations("settings.appearance");
   const tp = useTranslations("settingsPopover");
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const [accent, setAccent] = useState(() => getStoredPreference("impulso-accent", "tomo"));
   const [density, setDensity] = useState(() => getStoredPreference("impulso-density", "regular"));
 
@@ -981,9 +983,9 @@ function AppearancePanel() {
             onClick={() => setTheme("dark")}
             className="flex items-center gap-1.5 h-[30px] px-3.5 rounded-full text-[13px] font-medium transition-all"
             style={{
-              background: theme === "dark" ? "var(--imp-surface)" : "transparent",
-              color: theme === "dark" ? "var(--imp-text)" : "var(--imp-muted)",
-              boxShadow: theme === "dark" ? "var(--imp-shadow-sm)" : "none",
+              background: mounted && resolvedTheme === "dark" ? "var(--imp-surface)" : "transparent",
+              color: mounted && resolvedTheme === "dark" ? "var(--imp-text)" : "var(--imp-muted)",
+              boxShadow: mounted && resolvedTheme === "dark" ? "var(--imp-shadow-sm)" : "none",
             }}
           >
             <Moon size={14} /> {ta("dark")}
@@ -992,9 +994,9 @@ function AppearancePanel() {
             onClick={() => setTheme("light")}
             className="flex items-center gap-1.5 h-[30px] px-3.5 rounded-full text-[13px] font-medium transition-all"
             style={{
-              background: theme === "light" ? "var(--imp-surface)" : "transparent",
-              color: theme === "light" ? "var(--imp-accent)" : "var(--imp-muted)",
-              boxShadow: theme === "light" ? "var(--imp-shadow-sm)" : "none",
+              background: mounted && resolvedTheme === "light" ? "var(--imp-surface)" : "transparent",
+              color: mounted && resolvedTheme === "light" ? "var(--imp-accent)" : "var(--imp-muted)",
+              boxShadow: mounted && resolvedTheme === "light" ? "var(--imp-shadow-sm)" : "none",
             }}
           >
             <Sun size={14} /> {ta("light")}
