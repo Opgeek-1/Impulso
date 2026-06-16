@@ -235,7 +235,8 @@
       "styles": "Brand kit",
       "accounts": "X accounts",
       "security": "Security",
-      "appearance": "Appearance"
+      "appearance": "Appearance",
+      "version": "Version"
     },
     "sections": {
       "briefTitle": "Account brief",
@@ -247,7 +248,9 @@
       "securityTitle": "Security",
       "securityDesc": "Update the password used to sign in with your email.",
       "appearanceTitle": "Appearance",
-      "appearanceDesc": "Personal display preferences for this workspace. These only affect your view."
+      "appearanceDesc": "Personal display preferences for this workspace. These only affect your view.",
+      "versionTitle": "Version",
+      "versionDesc": "Release history and update details for each version of Impulso."
     },
     "brief": {
       "notice": "Brief is saved per X account. You're editing the brief for:",
@@ -331,6 +334,9 @@
       "accentDesc": "Used for highlights, buttons, and focus states.",
       "density": "Density",
       "densityDesc": "Spacing of cards across the pipeline."
+    },
+    "version": {
+      "currentVersion": "Current version"
     }
   },
   "settingsPopover": {
