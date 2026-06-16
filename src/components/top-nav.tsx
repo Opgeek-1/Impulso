@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
@@ -34,6 +35,7 @@ import {
   Bell,
   Users,
   BookOpen,
+  ArrowLeft,
 } from "lucide-react";
 
 interface Project {
@@ -55,6 +57,7 @@ interface TopNavProps {
 
 export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNavProps) {
   const { theme, setTheme } = useTheme();
+  const pathname = usePathname();
   const router = useRouter();
   const t = useTranslations("nav");
   const common = useTranslations("common");
@@ -81,6 +84,8 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
     setLoading(false);
   }
 
+  const showBackToPipeline = pathname !== "/";
+
   return (
     <>
       <header
@@ -93,7 +98,11 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
       >
         {/* Left: logo + account switcher */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2.5">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 rounded-lg transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--imp-accent)]"
+            aria-label="Impulso"
+          >
             <Image
               src={theme === "dark" ? "/tomo-mark.png" : "/tomo-mark-color.png"}
               alt="Impulso"
@@ -105,9 +114,24 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
             <span className="text-[16.5px] font-bold" style={{ color: "var(--imp-text)", letterSpacing: "-0.02em" }}>
               Impulso
             </span>
-          </div>
+          </Link>
 
           <div className="w-px h-[26px]" style={{ background: "var(--imp-border-2)" }} />
+
+          {showBackToPipeline && (
+            <>
+              <Link
+                href="/"
+                className="flex h-[34px] items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium transition-colors hover:bg-[var(--imp-hover)] hover:text-[var(--imp-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--imp-accent)]"
+                style={{ color: "var(--imp-text-2)" }}
+              >
+                <ArrowLeft size={14} />
+                {common("backToPipeline")}
+              </Link>
+
+              <div className="w-px h-[26px]" style={{ background: "var(--imp-border-2)" }} />
+            </>
+          )}
 
           {/* Account switcher */}
           <DropdownMenu>
