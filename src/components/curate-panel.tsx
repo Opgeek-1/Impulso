@@ -153,7 +153,7 @@ function TweetCard({
   tweet: Tweet;
   styles: Style[];
   onApprove: () => void;
-  onDesign: (styleId?: string) => void;
+  onDesign: (styleId?: string | null) => void;
   onImage: (model?: string, feedback?: string) => void;
   onUploadImage: (file: File) => void;
   onDeleteImage: () => void;
@@ -378,7 +378,7 @@ function TweetCard({
                     </DropdownMenuItem>
                   ))}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onDesign()} className="gap-2 text-[12.5px]">
+                  <DropdownMenuItem onClick={() => onDesign(null)} className="gap-2 text-[12.5px]">
                     {t("noStyle")}
                   </DropdownMenuItem>
                 </>
@@ -493,7 +493,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     }
   }
 
-  async function handleDesign(tweetId: string, styleId?: string) {
+  async function handleDesign(tweetId: string, styleId?: string | null) {
     setProcessingIds((prev) => new Set(prev).add(tweetId));
     try {
       const res = await fetch("/api/tweets/design", {

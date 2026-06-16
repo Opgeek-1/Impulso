@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const { tweetId, styleId } = body;
+  const hasStyleId = Object.hasOwn(body, "styleId");
 
   if (!tweetId) {
     return NextResponse.json({ error: "tweetId is required" }, { status: 400 });
@@ -33,8 +34,11 @@ export async function POST(req: NextRequest) {
   let styleGuide = "";
   if (styleId) {
     const style = tweet.project.styles.find((s) => s.id === styleId);
-    if (style) styleGuide = style.content;
-  } else {
+    if (!style) {
+      return NextResponse.json({ error: "Style not found" }, { status: 400 });
+    }
+    styleGuide = style.content;
+  } else if (!hasStyleId) {
     const defaultStyle = tweet.project.styles.find((s) => s.isDefault);
     if (defaultStyle) styleGuide = defaultStyle.content;
   }
