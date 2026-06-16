@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,9 @@ interface AcceptInviteFormProps {
 
 export function AcceptInviteForm({ token, workspaceName, inviterName }: AcceptInviteFormProps) {
   const router = useRouter();
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const t = useTranslations("auth");
   const common = useTranslations("common");
   const [name, setName] = useState("");
@@ -90,7 +92,7 @@ export function AcceptInviteForm({ token, workspaceName, inviterName }: AcceptIn
       </div>
       <div className="flex flex-col items-center mb-6">
         <Image
-          src={theme === "dark" ? "/tomo-mark.png" : "/tomo-mark-color.png"}
+          src={mounted && resolvedTheme === "dark" ? "/tomo-mark.png" : "/tomo-mark-color.png"}
           alt="Impulso"
           width={40}
           height={40}

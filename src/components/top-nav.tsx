@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -56,7 +56,9 @@ interface TopNavProps {
 }
 
 export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNavProps) {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const pathname = usePathname();
   const router = useRouter();
   const t = useTranslations("nav");
@@ -104,7 +106,7 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
             aria-label="Impulso"
           >
             <Image
-              src={theme === "dark" ? "/tomo-mark.png" : "/tomo-mark-color.png"}
+              src={mounted && resolvedTheme === "dark" ? "/tomo-mark.png" : "/tomo-mark-color.png"}
               alt="Impulso"
               width={34}
               height={34}
@@ -216,12 +218,12 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
 <LanguageSwitcher />
 
           <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
             className="imp-icon-btn w-8 h-8 flex items-center justify-center"
             style={{ color: "var(--imp-text-2)" }}
             title={t("toggleTheme")}
           >
-            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            {mounted && resolvedTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </button>
 
           <button
