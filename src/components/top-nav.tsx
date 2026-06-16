@@ -213,16 +213,7 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
 
         {/* Right: sync pill + theme + bell + settings + user */}
         <div className="flex items-center gap-1.5">
-          {/* Workspace synced pill */}
-          <div
-            className="flex items-center gap-1.5 mr-1 px-[11px] py-[5px] rounded-full"
-            style={{ background: "var(--imp-surface-2)", border: "1px solid var(--imp-border)" }}
-          >
-            <span className="w-[7px] h-[7px] rounded-full" style={{ background: "var(--s-image)", boxShadow: "0 0 7px var(--s-image)" }} />
-            <span className="text-[12px] font-medium" style={{ color: "var(--imp-text-2)" }}>{t("workspaceSynced")}</span>
-          </div>
-
-          <LanguageSwitcher />
+<LanguageSwitcher />
 
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
