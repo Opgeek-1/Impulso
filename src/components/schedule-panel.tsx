@@ -290,6 +290,10 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
       .filter((x) => x.id !== tweetId && x.scheduledAt && isSameDay(new Date(x.scheduledAt), dayDate))
       .map((x) => new Date(x.scheduledAt!));
     const when = nextSlot(dayDate, taken);
+    const tweet = allTweets.find((t) => t.id === tweetId);
+    const prevState = tweet ? { scheduledAt: tweet.scheduledAt, status: tweet.status } : null;
+
+    setAllTweets((prev) => prev.map((tw) => tw.id === tweetId ? { ...tw, scheduledAt: when.toISOString(), status: "SCHEDULED" } : tw));
 
     const res = await fetch("/api/tweets", {
       method: "PATCH",
@@ -297,21 +301,34 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
       body: JSON.stringify({ tweetId, scheduledAt: when.toISOString(), status: "SCHEDULED" }),
     });
     if (res.ok) {
-      setAllTweets((prev) => prev.map((tw) => tw.id === tweetId ? { ...tw, scheduledAt: when.toISOString(), status: "SCHEDULED" } : tw));
       const DAYNAMES = [t("dayNames.mon"), t("dayNames.tue"), t("dayNames.wed"), t("dayNames.thu"), t("dayNames.fri"), t("dayNames.sat"), t("dayNames.sun")];
       toast.success(t("scheduledFor", { day: DAYNAMES[(dayDate.getDay() + 6) % 7], time: fmtTime(when) }));
+    } else {
+      if (prevState) {
+        setAllTweets((prev) => prev.map((tw) => tw.id === tweetId ? { ...tw, ...prevState } : tw));
+      }
+      toast.error(t("scheduleFailed") ?? "Failed to schedule tweet");
     }
   }
 
   async function scheduleToDateTime(tweetId: string, when: Date) {
+    const tweet = allTweets.find((t) => t.id === tweetId);
+    const prevState = tweet ? { scheduledAt: tweet.scheduledAt, status: tweet.status } : null;
+
+    setAllTweets((prev) => prev.map((tw) => tw.id === tweetId ? { ...tw, scheduledAt: when.toISOString(), status: "SCHEDULED" } : tw));
+
     const res = await fetch("/api/tweets", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tweetId, scheduledAt: when.toISOString(), status: "SCHEDULED" }),
     });
     if (res.ok) {
-      setAllTweets((prev) => prev.map((tw) => tw.id === tweetId ? { ...tw, scheduledAt: when.toISOString(), status: "SCHEDULED" } : tw));
       toast.success(t("scheduledFor", { day: format(when, "EEE, MMM d"), time: fmtTime(when) }));
+    } else {
+      if (prevState) {
+        setAllTweets((prev) => prev.map((tw) => tw.id === tweetId ? { ...tw, ...prevState } : tw));
+      }
+      toast.error(t("scheduleFailed") ?? "Failed to schedule tweet");
     }
   }
 
@@ -319,14 +336,20 @@ export function SchedulePanel({ project }: SchedulePanelProps) {
     const tweet = allTweets.find((t) => t.id === tweetId);
     if (!tweet || tweet.status === "POSTED" || tweet.status === "PUBLISHING") return;
     const prevStatus = tweet?.imageUrl ? "IMAGE_GENERATED" : "CURATED";
+    const prevState = { scheduledAt: tweet.scheduledAt, status: tweet.status };
+
+    setAllTweets((prev) => prev.map((tw) => tw.id === tweetId ? { ...tw, scheduledAt: null, status: prevStatus } : tw));
+
     const res = await fetch("/api/tweets", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tweetId, scheduledAt: null, status: prevStatus }),
     });
     if (res.ok) {
-      setAllTweets((prev) => prev.map((tw) => tw.id === tweetId ? { ...tw, scheduledAt: null, status: prevStatus } : tw));
       toast.info(t("movedBack"));
+    } else {
+      setAllTweets((prev) => prev.map((tw) => tw.id === tweetId ? { ...tw, ...prevState } : tw));
+      toast.error(t("unscheduleFailed") ?? "Failed to unschedule tweet");
     }
   }
 

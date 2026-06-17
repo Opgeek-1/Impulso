@@ -462,13 +462,17 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
   }, [project.id]);
 
   async function updateStatus(tweetId: string, status: string) {
+    const tweet = tweets.find((t) => t.id === tweetId);
+    const prevStatus = tweet?.status;
+    setTweets((prev) => prev.map((t) => (t.id === tweetId ? { ...t, status } : t)));
     const res = await fetch("/api/tweets", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tweetId, status }),
     });
-    if (res.ok) {
-      setTweets((prev) => prev.map((t) => (t.id === tweetId ? { ...t, status } : t)));
+    if (!res.ok && prevStatus) {
+      setTweets((prev) => prev.map((t) => (t.id === tweetId ? { ...t, status: prevStatus } : t)));
+      toast.error(t("moveFailed") ?? "Failed to update status");
     }
   }
 
@@ -611,7 +615,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     setActiveId(event.active.id as string);
   }
 
-  function handleDragEnd(event: DragEndEvent) {
+  async function handleDragEnd(event: DragEndEvent) {
     setActiveId(null);
     const { active, over } = event;
     if (!over) return;
@@ -619,8 +623,19 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     const newStatus = over.id as string;
     const tweet = tweets.find((t) => t.id === tweetId);
     if (!tweet || tweet.status === newStatus) return;
-    updateStatus(tweetId, newStatus);
-    toast.info(t("movedTo", { label: t(LABEL_KEYS[newStatus] || "") }));
+    const prevStatus = tweet.status;
+    setTweets((prev) => prev.map((t) => (t.id === tweetId ? { ...t, status: newStatus } : t)));
+    const res = await fetch("/api/tweets", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tweetId, status: newStatus }),
+    });
+    if (res.ok) {
+      toast.info(t("movedTo", { label: t(LABEL_KEYS[newStatus] || "") }));
+    } else {
+      setTweets((prev) => prev.map((t) => (t.id === tweetId ? { ...t, status: prevStatus } : t)));
+      toast.error(t("moveFailed") ?? "Failed to move tweet");
+    }
   }
 
   if (loading) {

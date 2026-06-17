@@ -62,7 +62,7 @@ model VerificationToken {
 model Project {
   id          String   @id @default(cuid())
   name        String
-  handle      String
+  handle      String   @unique
   description String?
   brief       String?
   avatarUrl   String?

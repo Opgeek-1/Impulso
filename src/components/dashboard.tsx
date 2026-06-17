@@ -6,7 +6,6 @@ import { TopNav } from "@/components/top-nav";
 import { GeneratePanel } from "@/components/generate-panel";
 import { CuratePanel } from "@/components/curate-panel";
 import { SchedulePanel } from "@/components/schedule-panel";
-import { StylesPanel } from "@/components/styles-panel";
 import { Sparkles, Columns3, Calendar } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -200,11 +199,6 @@ export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
               )}
               {activeTab === "schedule" && (
                 <SchedulePanel project={selectedProject} />
-              )}
-              {activeTab === "styles" && (
-                <div className="p-6">
-                  <StylesPanel project={selectedProject} />
-                </div>
               )}
             </div>
           </>
