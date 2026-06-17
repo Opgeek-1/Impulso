@@ -22,6 +22,20 @@ export async function GET() {
   });
 
   if (!membership) {
+    const recheck = await prisma.workspaceMember.findFirst({
+      where: { userId: session.user.id },
+    });
+    if (recheck) {
+      const ws = await prisma.workspace.findUnique({
+        where: { id: recheck.workspaceId },
+        include: {
+          members: { include: { user: { select: { id: true, name: true, email: true, image: true } } } },
+          invites: true,
+        },
+      });
+      return NextResponse.json(ws);
+    }
+
     const workspace = await prisma.workspace.create({
       data: {
         name: session.user.name || "My Workspace",

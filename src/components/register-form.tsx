@@ -87,7 +87,7 @@ export function RegisterForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={8}
           />
         </div>
         {error && <p className="text-sm text-red-400">{error}</p>}
