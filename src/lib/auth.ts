@@ -154,7 +154,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.sub;
       }
       if (token.avatarSeed) {
-        (session.user as Record<string, unknown>).avatarSeed = token.avatarSeed;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (session.user as any).avatarSeed = token.avatarSeed;
       }
       return session;
     },
