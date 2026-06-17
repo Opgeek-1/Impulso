@@ -68,7 +68,7 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
       if (!cancelled) {
         const data = res.ok ? await res.json() : null;
         setXConfigured(Boolean(data?.configured));
-        setConnected(Boolean(data?.projects?.[project.id]?.connected));
+        setConnected(Boolean(data?.connected));
         setCheckingConnection(false);
       }
     }
