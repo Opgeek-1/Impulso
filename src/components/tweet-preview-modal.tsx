@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
 import { toast } from "sonner";
 import { useLocale, useTranslations } from "next-intl";
+import { BloomAvatar } from "@/components/ui/bloom-avatar";
 
 interface Tweet {
   id: string;
@@ -161,12 +162,7 @@ export function TweetPreviewModal({ tweet, project, onClose, onPublished }: Twee
               // eslint-disable-next-line @next/next/no-img-element
               <img src={project.avatarUrl} alt={project.name} className="w-[46px] h-[46px] object-cover shrink-0" style={{ borderRadius: "32%" }} />
             ) : (
-              <div
-                className="w-[46px] h-[46px] flex items-center justify-center text-lg font-bold shrink-0"
-                style={{ background: "var(--imp-accent-grad)", color: "var(--imp-on-accent)", borderRadius: "32%" }}
-              >
-                {project.name[0]}
-              </div>
+              <BloomAvatar seed={project.name} size={46} shape="squircle" />
             )}
             <div>
               <div className="flex items-center gap-1.5">

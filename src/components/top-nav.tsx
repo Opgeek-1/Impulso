@@ -37,6 +37,7 @@ import {
   BookOpen,
   ArrowLeft,
 } from "lucide-react";
+import { BloomAvatar } from "@/components/ui/bloom-avatar";
 
 interface Project {
   id: string;
@@ -151,12 +152,7 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={selected.avatarUrl} alt={selected.name} className="w-6 h-6 object-cover" style={{ borderRadius: "32%" }} />
                   ) : (
-                    <div
-                      className="w-6 h-6 flex items-center justify-center text-[10px] font-bold"
-                      style={{ background: "var(--imp-accent-grad)", color: "var(--imp-on-accent)", borderRadius: "32%" }}
-                    >
-                      {selected.name[0]}
-                    </div>
+                    <BloomAvatar seed={selected.name} size={24} shape="squircle" />
                   )}
                   <div className="text-left leading-tight">
                     <div className="text-[13px] font-semibold">{selected.name}</div>
@@ -186,12 +182,7 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={p.avatarUrl} alt={p.name} className="w-[30px] h-[30px] object-cover shrink-0" style={{ borderRadius: "32%" }} />
                   ) : (
-                    <div
-                      className="w-[30px] h-[30px] flex items-center justify-center text-xs font-bold shrink-0"
-                      style={{ background: "var(--imp-accent-grad)", color: "var(--imp-on-accent)", borderRadius: "32%" }}
-                    >
-                      {p.name[0]}
-                    </div>
+                    <BloomAvatar seed={p.name} size={30} shape="squircle" />
                   )}
                   <div className="flex-1 min-w-0 leading-tight">
                     <div className="text-[13px] font-semibold truncate">{p.name}</div>

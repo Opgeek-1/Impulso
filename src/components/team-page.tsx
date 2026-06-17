@@ -17,6 +17,7 @@ import {
   Check,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { BloomAvatar } from "@/components/ui/bloom-avatar";
 
 interface Project {
   id: string;
@@ -57,7 +58,6 @@ interface TeamPageProps {
   user: { id?: string; name?: string | null; email?: string | null };
 }
 
-const AVATAR_COLORS = ["#334155", "#0ea5e9", "#FE3C9C", "#22c55e", "#f59e0b", "#6366f1", "#a855f7"];
 
 function timeAgo(date: string, t: ReturnType<typeof useTranslations<"team">>) {
   const diff = Date.now() - new Date(date).getTime();
@@ -244,12 +244,7 @@ export function TeamPage({ projects, user }: TeamPageProps) {
                     className="flex items-center gap-3.5 rounded-xl px-5 py-3.5 imp-row"
                     style={{ background: "var(--imp-surface)", border: "1px solid var(--imp-border)" }}
                   >
-                    <div
-                      className="w-[40px] h-[40px] rounded-full flex items-center justify-center text-[14px] font-bold text-white shrink-0"
-                      style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
-                    >
-                      {(m.user.name || m.user.email)[0].toUpperCase()}
-                    </div>
+                    <BloomAvatar seed={m.user.name || m.user.email} size={40} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-[14px] font-semibold" style={{ color: "var(--imp-text)" }}>{m.user.name || m.user.email.split("@")[0]}</span>

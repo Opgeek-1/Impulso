@@ -33,6 +33,7 @@ import {
   Lock,
   Tag,
 } from "lucide-react";
+import { BloomAvatar } from "@/components/ui/bloom-avatar";
 
 /* --- Types --- */
 interface Project {
@@ -148,12 +149,7 @@ function AccountBriefPanel({ project, projects, onSwitchProject, onUpdate }: { p
               // eslint-disable-next-line @next/next/no-img-element
               <img src={project.avatarUrl} alt={project.name} className="w-7 h-7 object-cover" style={{ borderRadius: "32%" }} />
             ) : (
-              <div
-                className="w-7 h-7 flex items-center justify-center text-[11px] font-bold text-white"
-                style={{ background: "var(--imp-accent-grad)", color: "var(--imp-on-accent)", borderRadius: "32%" }}
-              >
-                {project.name[0]}
-              </div>
+              <BloomAvatar seed={project.name} size={28} shape="squircle" />
             )}
             <span style={{ color: "var(--imp-text)" }}>{project.name}</span>
           </button>
@@ -373,12 +369,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
               // eslint-disable-next-line @next/next/no-img-element
               <img src={project.avatarUrl} alt={project.name} className="w-7 h-7 object-cover" style={{ borderRadius: "32%" }} />
             ) : (
-              <div
-                className="w-7 h-7 flex items-center justify-center text-[10px] font-bold"
-                style={{ background: "var(--imp-accent-grad)", color: "var(--imp-on-accent)", borderRadius: "32%" }}
-              >
-                {project.name[0]}
-              </div>
+              <BloomAvatar seed={project.name} size={28} shape="squircle" />
             )}
             <div className="leading-tight text-left">
               <div className="text-[13px] font-semibold" style={{ color: "var(--imp-text)" }}>{project.name}</div>
@@ -401,12 +392,7 @@ function ImageStylesPanel({ project, projects, onSwitchProject, onUpdate }: { pr
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={p.avatarUrl} alt={p.name} className="w-6 h-6 object-cover" style={{ borderRadius: "32%" }} />
                   ) : (
-                    <div
-                      className="w-6 h-6 flex items-center justify-center text-[9px] font-bold"
-                      style={{ background: "var(--imp-accent-grad)", color: "var(--imp-on-accent)", borderRadius: "32%" }}
-                    >
-                      {p.name[0]}
-                    </div>
+                    <BloomAvatar seed={p.name} size={24} shape="squircle" />
                   )}
                   <div className="leading-tight">
                     <div className="text-[12.5px] font-semibold" style={{ color: "var(--imp-text)" }}>{p.name}</div>
@@ -616,7 +602,6 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
     setEditingId(null);
   }
 
-  const AVATAR_COLORS = ["#FE3C9C", "#0ea5e9", "#a855f7", "#f59e0b", "#22c55e", "#6366f1"];
 
   useEffect(() => {
     let cancelled = false;
@@ -727,12 +712,7 @@ function AccountsPanel({ projects, onDelete, onUpdate }: { projects: Project[]; 
                   className="w-[44px] h-[44px] rounded-full object-cover"
                 />
               ) : (
-                <div
-                  className="w-[44px] h-[44px] rounded-full flex items-center justify-center text-[16px] font-bold text-white"
-                  style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
-                >
-                  {p.name[0]}
-                </div>
+                <BloomAvatar seed={p.name} size={44} />
               )}
               <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <Pencil size={14} className="text-white" />
