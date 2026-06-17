@@ -196,7 +196,7 @@ export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
                 <GeneratePanel project={selectedProject} onComplete={() => { setActiveTab("curate"); void refreshCounts(); }} />
               )}
               {activeTab === "curate" && (
-                <CuratePanel project={selectedProject} onComplete={() => { setActiveTab("schedule"); void refreshCounts(); }} />
+                <CuratePanel project={selectedProject} onComplete={() => { setActiveTab("schedule"); void refreshCounts(); }} onCountChange={() => void refreshCounts()} />
               )}
               {activeTab === "schedule" && (
                 <SchedulePanel project={selectedProject} />

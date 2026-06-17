@@ -64,6 +64,7 @@ interface Tweet {
 interface CuratePanelProps {
   project: Project;
   onComplete: () => void;
+  onCountChange?: () => void;
 }
 
 const COLUMNS = [
@@ -428,7 +429,7 @@ function TweetCard({
   );
 }
 
-export function CuratePanel({ project, onComplete }: CuratePanelProps) {
+export function CuratePanel({ project, onComplete, onCountChange }: CuratePanelProps) {
   const t = useTranslations("curate");
   const tc = useTranslations("common");
   const [tweets, setTweets] = useState<Tweet[]>([]);
@@ -490,6 +491,7 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
     if (res.ok) {
       setTweets((prev) => prev.filter((t) => t.id !== tweetId));
       toast.success(t("tweetDeleted"));
+      onCountChange?.();
     }
   }
 
