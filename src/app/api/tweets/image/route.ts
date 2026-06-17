@@ -6,6 +6,8 @@ import { extractJSON } from "@/lib/utils-server";
 import { getWorkspaceMemberIds } from "@/lib/workspace";
 import { buildBrandContext } from "@/lib/brand-context";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {

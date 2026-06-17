@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { getWorkspaceMemberIds } from "@/lib/workspace";
 import { isSupportedUploadImageType } from "@/lib/image-files";
 
+export const dynamic = "force-dynamic";
+
 export const runtime = "nodejs";
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;

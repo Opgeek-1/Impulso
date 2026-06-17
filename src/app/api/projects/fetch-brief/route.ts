@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import dns from "node:dns/promises";
 import net from "node:net";
 
+export const dynamic = "force-dynamic";
+
 const MAX_HTML_BYTES = 1_000_000;
 
 export async function POST(req: NextRequest) {

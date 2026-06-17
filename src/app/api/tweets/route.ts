@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { getWorkspaceMemberIds } from "@/lib/workspace";
 import { removeGeneratedImage } from "@/lib/image-files";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {

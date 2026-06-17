@@ -5,6 +5,8 @@ import { chatCompletion, MODELS } from "@/lib/ai";
 import { extractJSON } from "@/lib/utils-server";
 import { getWorkspaceMemberIds } from "@/lib/workspace";
 
+export const dynamic = "force-dynamic";
+
 function generationErrorResponse(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   console.error("Tweet generation failed", error);
