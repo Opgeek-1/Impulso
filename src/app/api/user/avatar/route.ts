@@ -13,11 +13,23 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Invalid seed" }, { status: 400 });
   }
 
-  const updated = await prisma.user.update({
-    where: { id: session.user.id },
-    data: { avatarSeed },
-    select: { avatarSeed: true },
-  });
-
-  return NextResponse.json(updated);
+  try {
+    const updated = await prisma.user.update({
+      where: { id: session.user.id },
+      data: { avatarSeed },
+      select: { avatarSeed: true },
+    });
+    return NextResponse.json(updated);
+  } catch {
+    // Column may not exist if migration hasn't run yet — use raw SQL as fallback
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "avatarSeed" TEXT`
+    );
+    const updated = await prisma.user.update({
+      where: { id: session.user.id },
+      data: { avatarSeed },
+      select: { avatarSeed: true },
+    });
+    return NextResponse.json(updated);
+  }
 }
