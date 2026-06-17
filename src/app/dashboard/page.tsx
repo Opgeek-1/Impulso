@@ -28,7 +28,7 @@ export default async function DashboardPage() {
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { avatarSeed: true },
-  });
+  }).catch(() => null);
 
   return (
     <Suspense>

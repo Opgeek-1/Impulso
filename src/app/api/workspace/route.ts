@@ -14,7 +14,7 @@ export async function GET() {
     include: {
       workspace: {
         include: {
-          members: { include: { user: { select: { id: true, name: true, email: true, image: true, avatarSeed: true } } } },
+          members: { include: { user: { select: { id: true, name: true, email: true, image: true } } } },
           invites: true,
         },
       },
@@ -29,7 +29,7 @@ export async function GET() {
         members: { create: { userId: session.user.id, role: "owner" } },
       },
       include: {
-        members: { include: { user: { select: { id: true, name: true, email: true, image: true, avatarSeed: true } } } },
+        members: { include: { user: { select: { id: true, name: true, email: true, image: true } } } },
         invites: true,
       },
     });

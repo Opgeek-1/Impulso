@@ -32,7 +32,7 @@ interface Member {
   id: string;
   role: string;
   lastActive: string;
-  user: { id: string; name: string | null; email: string; image: string | null; avatarSeed?: string | null };
+  user: { id: string; name: string | null; email: string; image: string | null };
 }
 
 interface Invite {
@@ -244,7 +244,7 @@ export function TeamPage({ projects, user }: TeamPageProps) {
                     className="flex items-center gap-3.5 rounded-xl px-5 py-3.5 imp-row"
                     style={{ background: "var(--imp-surface)", border: "1px solid var(--imp-border)" }}
                   >
-                    <BloomAvatar seed={m.user.avatarSeed || m.user.name || m.user.email} size={40} />
+                    <BloomAvatar seed={m.user.name || m.user.email} size={40} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-[14px] font-semibold" style={{ color: "var(--imp-text)" }}>{m.user.name || m.user.email.split("@")[0]}</span>

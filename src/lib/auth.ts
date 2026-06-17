@@ -139,23 +139,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   providers,
   callbacks: {
-    async jwt({ token }) {
-      if (token.sub) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.sub },
-          select: { avatarSeed: true },
-        });
-        if (dbUser) token.avatarSeed = dbUser.avatarSeed;
-      }
-      return token;
-    },
     async session({ session, token }) {
       if (token.sub) {
         session.user.id = token.sub;
-      }
-      if (token.avatarSeed) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (session.user as any).avatarSeed = token.avatarSeed;
       }
       return session;
     },

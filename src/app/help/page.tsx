@@ -27,7 +27,7 @@ export default async function Help() {
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { avatarSeed: true },
-  });
+  }).catch(() => null);
 
   return <HelpPage projects={projects} user={{ ...session.user, avatarSeed: dbUser?.avatarSeed }} />;
 }
