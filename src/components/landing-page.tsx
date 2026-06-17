@@ -25,7 +25,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-export function LandingPage() {
+export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   const t = useTranslations("landing");
   const navRef = useRef<HTMLElement>(null);
 
@@ -83,19 +83,31 @@ export function LandingPage() {
           <div className="landing-nav__spacer" />
           <LandingLangSwitcher />
           <div className="landing-nav__cta">
-            <Link
-              className="landing-btn landing-btn--ghost landing-btn--sm"
-              href="/login"
-            >
-              {t("nav.signIn")}
-            </Link>
-            <Link
-              className="landing-btn landing-btn--primary landing-btn--sm"
-              href="/register"
-            >
-              {t("nav.openImpulso")}
-              <ArrowRight size={18} />
-            </Link>
+            {isAuthenticated ? (
+              <Link
+                className="landing-btn landing-btn--primary landing-btn--sm"
+                href="/dashboard"
+              >
+                {t("nav.dashboard")}
+                <ArrowRight size={18} />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  className="landing-btn landing-btn--ghost landing-btn--sm"
+                  href="/login"
+                >
+                  {t("nav.signIn")}
+                </Link>
+                <Link
+                  className="landing-btn landing-btn--primary landing-btn--sm"
+                  href="/register"
+                >
+                  {t("nav.openImpulso")}
+                  <ArrowRight size={18} />
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>

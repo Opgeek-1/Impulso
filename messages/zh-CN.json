@@ -537,7 +537,8 @@
       "features": "功能",
       "teams": "团队",
       "signIn": "登录",
-      "openImpulso": "打开 Impulso"
+      "openImpulso": "打开 Impulso",
+      "dashboard": "仪表盘"
     },
     "hero": {
       "eyebrow": "生成 · 策展 · 排期",

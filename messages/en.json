@@ -538,7 +538,8 @@
       "features": "Features",
       "teams": "Teams",
       "signIn": "Sign in",
-      "openImpulso": "Open Impulso"
+      "openImpulso": "Open Impulso",
+      "dashboard": "Dashboard"
     },
     "hero": {
       "eyebrow": "Generate · Curate · Schedule",
