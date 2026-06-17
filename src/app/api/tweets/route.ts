@@ -70,7 +70,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const statusRank = (s: string) => validStatuses.indexOf(s);
-  if (status !== undefined && status !== "DRAFT" && status !== "CURATED"
+  if (status !== undefined && status !== "DRAFT" && status !== "CURATED" && status !== "DESIGNED"
     && statusRank(status) < statusRank(tweet.status)
     && !["PUBLISH_FAILED"].includes(tweet.status)) {
     return NextResponse.json(
