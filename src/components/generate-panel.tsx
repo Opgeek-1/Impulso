@@ -240,7 +240,7 @@ export function GeneratePanel({ project, onComplete }: GeneratePanelProps) {
   const [topic, setTopic] = useState("");
   const [tone, setTone] = useState("professional");
   const [customTone, setCustomTone] = useState("");
-  const [count, setCount] = useState(7);
+  const [count, setCount] = useState(3);
   const [language, setLanguage] = useState("en");
   const [pendingRequests, setPendingRequests] = useState(0);
   const [pendingDrafts, setPendingDrafts] = useState(0);
