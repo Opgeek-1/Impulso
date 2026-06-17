@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { fetchXProfile } from "@/lib/x-api";
 import { getWorkspaceMemberIds } from "@/lib/workspace";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {

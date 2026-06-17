@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { signIn } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const projectId = req.nextUrl.searchParams.get("projectId") || "";
   const redirectTo = projectId

@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { acceptWorkspaceInvite } from "@/lib/invites";
 import bcrypt from "bcryptjs";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   const { token, name, email, password } = await req.json();
