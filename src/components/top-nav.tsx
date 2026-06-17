@@ -230,21 +230,11 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
               className="rounded-full p-0.5 border ml-0.5"
               style={{ borderColor: "var(--imp-border-2)" }}
             >
-              <div
-                className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-white text-[13px] font-semibold"
-                style={{ background: "linear-gradient(135deg, #334155, #0f172a)" }}
-              >
-                {user.name?.[0] || user.email?.[0] || "U"}
-              </div>
+              <BloomAvatar seed={user.name || user.email || "U"} size={30} />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-2 flex items-center gap-2.5">
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0"
-                  style={{ background: "linear-gradient(135deg, #334155, #0f172a)" }}
-                >
-                  {user.name?.[0] || user.email?.[0] || "U"}
-                </div>
+                <BloomAvatar seed={user.name || user.email || "U"} size={32} />
                 <div className="leading-tight min-w-0">
                   <div className="text-[13px] font-semibold truncate">{user.name || common("user")}</div>
                   <div className="text-[11px] truncate" style={{ color: "var(--imp-muted)" }}>
