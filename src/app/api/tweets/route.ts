@@ -59,6 +59,24 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Posted tweets cannot be rescheduled" }, { status: 409 });
   }
 
+  const validStatuses = [
+    "DRAFT", "CURATED", "DESIGNED", "IMAGE_GENERATED", "SCHEDULED",
+    "PUBLISHING", "PUBLISH_FAILED", "POSTED",
+  ];
+  if (status !== undefined && !validStatuses.includes(status)) {
+    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  }
+
+  const statusRank = (s: string) => validStatuses.indexOf(s);
+  if (status !== undefined && status !== "DRAFT" && status !== "CURATED"
+    && statusRank(status) < statusRank(tweet.status)
+    && !["PUBLISH_FAILED"].includes(tweet.status)) {
+    return NextResponse.json(
+      { error: `Cannot change status from ${tweet.status} to ${status}` },
+      { status: 400 }
+    );
+  }
+
   const updated = await prisma.tweet.update({
     where: { id: tweetId },
     data: {

@@ -58,7 +58,8 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { projectId, topic, tone, count = 7, language = "en" } = body;
+    const { projectId, topic, tone, count: rawCount = 7, language = "en" } = body;
+    const count = Math.min(Math.max(1, Math.floor(Number(rawCount) || 7)), 20);
 
     if (!projectId || !topic) {
       return NextResponse.json({ error: "projectId and topic are required" }, { status: 400 });

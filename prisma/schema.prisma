@@ -78,6 +78,8 @@ model Project {
   styles      Style[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Style {
@@ -89,6 +91,8 @@ model Style {
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([projectId])
 }
 
 model Tweet {
@@ -110,6 +114,10 @@ model Tweet {
   batch           Batch?      @relation(fields: [batchId], references: [id])
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+
+  @@index([projectId])
+  @@index([status, scheduledAt])
+  @@index([batchId])
 }
 
 model Batch {
@@ -164,4 +172,7 @@ model WorkspaceInvite {
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now())
+
+  @@index([workspaceId])
+  @@index([email])
 }

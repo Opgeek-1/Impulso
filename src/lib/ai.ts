@@ -45,6 +45,7 @@ export async function chatCompletion(options: ChatOptions) {
       temperature: options.temperature ?? 0.8,
       max_tokens: options.max_tokens ?? 2048,
     }),
+    signal: AbortSignal.timeout(120_000),
   });
 
   if (!response.ok) {
@@ -83,6 +84,7 @@ async function generateImageFromPrompt(config: AIConfig, prompt: string, options
       size: options?.size ?? "1024x1024",
       n: 1,
     }),
+    signal: AbortSignal.timeout(180_000),
   });
 
   if (!response.ok) {
@@ -126,6 +128,7 @@ async function generateImageFromReference(config: AIConfig, prompt: string, opti
       Authorization: `Bearer ${config.apiKey}`,
     },
     body: formData,
+    signal: AbortSignal.timeout(180_000),
   });
 
   if (!response.ok) {

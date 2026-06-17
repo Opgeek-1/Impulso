@@ -34,7 +34,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Design brief not generated yet" }, { status: 400 });
   }
 
-  const brief = JSON.parse(extractJSON(tweet.designBrief));
+  let brief;
+  try {
+    brief = JSON.parse(extractJSON(tweet.designBrief));
+  } catch {
+    return NextResponse.json(
+      { error: "Design brief contains invalid JSON. Please regenerate the design brief." },
+      { status: 400 }
+    );
+  }
   const basePrompt = tweet.imagePrompt || brief.imagePrompt || brief.concept;
   const brandContext = buildBrandContext(tweet.project);
   const feedbackClause = feedback?.trim()
@@ -87,12 +95,13 @@ Typography rules:
     return NextResponse.json({ error: "No image generated" }, { status: 500 });
   }
 
+  const allowedForImageStatus = ["DRAFT", "CURATED", "DESIGNED", "IMAGE_GENERATED"];
   const updated = await prisma.tweet.update({
     where: { id: tweetId },
     data: {
       imageUrl,
       imagePrompt: prompt,
-      status: "IMAGE_GENERATED",
+      ...(allowedForImageStatus.includes(tweet.status) && { status: "IMAGE_GENERATED" }),
     },
   });
 

@@ -23,14 +23,16 @@ export async function GET(req: NextRequest) {
   const where: Record<string, unknown> = {
     projectId,
     project: { userId: { in: memberIds } },
-    scheduledAt: { not: null },
   };
 
   if (startDate && endDate) {
     where.scheduledAt = {
+      not: null,
       gte: new Date(startDate),
       lte: new Date(endDate),
     };
+  } else {
+    where.scheduledAt = { not: null };
   }
 
   const tweets = await prisma.tweet.findMany({

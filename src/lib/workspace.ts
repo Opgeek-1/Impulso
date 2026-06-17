@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 export async function getWorkspaceMemberIds(userId: string): Promise<string[]> {
   const membership = await prisma.workspaceMember.findFirst({
     where: { userId },
+    orderBy: { createdAt: "asc" },
     include: { workspace: { include: { members: true } } },
   });
 

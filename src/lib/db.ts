@@ -5,7 +5,15 @@ import pg from "pg";
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
 function createPrismaClient() {
-  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL! });
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL environment variable is required");
+  }
+  const pool = new pg.Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+  });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter } as never);
 }

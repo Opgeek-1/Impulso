@@ -7,48 +7,49 @@ import { getWorkspaceMemberIds } from "@/lib/workspace";
 import { buildBrandContext } from "@/lib/brand-context";
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const body = await req.json();
-  const { tweetId, styleId } = body;
-  const hasStyleId = Object.hasOwn(body, "styleId");
-
-  if (!tweetId) {
-    return NextResponse.json({ error: "tweetId is required" }, { status: 400 });
-  }
-
-  const memberIds = await getWorkspaceMemberIds(session.user.id);
-
-  const tweet = await prisma.tweet.findFirst({
-    where: { id: tweetId },
-    include: { project: { include: { user: true, styles: true } } },
-  });
-
-  if (!tweet || !memberIds.includes(tweet.project.userId)) {
-    return NextResponse.json({ error: "Tweet not found" }, { status: 404 });
-  }
-
-  let styleGuide = "";
-  if (styleId) {
-    const style = tweet.project.styles.find((s) => s.id === styleId);
-    if (!style) {
-      return NextResponse.json({ error: "Style not found" }, { status: 400 });
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    styleGuide = style.content;
-  } else if (!hasStyleId) {
-    const defaultStyle = tweet.project.styles.find((s) => s.isDefault);
-    if (defaultStyle) styleGuide = defaultStyle.content;
-  }
 
-  const styleSection = styleGuide
-    ? `\n\nIMPORTANT — Follow this brand style guide strictly:\n${styleGuide}\n`
-    : "";
-  const brandContext = buildBrandContext(tweet.project);
+    const body = await req.json();
+    const { tweetId, styleId } = body;
+    const hasStyleId = Object.hasOwn(body, "styleId");
 
-  const systemPrompt = `You are a graphic designer specializing in social media visuals. Given a tweet, create a detailed design brief for an accompanying image/poster.
+    if (!tweetId) {
+      return NextResponse.json({ error: "tweetId is required" }, { status: 400 });
+    }
+
+    const memberIds = await getWorkspaceMemberIds(session.user.id);
+
+    const tweet = await prisma.tweet.findFirst({
+      where: { id: tweetId },
+      include: { project: { include: { user: true, styles: true } } },
+    });
+
+    if (!tweet || !memberIds.includes(tweet.project.userId)) {
+      return NextResponse.json({ error: "Tweet not found" }, { status: 404 });
+    }
+
+    let styleGuide = "";
+    if (styleId) {
+      const style = tweet.project.styles.find((s) => s.id === styleId);
+      if (!style) {
+        return NextResponse.json({ error: "Style not found" }, { status: 400 });
+      }
+      styleGuide = style.content;
+    } else if (!hasStyleId) {
+      const defaultStyle = tweet.project.styles.find((s) => s.isDefault);
+      if (defaultStyle) styleGuide = defaultStyle.content;
+    }
+
+    const styleSection = styleGuide
+      ? `\n\nIMPORTANT — Follow this brand style guide strictly:\n${styleGuide}\n`
+      : "";
+    const brandContext = buildBrandContext(tweet.project);
+
+    const systemPrompt = `You are a graphic designer specializing in social media visuals. Given a tweet, create a detailed design brief for an accompanying image/poster.
 IMPORTANT — Follow this account brand context strictly:
 ${brandContext}
 ${styleSection}
@@ -80,24 +81,50 @@ Output a JSON object with:
 
 Only output the JSON, nothing else.`;
 
-  const result = await chatCompletion({
-    model: MODELS.design,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: `Tweet: "${tweet.content}"\nAccount: @${tweet.project.handle} (${tweet.project.name})` },
-    ],
-  });
+    const result = await chatCompletion({
+      model: MODELS.design,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Tweet: "${tweet.content}"\nAccount: @${tweet.project.handle} (${tweet.project.name})` },
+      ],
+    });
 
-  const raw = result.choices[0].message.content;
-  const designBrief = extractJSON(raw);
+    const raw = result.choices[0].message.content;
+    const designBrief = extractJSON(raw);
 
-  const updated = await prisma.tweet.update({
-    where: { id: tweetId },
-    data: {
-      designBrief,
-      status: "DESIGNED",
-    },
-  });
+    try {
+      JSON.parse(designBrief);
+    } catch {
+      return NextResponse.json(
+        { error: "AI returned an invalid design brief. Please try again." },
+        { status: 502 }
+      );
+    }
 
-  return NextResponse.json(updated);
+    const data: Record<string, unknown> = { designBrief };
+    const statusOrder = ["DRAFT", "CURATED", "DESIGNED"];
+    if (statusOrder.includes(tweet.status)) {
+      data.status = "DESIGNED";
+    }
+
+    const updated = await prisma.tweet.update({
+      where: { id: tweetId },
+      data,
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error("Design brief generation failed", error);
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("AI_API_BASE_URL and AI_API_KEY")) {
+      return NextResponse.json(
+        { error: "AI API settings are missing. Add AI_API_BASE_URL and AI_API_KEY, then try again." },
+        { status: 503 }
+      );
+    }
+    return NextResponse.json(
+      { error: "Failed to generate design brief. Please try again." },
+      { status: 502 }
+    );
+  }
 }
