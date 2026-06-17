@@ -94,7 +94,7 @@ const VALID_TAB_IDS = new Set(TABS.map((t) => t.id));
 
 function buildQs(params: URLSearchParams) {
   const qs = params.toString();
-  return qs ? `/?${qs}` : "/";
+  return qs ? `/dashboard?${qs}` : "/dashboard";
 }
 
 export function Dashboard({ projects: initialProjects, user }: DashboardProps) {
