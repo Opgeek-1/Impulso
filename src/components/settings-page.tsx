@@ -1037,10 +1037,10 @@ function VersionPanel() {
               </span>
             </div>
             <ul className="list-none m-0 p-0 flex flex-col gap-1.5">
-              {entry.changes.map((change, i) => (
-                <li key={i} className="flex items-start gap-2 text-[13.5px]" style={{ color: "var(--imp-text-2)" }}>
+              {entry.changeKeys.map((key) => (
+                <li key={key} className="flex items-start gap-2 text-[13.5px]" style={{ color: "var(--imp-text-2)" }}>
                   <span className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "var(--imp-accent)" }} />
-                  {change}
+                  {tv(key)}
                 </li>
               ))}
             </ul>

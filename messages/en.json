@@ -333,7 +333,19 @@
       "accentDesc": "Used for highlights, buttons, and focus states."
     },
     "version": {
-      "currentVersion": "Current version"
+      "currentVersion": "Current version",
+      "v1_2_0_a": "Added Version tab in settings to track update history",
+      "v1_2_0_b": "Full Chinese (zh-CN) localization for all UI strings",
+      "v1_2_0_c": "Replaced hardcoded English text with i18n throughout the app",
+      "v1_1_0_a": "Image upload and paste support in the curate panel",
+      "v1_1_0_b": "Copyable image prompts for generated visuals",
+      "v1_1_0_c": "Editable account display names with auto-sync from X profile",
+      "v1_1_0_d": "Brand kit panel with logo, colors, and reusable visual briefs",
+      "v1_0_0_a": "Initial release of Impulso",
+      "v1_0_0_b": "AI-powered tweet generation pipeline",
+      "v1_0_0_c": "Multi-account support with per-account briefs and schedules",
+      "v1_0_0_d": "Image style management and generation",
+      "v1_0_0_e": "Dark / light theme with accent color customization"
     }
   },
   "settingsPopover": {
