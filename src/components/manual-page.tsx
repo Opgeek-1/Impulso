@@ -15,7 +15,7 @@ interface Project {
 
 interface ManualPageProps {
   projects: Project[];
-  user: { id?: string; name?: string | null; email?: string | null };
+  user: { id?: string; name?: string | null; email?: string | null; avatarSeed?: string | null };
 }
 
 export function ManualPage({ projects, user }: ManualPageProps) {

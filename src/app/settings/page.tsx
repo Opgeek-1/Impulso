@@ -33,9 +33,14 @@ export default async function Settings() {
     brief: p.brief,
   }));
 
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { avatarSeed: true },
+  });
+
   return (
     <Suspense>
-      <SettingsPage projects={projectsWithBrief} user={session.user} />
+      <SettingsPage projects={projectsWithBrief} user={{ ...session.user, avatarSeed: dbUser?.avatarSeed }} />
     </Suspense>
   );
 }

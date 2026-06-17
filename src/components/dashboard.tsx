@@ -21,7 +21,7 @@ interface Project {
 
 interface DashboardProps {
   projects: Project[];
-  user: { id?: string; name?: string | null; email?: string | null };
+  user: { id?: string; name?: string | null; email?: string | null; avatarSeed?: string | null };
 }
 
 const TABS = [

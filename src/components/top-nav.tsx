@@ -38,6 +38,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { BloomAvatar } from "@/components/ui/bloom-avatar";
+import { AvatarPicker } from "@/components/avatar-picker";
 
 interface Project {
   id: string;
@@ -53,13 +54,15 @@ interface TopNavProps {
   selected: Project | null;
   onSelect: (project: Project) => void;
   onCreated: (project: Project) => void;
-  user: { id?: string; name?: string | null; email?: string | null };
+  user: { id?: string; name?: string | null; email?: string | null; avatarSeed?: string | null };
 }
 
 export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNavProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  const [avatarSeed, setAvatarSeed] = useState(user.avatarSeed || user.name || user.email || "U");
+  const [pickerOpen, setPickerOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const t = useTranslations("nav");
@@ -230,11 +233,19 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
               className="rounded-full p-0.5 border ml-0.5"
               style={{ borderColor: "var(--imp-border-2)" }}
             >
-              <BloomAvatar seed={user.name || user.email || "U"} size={30} />
+              <BloomAvatar seed={avatarSeed} size={30} />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-2 flex items-center gap-2.5">
-                <BloomAvatar seed={user.name || user.email || "U"} size={32} />
+                <button
+                  onClick={() => setPickerOpen(true)}
+                  className="relative group/av rounded-full shrink-0"
+                >
+                  <BloomAvatar seed={avatarSeed} size={32} />
+                  <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover/av:opacity-100 transition-opacity">
+                    <Settings size={12} className="text-white" />
+                  </div>
+                </button>
                 <div className="leading-tight min-w-0">
                   <div className="text-[13px] font-semibold truncate">{user.name || common("user")}</div>
                   <div className="text-[11px] truncate" style={{ color: "var(--imp-muted)" }}>
@@ -243,6 +254,10 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
                 </div>
               </div>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setPickerOpen(true)} className="gap-2">
+                <Settings size={14} />
+                {t("changeAvatar")}
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push("/team")} className="gap-2">
                 <Users size={14} />
                 {t("teamWorkspace")}
@@ -262,6 +277,12 @@ export function TopNav({ projects, selected, onSelect, onCreated, user }: TopNav
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <AvatarPicker
+            open={pickerOpen}
+            onOpenChange={setPickerOpen}
+            currentSeed={avatarSeed}
+            onPicked={setAvatarSeed}
+          />
         </div>
       </header>
 

@@ -24,5 +24,10 @@ export default async function Manual() {
     orderBy: { createdAt: "desc" },
   });
 
-  return <ManualPage projects={projects} user={session.user} />;
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { avatarSeed: true },
+  });
+
+  return <ManualPage projects={projects} user={{ ...session.user, avatarSeed: dbUser?.avatarSeed }} />;
 }

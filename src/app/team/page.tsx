@@ -24,5 +24,10 @@ export default async function Team() {
     orderBy: { createdAt: "desc" },
   });
 
-  return <TeamPage projects={projects} user={session.user} />;
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { avatarSeed: true },
+  });
+
+  return <TeamPage projects={projects} user={{ ...session.user, avatarSeed: dbUser?.avatarSeed }} />;
 }
