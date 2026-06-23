@@ -505,12 +505,16 @@ export function CuratePanel({ project, onComplete }: CuratePanelProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tweetId, styleId }),
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Failed");
+      }
       const updated = await res.json();
       setTweets((prev) => prev.map((t) => (t.id === tweetId ? updated : t)));
       toast.success(t("briefGenerated"));
-    } catch {
-      toast.error(t("briefFailed"));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed";
+      toast.error(message);
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);

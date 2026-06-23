@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  const basePrompt = tweet.imagePrompt || brief.imagePrompt || brief.concept;
+  const basePrompt = brief.imagePrompt || brief.concept;
   const brandContext = buildBrandContext(tweet.project);
   const feedbackClause = feedback?.trim()
     ? `\n\nUser feedback on previous image — apply these changes:\n${feedback.trim()}`
