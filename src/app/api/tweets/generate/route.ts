@@ -81,16 +81,19 @@ export async function POST(req: NextRequest) {
       ? `\n\nACCOUNT CONTEXT — Use this as background reference for content generation:\n${project.brief}\n`
       : "";
 
+    const langName = language === "en" ? "English" : language === "zh" ? "Chinese" : language === "ja" ? "Japanese" : language === "es" ? "Spanish" : language;
+
     const systemPrompt = `You are a social media content strategist. Generate ${count} unique tweets for the Twitter account @${project.handle} (${project.name}).
 ${briefSection}
+CRITICAL — OUTPUT LANGUAGE: You MUST write ALL tweet content in ${langName}. Even if the topic is provided in a different language, translate and write the tweets in ${langName}. This is non-negotiable.
+
 Each tweet should:
 - Be under 280 characters
 - Approach the topic from a different angle
 - Be engaging and shareable
 - Match the tone: ${tone || "professional yet approachable"}
-- Write in ${language === "en" ? "English" : language === "zh" ? "Chinese" : language === "ja" ? "Japanese" : language === "es" ? "Spanish" : language}
 
-Respond with a JSON array of objects: [{"content": "tweet text", "angle": "brief description of the angle"}]
+Respond with a JSON array of objects: [{"content": "tweet text in ${langName}", "angle": "brief description of the angle"}]
 Only output the JSON array, nothing else.`;
 
     const result = await chatCompletion({
@@ -112,11 +115,11 @@ Only output the JSON array, nothing else.`;
         messages: [
           {
             role: "system",
-            content: "Convert the provided text into a valid JSON array of tweet objects. Only output JSON. Use this shape: [{\"content\":\"tweet text\",\"angle\":\"brief angle\"}].",
+            content: `Convert the provided text into a valid JSON array of tweet objects. All tweet content MUST be written in ${langName}. Only output JSON. Use this shape: [{"content":"tweet text in ${langName}","angle":"brief angle"}].`,
           },
           {
             role: "user",
-            content: `Topic: ${topic}\nCount: ${count}\nLanguage: ${language}\nInvalid previous output:\n${raw}`,
+            content: `Topic: ${topic}\nCount: ${count}\nLanguage: ${langName}\nInvalid previous output:\n${raw}`,
           },
         ],
       });
